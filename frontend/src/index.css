@@ -1,0 +1,164 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: #0a0a0a;
+  --color-panel: #0d0d0d;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.14);
+  --color-foreground: #f5f5f5;
+  --color-muted: #a1a1a1;
+  --color-faint: #737373;
+  --color-positive: #4ade80;
+  --color-negative: #f87171;
+  --radius-panel: 8px;
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+}
+
+:root {
+  /* Tokens del dashboard: un solo lugar para ajustar la paleta de gráficas. */
+  --chart-line: #d4d4d4;
+  --chart-grid: rgba(255, 255, 255, 0.07);
+  --chart-fill-start: 0.22;
+  --chart-fill-end: 0;
+  --gauge-filled: #9a9a9a;
+  --gauge-empty: #2a2a2a;
+  --bar-filled: 0.42;
+  --bar-empty: 0.05;
+  --bar-highlight: 0.82;
+
+  /* Estructura del shell: sidebar, separación y panel derecho. */
+  --sidebar-width: 10rem;
+  --sidebar-collapsed: 4rem;
+  --content-gap: 1rem;
+  --shell-offset: calc(var(--sidebar-width) + var(--content-gap));
+  --shell-offset-collapsed: calc(
+    var(--sidebar-collapsed) + var(--content-gap)
+  );
+  --panel-width: 380px;
+  --panel-width-wide: 400px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0a0a0a;
+  color: #f5f5f5;
+  font-family:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  ::selection {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+  }
+
+  summary {
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Evita que el autocompletado del navegador pinte los campos de acceso
+     con el fondo azul/amarillo nativo; el login debe seguir siendo oscuro. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #111111 inset !important;
+    -webkit-text-fill-color: #f5f5f5 !important;
+    caret-color: #f5f5f5;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+/* Entrada del panel lateral del tablero de bahías y de su telón. */
+@keyframes panel-entrada {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fundido-entrada {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Impresión de la orden de servicio.
+   La hoja vive en un portal fuera de #root para que el panel, el sidebar y
+   los botones no salgan en el papel; en pantalla permanece oculta.
+   -------------------------------------------------------------------------- */
+#orden-impresion {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  body > #root {
+    display: none !important;
+  }
+
+  #orden-impresion {
+    display: block !important;
+    width: 100%;
+    padding: 0;
+  }
+
+  @page {
+    size: letter;
+    margin: 14mm;
+  }
+}

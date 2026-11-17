@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "mysql": {
+      "type": "local",
+      "command": ["npx", "-y", "@leeming87v5/mysql-mcp"],
+      "enabled": true,
+      "environment": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "TU_CONTRASENA_AQUI",
+        "MYSQL_DATABASE": "autopulse_elite",
+        "MYSQL_ALLOW_WRITE": "true"
+      }
+    }
+  }
+}

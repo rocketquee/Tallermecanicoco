@@ -1,0 +1,48 @@
+# =====================================================================
+# Configuración local con credenciales: NO se sube al repositorio
+# Copia opencode.example.json a opencode.json y pon tus datos.
+# =====================================================================
+opencode.json
+opencode.local.json
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# Respaldos y volcados de base de datos
+*.dump
+*.sql.gz
+dumps/
+
+# Logs y temporales
+*.log
+*.tmp
+tmp/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
