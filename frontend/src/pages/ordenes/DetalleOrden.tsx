@@ -847,6 +847,25 @@ export function DetalleOrden() {
 
           <Panel>
             <PanelCabecera
+              titulo="Diagnóstico del mecánico"
+              descripcion="Hallazgos y notas registradas durante el trabajo."
+              extra={
+                <span className="self-start rounded-full border border-violet-400/30 bg-violet-400/10 px-2.5 py-1 text-[10px] font-medium tracking-wide text-violet-300 uppercase sm:self-auto">
+                  Taller
+                </span>
+              }
+            />
+            <p className="border-l-2 border-violet-400/30 px-4 py-4 text-[12px] leading-6 text-muted sm:px-5">
+              {orden.diagnostico ?? (
+                <span className="text-faint">
+                  Aún no hay diagnóstico registrado.
+                </span>
+              )}
+            </p>
+          </Panel>
+
+          <Panel>
+            <PanelCabecera
               titulo="Servicios y refacciones"
               descripcion="Conceptos cargados a la orden con su cantidad y precio."
               extra={

@@ -9,6 +9,7 @@ import { ClienteDetalle } from './pages/clientes/ClienteDetalle'
 import { ListaClientes } from './pages/clientes/ListaClientes'
 import { NuevoCliente } from './pages/clientes/NuevoCliente'
 import { Configuracion } from './pages/configuracion/Configuracion'
+import { Inventario } from './pages/inventario/Inventario'
 import { DetalleOrden } from './pages/ordenes/DetalleOrden'
 import { OrdenesServicio } from './pages/ordenes/OrdenesServicio'
 import { NuevoVehiculo } from './pages/vehiculos/NuevoVehiculo'
@@ -19,12 +20,6 @@ import { Vehiculos } from './pages/vehiculos/Vehiculos'
  * vista vacía para conservar el fondo, la tipografía y los tokens del panel.
  */
 const MODULOS_EN_CONSTRUCCION = [
-  {
-    ruta: '/inventario',
-    titulo: 'Inventario',
-    descripcion:
-      'Piezas, tornillería y consumibles con existencias y puntos de reorden.',
-  },
   {
     ruta: '/proveedores',
     titulo: 'Proveedores y compras',
@@ -72,6 +67,7 @@ export default function App() {
               <Route path="/clientes/:id" element={<ClienteDetalle />} />
               <Route path="/vehiculos" element={<Vehiculos />} />
               <Route path="/vehiculos/nuevo" element={<NuevoVehiculo />} />
+              <Route path="/inventario" element={<Inventario />} />
               <Route path="/ordenes" element={<OrdenesServicio />} />
               <Route path="/ordenes/:id" element={<DetalleOrden />} />
               <Route path="/configuracion" element={<Configuracion />} />

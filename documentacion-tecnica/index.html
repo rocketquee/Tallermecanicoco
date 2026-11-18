@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoPulse Elite · Diagrama E-R interactivo</title>
+<style>
+  /* =====================================================================
+     AutoPulse Elite — Documentación técnica
+     Diagrama E-R interactivo · tema oscuro · HTML + CSS + JS puro
+     ===================================================================== */
+
+  :root {
+    --bg:            #070b14;
+    --bg-soft:       #0b1220;
+    --panel:         rgba(13, 20, 34, .82);
+    --panel-solid:   #0d1422;
+    --stroke:        rgba(148, 163, 184, .16);
+    --stroke-strong: rgba(148, 163, 184, .30);
+    --text:          #e6edf7;
+    --muted:         #93a4bd;
+    --dim:           #64748b;
+    --cyan:          #38bdf8;
+    --violet:        #a78bfa;
+    --amber:         #fbbf24;
+    --emerald:       #34d399;
+    --rose:          #fb7185;
+    --slate:         #94a3b8;
+    --radius:        16px;
+    --shadow:        0 18px 50px -12px rgba(0, 0, 0, .7);
+    --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Fondo: cuadrícula + resplandores */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(56, 189, 248, .13), transparent 65%),
+      radial-gradient(800px 480px at 88% 4%, rgba(167, 139, 250, .12), transparent 62%),
+      radial-gradient(700px 500px at 50% 110%, rgba(52, 211, 153, .07), transparent 68%);
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, .045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, .045) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at 50% 24%, #000 0%, transparent 82%);
+    -webkit-mask-image: radial-gradient(circle at 50% 24%, #000 0%, transparent 82%);
+  }
+
+  ::selection { background: rgba(56, 189, 248, .30); }
+
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---------- Barra superior ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px clamp(16px, 4vw, 34px);
+    background: rgba(7, 11, 20, .72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+  .brand-mark {
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(56, 189, 248, .22), rgba(167, 139, 250, .20));
+    border: 1px solid rgba(56, 189, 248, .35);
+    box-shadow: 0 0 26px -6px rgba(56, 189, 248, .55);
+    flex: 0 0 auto;
+  }
+  .brand-mark svg { width: 20px; height: 20px; }
+
+  .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .brand-text strong { font-size: 14.5px; letter-spacing: .2px; font-weight: 650; }
+  .brand-text span { font-size: 11.5px; color: var(--dim); letter-spacing: .55px; text-transform: uppercase; }
+
+  .topbar-spacer { flex: 1 1 auto; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(148, 163, 184, .08);
+    border: 1px solid var(--stroke-strong);
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .18s, border-color .18s, transform .12s, box-shadow .18s;
+  }
+  .btn svg { width: 15px; height: 15px; opacity: .9; }
+  .btn:hover { background: rgba(148, 163, 184, .15); border-color: rgba(148, 163, 184, .45); }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  .btn-primary {
+    color: #04121c;
+    background: linear-gradient(135deg, #7dd3fc, #38bdf8 45%, #22d3ee);
+    border-color: transparent;
+    box-shadow: 0 8px 24px -10px rgba(56, 189, 248, .9);
+  }
+  .btn-primary:hover { background: linear-gradient(135deg, #a5e4ff, #4cc9fa 45%, #38e0f5); border-color: transparent; }
+
+  .btn-ghost { background: transparent; }
+
+  /* ---------- Layout ---------- */
+  main {
+    width: min(1500px, 100%);
+    margin: 0 auto;
+    padding: 0 clamp(14px, 3.4vw, 32px) 90px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: clamp(34px, 6vw, 62px) 0 26px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    margin-bottom: 18px;
+    font-size: 11.5px;
+    font-weight: 650;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #bae6fd;
+    background: rgba(56, 189, 248, .09);
+    border: 1px solid rgba(56, 189, 248, .28);
+    border-radius: 999px;
+  }
+  .eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, .18);
+  }
+
+  .hero h1 {
+    margin: 0 0 14px;
+    font-size: clamp(30px, 5.2vw, 54px);
+    line-height: 1.04;
+    letter-spacing: -1.6px;
+    font-weight: 750;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(100deg, #e0f2fe 8%, #7dd3fc 38%, #a78bfa 72%, #f0abfc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero p.lead {
+    max-width: 760px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: clamp(14px, 1.6vw, 16.5px);
+  }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 26px;
+  }
+  .stat {
+    min-width: 118px;
+    padding: 11px 18px;
+    background: linear-gradient(180deg, rgba(148, 163, 184, .08), rgba(148, 163, 184, .03));
+    border: 1px solid var(--stroke);
+    border-radius: 13px;
+  }
+  .stat b {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    color: #f1f5f9;
+  }
+  .stat span {
+    font-size: 10.5px;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* ---------- Panel del diagrama ---------- */
+  .workspace {
+    position: relative;
+    margin-top: 30px;
+    background: linear-gradient(180deg, rgba(13, 20, 34, .92), rgba(9, 14, 24, .96));
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  /* El diagrama aprovecha todo el ancho de la pantalla */
+  @media (min-width: 1200px) {
+    .workspace {
+      width: calc(100vw - 48px);
+      margin-left: calc(50% - 50vw + 24px);
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-bottom: 1px solid var(--stroke);
+    background: rgba(7, 11, 20, .55);
+  }
+
+  .search {
+    position: relative;
+    flex: 1 1 210px;
+    min-width: 170px;
+  }
+  .search svg {
+    position: absolute;
+    left: 11px; top: 50%;
+    width: 15px; height: 15px;
+    transform: translateY(-50%);
+    color: var(--dim);
+    pointer-events: none;
+  }
+  .search input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px 0 34px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: rgba(2, 6, 14, .6);
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color .16s, box-shadow .16s;
+  }
+  .search input::placeholder { color: var(--dim); }
+  .search input:focus {
+    border-color: rgba(56, 189, 248, .55);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, .12);
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 11px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--stroke);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all .16s;
+  }
+  .chip .swatch {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .chip:hover { color: var(--text); border-color: var(--stroke-strong); background: rgba(148, 163, 184, .07); }
+  .chip.is-active {
+    color: #eaf6ff;
+    background: rgba(56, 189, 248, .14);
+    border-color: rgba(56, 189, 248, .45);
+  }
+  .chip[data-dominio="catalogos"]  .swatch { color: var(--cyan); }
+  .chip[data-dominio="vehiculos"]  .swatch { color: var(--violet); }
+  .chip[data-dominio="inventario"] .swatch { color: var(--amber); }
+  .chip[data-dominio="ordenes"]    .swatch { color: var(--emerald); }
+  .chip[data-dominio="finanzas"]   .swatch { color: var(--rose); }
+  .chip[data-dominio="seguridad"]  .swatch { color: var(--slate); }
+
+  .zoom-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    background: rgba(2, 6, 14, .5);
+    margin-left: auto;
+  }
+  .zoom-group button {
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    font: inherit;
+    font-size: 15px;
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .zoom-group button:hover { background: rgba(148, 163, 184, .16); color: var(--text); }
+  .zoom-group .zoom-label {
+    min-width: 46px;
+    text-align: center;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--dim);
+  }
+  .zoom-group button.wide { width: auto; padding: 0 9px; font-size: 11.5px; }
+
+  /* Lienzo con pan & zoom */
+  .viewport {
+    position: relative;
+    height: clamp(460px, 74vh, 820px);
+    overflow: hidden;
+    cursor: grab;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(56, 189, 248, .05), transparent 62%),
+      radial-gradient(rgba(148, 163, 184, .10) 1px, transparent 1px);
+    background-size: auto, 22px 22px;
+    background-position: center, 0 0;
+  }
+  .viewport.is-panning { cursor: grabbing; }
+
+  #canvas {
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  #canvas svg { display: block; max-width: none !important; height: auto; animation: diagramIn .55s cubic-bezier(.22, .8, .28, 1) both; }
+  @keyframes diagramIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .hint {
+    position: absolute;
+    left: 12px; bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 10px;
+    font-size: 11px;
+    color: var(--dim);
+    background: rgba(2, 6, 14, .72);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    pointer-events: none;
+    backdrop-filter: blur(6px);
+  }
+  .hint kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 5px;
+    color: var(--muted);
+    background: rgba(148, 163, 184, .14);
+    border: 1px solid var(--stroke);
+    border-radius: 4px;
+  }
+
+  .loader {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    gap: 14px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 13px;
+    background: rgba(7, 11, 20, .55);
+    z-index: 3;
+  }
+  .spinner {
+    width: 26px; height: 26px;
+    margin: 0 auto 12px;
+    border: 2px solid rgba(148, 163, 184, .22);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    max-width: 560px;
+    margin: 40px auto;
+    padding: 18px 20px;
+    text-align: left;
+    font-size: 13px;
+    color: #fecdd3;
+    background: rgba(159, 18, 57, .14);
+    border: 1px solid rgba(251, 113, 133, .35);
+    border-radius: 12px;
+  }
+  .error-box strong { display: block; margin-bottom: 6px; color: #ffe4e6; }
+  .error-box code { font-family: var(--mono); font-size: 12px; word-break: break-word; }
+
+  /* ---------- Estilos aplicados al SVG de Mermaid ---------- */
+  .er.entityLabel,
+  .er.entityLabel span {
+    fill: #f1f5f9 !important;
+    font-weight: 650 !important;
+    letter-spacing: .2px;
+  }
+  .er.relationshipLine { stroke: #44556e !important; stroke-width: 1.4px !important; }
+  .er.relationshipLabel { fill: #93a4bd !important; font-size: 10.5px !important; }
+  .er.relationshipLabelBox { fill: #0b1220 !important; opacity: .78 !important; }
+  .er.entityBox { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, .45)); }
+
+  g.node { transition: opacity .22s ease, filter .22s ease; }
+  g.node.clickable { cursor: pointer; }
+  g.node.clickable:hover .er.entityBox {
+    stroke-width: 2.6px !important;
+    filter: drop-shadow(0 0 18px rgba(56, 189, 248, .55));
+  }
+  g.node.is-dim { opacity: .16; }
+  g.node.is-match .er.entityBox {
+    stroke: #38bdf8 !important;
+    stroke-width: 2.6px !important;
+    filter: drop-shadow(0 0 20px rgba(56, 189, 248, .65));
+  }
+  g.node.is-pulse .er.entityBox { animation: pulseNode 1.05s ease-in-out 3; }
+  @keyframes pulseNode {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0)); }
+    50%      { filter: drop-shadow(0 0 26px rgba(56, 189, 248, .95)); }
+  }
+
+  /* ---------- Panel lateral ---------- */
+  .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(2, 6, 14, .62);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .scrim.is-open { opacity: 1; pointer-events: auto; }
+
+  .panel {
+    position: fixed;
+    top: 0; right: 0;
+    z-index: 70;
+    width: min(480px, 100%);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0e1626, #080d17 60%);
+    border-left: 1px solid var(--stroke-strong);
+    box-shadow: -30px 0 70px -30px rgba(0, 0, 0, .9);
+    transform: translateX(102%);
+    transition: transform .32s cubic-bezier(.22, .8, .28, 1);
+    visibility: hidden;
+  }
+  .panel.is-open { transform: translateX(0); visibility: visible; }
+
+  .panel-head {
+    position: relative;
+    padding: 22px 22px 16px;
+    border-bottom: 1px solid var(--stroke);
+    background:
+      radial-gradient(420px 160px at 0% 0%, rgba(56, 189, 248, .14), transparent 70%);
+  }
+  .panel-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    color: var(--muted);
+    background: rgba(148, 163, 184, .08);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .panel-close:hover { color: #fff; background: rgba(251, 113, 133, .18); border-color: rgba(251, 113, 133, .4); }
+
+  .panel-domain {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 9px;
+    margin-bottom: 10px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    border: 1px solid currentColor;
+  }
+  .panel-domain .swatch { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .panel h2 {
+    margin: 0 0 4px;
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 650;
+    letter-spacing: -.5px;
+    color: #f8fafc;
+    padding-right: 36px;
+  }
+  .panel .panel-sub { font-size: 12px; color: var(--dim); font-family: var(--mono); }
+
+  .panel-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 18px 22px 30px;
+    overscroll-behavior: contain;
+  }
+  .panel-body::-webkit-scrollbar { width: 10px; }
+  .panel-body::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, .22);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .panel-body::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, .38); background-clip: content-box; }
+
+  .panel-desc {
+    margin: 0 0 18px;
+    font-size: 13.5px;
+    color: #c3d0e2;
+    padding: 12px 14px;
+    background: rgba(148, 163, 184, .06);
+    border-left: 2px solid rgba(56, 189, 248, .55);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .panel-section { margin-bottom: 22px; }
+  .panel-section > h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .panel-section > h3 .count {
+    padding: 0 6px;
+    font-size: 10px;
+    color: var(--muted);
+    background: rgba(148, 163, 184, .12);
+    border-radius: 5px;
+    letter-spacing: 0;
+  }
+
+  .key-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    border-bottom: 1px dashed rgba(148, 163, 184, .12);
+  }
+  .key-row:last-child { border-bottom: 0; }
+  .key-row .arrow { color: var(--dim); font-family: var(--font); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    height: 17px;
+    padding: 0 6px;
+    font-family: var(--font);
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: .6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-pk { color: #fde68a; background: rgba(251, 191, 36, .16); border: 1px solid rgba(251, 191, 36, .35); }
+  .badge-fk { color: #bae6fd; background: rgba(56, 189, 248, .14); border: 1px solid rgba(56, 189, 248, .32); }
+  .badge-uk { color: #ddd6fe; background: rgba(167, 139, 250, .16); border: 1px solid rgba(167, 139, 250, .35); }
+  .badge-null { color: var(--dim); background: rgba(148, 163, 184, .10); border: 1px solid var(--stroke); }
+
+  .cols-list { display: flex; flex-direction: column; }
+  .col-item {
+    padding: 7px 9px;
+    border-bottom: 1px solid rgba(148, 163, 184, .07);
+    border-radius: 7px;
+    transition: background .14s;
+  }
+  .col-item:last-child { border-bottom: 0; }
+  .col-item:hover { background: rgba(56, 189, 248, .05); }
+  .col-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .col-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .col-type {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #7f9ab8;
+    text-align: right;
+  }
+  .col-desc { margin-top: 2px; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+
+  .rel {
+    display: flex;
+    gap: 10px;
+    padding: 9px 10px;
+    margin-bottom: 6px;
+    background: rgba(148, 163, 184, .05);
+    border: 1px solid rgba(148, 163, 184, .10);
+    border-radius: 9px;
+    transition: background .15s, border-color .15s;
+  }
+  .rel:hover { background: rgba(56, 189, 248, .07); border-color: rgba(56, 189, 248, .25); }
+  .rel .card {
+    flex: 0 0 auto;
+    padding: 1px 7px;
+    height: 20px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #a5f3fc;
+    background: rgba(34, 211, 238, .12);
+    border: 1px solid rgba(34, 211, 238, .28);
+    border-radius: 5px;
+  }
+  .rel .rel-main { min-width: 0; }
+  .rel .rel-title { font-size: 12.5px; color: #dbe6f5; }
+  .rel .rel-title b { font-family: var(--mono); color: #f0f9ff; font-weight: 650; }
+  .rel .rel-meta { font-family: var(--mono); font-size: 10.5px; color: var(--dim); margin-top: 2px; }
+
+  .link-table {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--cyan);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .link-table:hover { text-decoration: underline; }
+
+  .empty-note {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--dim);
+    background: rgba(148, 163, 184, .05);
+    border: 1px dashed var(--stroke);
+    border-radius: 9px;
+  }
+
+  /* ---------- Sección de normalización ---------- */
+  .section-head {
+    margin: 74px 0 26px;
+    text-align: center;
+  }
+  .section-head h2 {
+    margin: 0 0 10px;
+    font-size: clamp(24px, 3.4vw, 34px);
+    letter-spacing: -1px;
+    font-weight: 720;
+  }
+  .section-head h2 .grad {
+    background: linear-gradient(100deg, #7dd3fc, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .section-head p { max-width: 720px; margin: 0 auto; color: var(--muted); font-size: 14.5px; }
+
+  .nf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .nf-card {
+    position: relative;
+    padding: 22px 20px 20px;
+    background: linear-gradient(180deg, rgba(148, 163, 184, .075), rgba(148, 163, 184, .02));
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .nf-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent, var(--cyan));
+    opacity: .85;
+  }
+  .nf-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(148, 163, 184, .32);
+    box-shadow: 0 22px 45px -25px rgba(0, 0, 0, .9);
+  }
+
+  .nf-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .nf-num {
+    display: grid;
+    place-items: center;
+    width: 34px; height: 34px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent, var(--cyan));
+    background: color-mix(in srgb, var(--accent, var(--cyan)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent, var(--cyan)) 38%, transparent);
+    border-radius: 9px;
+  }
+  .nf-top h3 { margin: 0; font-size: 15.5px; font-weight: 680; letter-spacing: -.2px; }
+  .nf-top span { display: block; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+  .nf-card p { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+  .nf-card ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: #c3d0e2; }
+  .nf-card li { margin-bottom: 6px; }
+  .nf-card li::marker { color: var(--accent, var(--cyan)); }
+  .nf-card code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 1px 5px;
+    color: #dbeafe;
+    background: rgba(56, 189, 248, .10);
+    border: 1px solid rgba(56, 189, 248, .16);
+    border-radius: 4px;
+  }
+
+  .dev-table {
+    margin-top: 18px;
+    background: rgba(13, 20, 34, .7);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .dev-table > header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--stroke);
+    background: rgba(251, 191, 36, .06);
+  }
+  .dev-table > header h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 680; }
+  .dev-table > header p { margin: 0; font-size: 12.5px; color: var(--muted); }
+  .table-scroll { overflow-x: auto; }
+  .dev-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 620px; }
+  .dev-table th {
+    text-align: left;
+    padding: 10px 18px;
+    font-size: 9.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dim);
+    border-bottom: 1px solid var(--stroke);
+    white-space: nowrap;
+  }
+  .dev-table td {
+    padding: 11px 18px;
+    border-bottom: 1px solid rgba(148, 163, 184, .07);
+    color: #c3d0e2;
+    vertical-align: top;
+  }
+  .dev-table tr:last-child td { border-bottom: 0; }
+  .dev-table td:first-child { font-family: var(--mono); font-size: 11.5px; color: #e2e8f0; white-space: nowrap; }
+
+  /* ---------- Pie ---------- */
+  footer {
+    margin-top: 70px;
+    padding-top: 22px;
+    border-top: 1px solid var(--stroke);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  footer code { font-family: var(--mono); color: var(--muted); }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    z-index: 90;
+    transform: translate(-50%, 140%);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #ecfdf5;
+    background: rgba(6, 78, 59, .92);
+    border: 1px solid rgba(52, 211, 153, .4);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px -12px rgba(0, 0, 0, .9);
+    transition: transform .3s cubic-bezier(.22, .8, .28, 1), opacity .3s;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #toast.is-visible { transform: translate(-50%, 0); opacity: 1; }
+  #toast.is-error { color: #fff1f2; background: rgba(127, 29, 29, .94); border-color: rgba(251, 113, 133, .45); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 860px) {
+    .toolbar { gap: 8px; }
+    .zoom-group { margin-left: 0; width: 100%; justify-content: space-between; }
+    .panel { width: 100%; border-left: 0; }
+    .viewport { height: 62vh; }
+    .hint { display: none; }
+    .topbar .btn span { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<!-- ===================== BARRA SUPERIOR ===================== -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+        <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path>
+        <path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <strong>AutoPulse Elite</strong>
+      <span>Documentación técnica</span>
+    </div>
+  </div>
+
+  <div class="topbar-spacer"></div>
+
+  <button class="btn btn-ghost" id="btnCopy" type="button" title="Copiar el código Mermaid del diagrama">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="12" height="12" rx="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+    <span>Copiar Mermaid</span>
+  </button>
+
+  <button class="btn btn-primary" id="btnExport" type="button" title="Descargar el diagrama como imagen PNG">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <path d="M7 10l5 5 5-5"></path>
+      <path d="M12 15V3"></path>
+    </svg>
+    <span>Exportar PNG</span>
+  </button>
+</header>
+
+<main>
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <div class="eyebrow"><span class="dot"></span>Modelo relacional · MySQL 8.x</div>
+    <h1>Diagrama <span class="grad">Entidad-Relación</span></h1>
+    <p class="lead">
+      Las 21 tablas de AutoPulse Elite y sus 24 relaciones. Haz clic en cualquier tabla
+      para ver su descripción, llaves primarias y foráneas, y el tipo de relación con el resto del modelo.
+    </p>
+    <div class="stats">
+      <div class="stat"><b id="statTablas">21</b><span>Tablas</span></div>
+      <div class="stat"><b id="statRelaciones">24</b><span>Relaciones</span></div>
+      <div class="stat"><b>6</b><span>Dominios</span></div>
+      <div class="stat"><b>3FN</b><span>Normalización</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== DIAGRAMA ===================== -->
+  <section class="workspace" aria-label="Diagrama entidad-relación interactivo">
+    <div class="toolbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path>
+        </svg>
+        <input type="search" id="search" placeholder="Buscar tabla… (clientes, pagos, bitacora)" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="chips" id="chips" role="group" aria-label="Filtrar por dominio">
+        <button class="chip is-active" data-dominio="todos" type="button"><span class="swatch"></span>Todos</button>
+        <button class="chip" data-dominio="catalogos" type="button"><span class="swatch"></span>Catálogos</button>
+        <button class="chip" data-dominio="vehiculos" type="button"><span class="swatch"></span>Vehículos</button>
+        <button class="chip" data-dominio="inventario" type="button"><span class="swatch"></span>Inventario</button>
+        <button class="chip" data-dominio="ordenes" type="button"><span class="swatch"></span>Órdenes</button>
+        <button class="chip" data-dominio="finanzas" type="button"><span class="swatch"></span>Finanzas</button>
+        <button class="chip" data-dominio="seguridad" type="button"><span class="swatch"></span>Seguridad</button>
+      </div>
+
+      <div class="zoom-group" role="group" aria-label="Zoom del diagrama">
+        <button type="button" id="zoomOut" title="Alejar" aria-label="Alejar">−</button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button type="button" id="zoomIn" title="Acercar" aria-label="Acercar">+</button>
+        <button type="button" class="wide" id="zoomFit" title="Ajustar a la ventana">Ajustar</button>
+      </div>
+    </div>
+
+    <div class="viewport" id="viewport">
+      <div id="canvas"><div id="mermaidHost"></div></div>
+      <div class="loader" id="loader">
+        <div>
+          <div class="spinner"></div>
+          Renderizando 21 entidades…
+        </div>
+      </div>
+      <div class="hint">
+        Arrastra para mover · <kbd>Rueda</kbd> para zoom · Clic en una tabla para ver el detalle
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NORMALIZACIÓN ===================== -->
+  <section id="normalizacion">
+    <div class="section-head">
+      <h2>Normalización: <span class="grad">1FN · 2FN · 3FN</span></h2>
+      <p>
+        El modelo se diseñó en Tercera Forma Normal para evitar redundancia y anomalías de actualización.
+        Estas son las reglas aplicadas tabla por tabla, y las desviaciones que se hicieron a propósito.
+      </p>
+    </div>
+
+    <div class="nf-grid">
+      <article class="nf-card" style="--accent:#38bdf8">
+        <div class="nf-top">
+          <div class="nf-num">1FN</div>
+          <div>
+            <h3>Primera Forma Normal</h3>
+            <span>Valores atómicos</span>
+          </div>
+        </div>
+        <p>Cada celda guarda un solo valor indivisible: sin listas, arreglos ni grupos repetidos dentro de una columna.</p>
+        <ul>
+          <li><code>clientes.telefono1</code> y <code>telefono2</code> guardan un número cada uno, nunca <em>"555-1234, 555-9876"</em>.</li>
+          <li>Cada refacción o servicio de una orden es una fila propia en <code>detalle_orden</code>, no una cadena de texto.</li>
+          <li>Los estados son <code>ENUM</code> de un solo valor (<code>Recibido</code>, <code>Diagnostico</code>…), no banderas concatenadas.</li>
+          <li>Las fotos van a <code>fotos_vehiculo</code>, una fila por archivo, en lugar de una columna con varias rutas.</li>
+        </ul>
+      </article>
+
+      <article class="nf-card" style="--accent:#a78bfa">
+        <div class="nf-top">
+          <div class="nf-num">2FN</div>
+          <div>
+            <h3>Segunda Forma Normal</h3>
+            <span>Dependencia total de la clave</span>
+          </div>
+        </div>
+        <p>Ningún atributo depende solo de una parte de la clave: si la clave es compuesta, todo atributo depende de la clave completa.</p>
+        <ul>
+          <li><code>detalle_compra</code>: la clave conceptual es <code>(compra_id, refaccion_id)</code>; <code>cantidad</code> y <code>precio_unitario_moneda</code> dependen de ambos, no de uno solo.</li>
+          <li><code>detalle_orden</code>: <code>precio_unitario</code> describe la línea (orden + concepto), no al servicio del catálogo.</li>
+          <li><code>orden_mecanicos</code>: la clave única <code>(orden_id, mecanico_id)</code> evita duplicar la asignación; no hay datos que dependan de un solo lado.</li>
+          <li>Se usa <code>id</code> subrogado como PK, pero las reglas de negocio se validan contra la clave compuesta con <code>UNIQUE KEY</code>.</li>
+        </ul>
+      </article>
+
+      <article class="nf-card" style="--accent:#34d399">
+        <div class="nf-top">
+          <div class="nf-num">3FN</div>
+          <div>
+            <h3>Tercera Forma Normal</h3>
+            <span>Sin dependencias transitivas</span>
+          </div>
+        </div>
+        <p>Ningún atributo no clave depende de otro atributo no clave: cada dato se guarda una sola vez, en la tabla que lo define.</p>
+        <ul>
+          <li><code>vehiculos</code> guarda <code>cliente_id</code>, no el nombre ni el teléfono del dueño (eso vive en <code>clientes</code>).</li>
+          <li>Los datos de la aseguradora van en <code>polizas_seguro</code>, no repetidos en cada vehículo.</li>
+          <li><code>refacciones.proveedor_id</code> referencia a <code>proveedores</code>; el país y la moneda no se copian.</li>
+          <li><code>compras.total_mxn</code> depende del tipo de cambio de esa compra, no del proveedor.</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="dev-table">
+      <header>
+        <h3>Desviaciones intencionales (documentadas)</h3>
+        <p>Un modelo en 3FN no siempre es el más rápido ni el más auditable. Estas redundancias son decisiones de diseño, no descuidos.</p>
+      </header>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Columna</th>
+              <th>Qué se duplica</th>
+              <th>Por qué se acepta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ordenes_servicio.total_piezas / total_mano_obra / subtotal / iva / total</td>
+              <td>Se derivan de <code>detalle_orden</code>.</td>
+              <td>Es una foto del cobro al momento del cierre. Si mañana cambia el precio del catálogo, la orden histórica no debe moverse. Además alimenta la regla de autorización por $250,000.</td>
+            </tr>
+            <tr>
+              <td>clientes.descuento_mano_obra</td>
+              <td>Se deduce de <code>categoria</code> (VIP = 10%).</td>
+              <td>Permite una excepción comercial por cliente sin crear otra tabla. La categoría define el valor por omisión, no una obligación.</td>
+            </tr>
+            <tr>
+              <td>detalle_orden.precio_unitario</td>
+              <td>Se copia de <code>servicios.precio_mano_obra</code>.</td>
+              <td>Precio histórico congelado: una orden de hace un año debe conservar lo que realmente se cobró.</td>
+            </tr>
+            <tr>
+              <td>movimientos_inventario</td>
+              <td>Reconstruye <code>refacciones.stock_actual</code>.</td>
+              <td>Libro mayor de inventario: el stock es el saldo, el movimiento es la verdad auditable. Nunca se ajusta el stock sin dejar el asiento.</td>
+            </tr>
+            <tr>
+              <td>bitacora / historial_etapas</td>
+              <td>Repiten datos que ya están en otras tablas.</td>
+              <td>Son logs inmutables protegidos con triggers: guardan el estado <em>tal como estaba</em>, aunque la tabla original cambie después.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>AutoPulse Elite · Pizarro Performance Garage — <code>documentacion-tecnica/index.html</code></div>
+    <div>21 tablas · 24 relaciones · MySQL 8.x · utf8mb4_unicode_ci</div>
+  </footer>
+</main>
+
+<!-- ===================== PANEL LATERAL ===================== -->
+<div class="scrim" id="scrim"></div>
+
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" aria-hidden="true">
+  <div class="panel-head">
+    <button class="panel-close" id="panelClose" type="button" aria-label="Cerrar panel">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18"></path>
+      </svg>
+    </button>
+    <div class="panel-domain" id="panelDomain"><span class="swatch"></span><span id="panelDomainName">Dominio</span></div>
+    <h2 id="panelTitle">tabla</h2>
+    <div class="panel-sub" id="panelSub">0 columnas</div>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</aside>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@12.3.0/dist/mermaid.min.js"></script>
+<script>
+/* =====================================================================
+   1) DATOS DEL MODELO — extraídos de sql/01..09
+   Formato de columna: [ nombre, tipo, llave, descripción ]
+   ===================================================================== */
+
+const DOMINIOS = {
+  catalogos:  { nombre: 'Catálogos',   color: '#38bdf8' },
+  vehiculos:  { nombre: 'Vehículos',   color: '#a78bfa' },
+  inventario: { nombre: 'Inventario',  color: '#fbbf24' },
+  ordenes:    { nombre: 'Órdenes',     color: '#34d399' },
+  finanzas:   { nombre: 'Finanzas',    color: '#fb7185' },
+  seguridad:  { nombre: 'Seguridad',   color: '#94a3b8' }
+};
+
+const TABLAS = {
+
+  /* ---------------- CATÁLOGOS ---------------- */
+  clientes: {
+    dominio: 'catalogos',
+    desc: 'Clientes del taller, incluidos los VIP y los confidenciales. Guarda contacto, categoría, descuento de mano de obra y los datos fiscales que exige el CFDI 4.0.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['nombre', 'VARCHAR(150)', '', 'Nombre del dueño del vehículo'],
+      ['telefono1', 'VARCHAR(20)', '', 'Teléfono principal'],
+      ['telefono2', 'VARCHAR(20)', '', 'Teléfono secundario'],
+      ['correo', 'VARCHAR(150)', '', 'Correo de contacto'],
+      ['direccion', 'VARCHAR(255)', '', 'Domicilio'],
+      ['nombre_asistente', 'VARCHAR(150)', '', 'Asistente o chofer'],
+      ['categoria', "ENUM('Regular','VIP')", '', 'VIP recibe prioridad en la fila de órdenes'],
+      ['descuento_mano_obra', 'DECIMAL(5,2)', '', 'Porcentaje de descuento solo en mano de obra'],
+      ['permite_pagos_parciales', 'TINYINT(1)', '', 'Autoriza pagos en partes'],
+      ['confidencial', 'TINYINT(1)', '', 'Oculta la identidad al mecánico'],
+      ['notas', 'TEXT', '', 'Notas internas de atención'],
+      ['rfc', 'VARCHAR(20)', '', 'RFC para CFDI 4.0'],
+      ['razon_social', 'VARCHAR(200)', '', 'Nombre fiscal'],
+      ['regimen_fiscal', 'VARCHAR(100)', '', 'Régimen fiscal SAT'],
+      ['codigo_postal', 'VARCHAR(10)', '', 'CP del domicilio fiscal'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico: 1 vigente, 0 baja']
+    ]
+  },
+
+  proveedores: {
+    dominio: 'catalogos',
+    desc: 'Proveedores internacionales de refacciones. Define el tiempo de entrega esperado y la moneda en la que cotizan, datos clave para las compras y el tipo de cambio.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['nombre', 'VARCHAR(150)', '', 'Razón social del proveedor'],
+      ['pais', 'VARCHAR(60)', '', 'Italia, Alemania, Inglaterra, etc.'],
+      ['contacto', 'VARCHAR(150)', '', 'Persona de contacto'],
+      ['telefono', 'VARCHAR(30)', '', 'Teléfono'],
+      ['correo', 'VARCHAR(150)', '', 'Correo de contacto'],
+      ['tiempo_entrega_dias', 'INT UNSIGNED', '', 'Entrega típica: 14 a 56 días'],
+      ['moneda', "ENUM('EUR','GBP','MXN','USD')", '', 'Moneda de cotización'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  mecanicos: {
+    dominio: 'catalogos',
+    desc: 'Catálogo de mecánicos del taller. Se usa para asignar responsables a las órdenes, registrar participantes y calcular bonos por productividad.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['nombre', 'VARCHAR(150)', '', 'Nombre del mecánico'],
+      ['telefono', 'VARCHAR(20)', '', 'Teléfono de contacto'],
+      ['correo', 'VARCHAR(150)', '', 'Correo electrónico'],
+      ['especialidad', 'VARCHAR(100)', '', 'Área técnica'],
+      ['notas', 'TEXT', '', 'Notas internas'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  servicios: {
+    dominio: 'catalogos',
+    desc: 'Catálogo de mano de obra. El precio base se congela en el detalle de cada orden para no alterar el historial cuando el catálogo cambie.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['nombre', 'VARCHAR(150)', '', 'Nombre del servicio'],
+      ['descripcion', 'TEXT', '', 'Detalle del trabajo'],
+      ['precio_mano_obra', 'DECIMAL(12,2)', '', 'Precio base antes de descuento VIP e IVA'],
+      ['duracion_estimada_horas', 'DECIMAL(4,1)', '', 'Para planear la carga de trabajo'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  /* ---------------- VEHÍCULOS ---------------- */
+  vehiculos: {
+    dominio: 'vehiculos',
+    desc: 'Vehículos de los clientes. Las placas y el VIN están indexados porque la búsqueda de recepción debe resolverse en menos de 3 segundos.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['cliente_id', 'INT UNSIGNED', 'FK', 'Dueño del vehículo → clientes.id'],
+      ['placas', 'VARCHAR(20)', '', 'Placas, índice de búsqueda rápida'],
+      ['vin', 'VARCHAR(50)', '', 'Número de serie'],
+      ['marca', 'VARCHAR(50)', '', 'Marca'],
+      ['modelo', 'VARCHAR(50)', '', 'Modelo'],
+      ['anio', 'INT', '', 'Año modelo'],
+      ['color', 'VARCHAR(30)', '', 'Color'],
+      ['kilometraje_entrada', 'INT UNSIGNED', '', 'Kilometraje al ingresar'],
+      ['valor_aproximado', 'DECIMAL(12,2)', '', 'Base para el valor en custodia'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  polizas_seguro: {
+    dominio: 'vehiculos',
+    desc: 'Pólizas de seguro por vehículo. Se separan de la tabla de vehículos para no repetir datos de la aseguradora y para poder generar la alerta de vencimiento a 30 días.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['vehiculo_id', 'INT UNSIGNED', 'FK', 'Vehículo asegurado → vehiculos.id'],
+      ['aseguradora', 'VARCHAR(100)', '', 'Nombre de la aseguradora'],
+      ['numero_poliza', 'VARCHAR(50)', '', 'Número de póliza'],
+      ['vigencia_inicio', 'DATE', '', 'Inicio de vigencia'],
+      ['vigencia_fin', 'DATE', '', 'Fin de vigencia; alerta 30 días antes'],
+      ['cobertura', 'TEXT', '', 'Detalle de la cobertura'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  /* ---------------- INVENTARIO ---------------- */
+  refacciones: {
+    dominio: 'inventario',
+    desc: 'Refacciones y consumibles. Las piezas especiales se compran ligadas a una orden y no se almacenan; el resto mantiene existencias con umbral mínimo de alerta.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['nombre', 'VARCHAR(150)', '', 'Nombre de la pieza'],
+      ['marca', 'VARCHAR(50)', '', 'Marca de la pieza'],
+      ['es_especial', 'TINYINT(1)', '', 'Compra ligada a orden, sin stock'],
+      ['stock_actual', 'INT', '', 'Existencias actuales'],
+      ['stock_minimo', 'INT', '', 'Umbral de alerta (por omisión 2)'],
+      ['precio_costo', 'DECIMAL(12,2)', '', 'Costo de adquisición'],
+      ['precio_venta', 'DECIMAL(12,2)', '', 'Precio al cliente'],
+      ['proveedor_id', 'INT UNSIGNED', 'FK', 'Proveedor habitual → proveedores.id'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación / ajuste'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  compras: {
+    dominio: 'inventario',
+    desc: 'Órdenes de compra a proveedores internacionales. Ninguna se envía sin aprobación del administrador y conserva la moneda original más el equivalente en pesos.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['proveedor_id', 'INT UNSIGNED', 'FK', 'Proveedor → proveedores.id'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden que motivó la compra → ordenes_servicio.id (opcional)'],
+      ['fecha_pedido', 'DATETIME', '', 'Fecha de registro del pedido'],
+      ['fecha_estimada_llegada', 'DATE', '', 'Para la lista de pedidos pendientes'],
+      ['estado', "ENUM('Borrador','Aprobada','Enviada','Recibida','Cancelada')", '', 'Estado del pedido'],
+      ['moneda_original', "ENUM('EUR','GBP','MXN','USD')", '', 'Moneda de la compra'],
+      ['tipo_cambio', 'DECIMAL(10,4)', '', 'Tipo de cambio del día'],
+      ['total_moneda_original', 'DECIMAL(12,2)', '', 'Total en moneda original'],
+      ['total_mxn', 'DECIMAL(12,2)', '', 'Equivalente en pesos'],
+      ['solicitado_por', 'VARCHAR(150)', '', 'Quién solicitó el pedido'],
+      ['aprobado_por', 'VARCHAR(150)', '', 'Administrador que aprobó'],
+      ['fecha_aprobacion', 'DATETIME', '', 'Fecha de aprobación'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  detalle_compra: {
+    dominio: 'inventario',
+    desc: 'Tabla puente entre compras y refacciones. Cada línea es una pieza pedida con su cantidad y precio unitario en la moneda de la compra.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['compra_id', 'INT UNSIGNED', 'FK', 'Orden de compra → compras.id'],
+      ['refaccion_id', 'INT UNSIGNED', 'FK', 'Refacción solicitada → refacciones.id'],
+      ['cantidad', 'INT', '', 'Piezas pedidas en la línea'],
+      ['precio_unitario_moneda', 'DECIMAL(12,2)', '', 'Precio unitario en moneda original'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  movimientos_inventario: {
+    dominio: 'inventario',
+    desc: 'Libro mayor del inventario. Toda entrada, salida o ajuste queda asentado; el stock de la refacción es el saldo de estos movimientos.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['refaccion_id', 'INT UNSIGNED', 'FK', 'Refacción afectada → refacciones.id'],
+      ['tipo', "ENUM('Entrada','Salida','Ajuste')", '', 'Sentido del movimiento'],
+      ['cantidad', 'INT', '', 'Unidades (siempre positiva)'],
+      ['motivo', 'VARCHAR(255)', '', 'Obligatorio en ajustes manuales'],
+      ['usuario', 'VARCHAR(150)', '', 'Quién registró el movimiento'],
+      ['created_at', 'DATETIME', '', 'Fecha del movimiento'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  /* ---------------- ÓRDENES ---------------- */
+  ordenes_servicio: {
+    dominio: 'ordenes',
+    desc: 'Corazón del sistema. Cada orden recorre cuatro etapas (Recibido, Diagnóstico, Reparación, Listo) y concentra los totales que disparan la autorización del administrador cuando supera $250,000 MXN.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['cliente_id', 'INT UNSIGNED', 'FK', 'Dueño del vehículo → clientes.id'],
+      ['vehiculo_id', 'INT UNSIGNED', 'FK', 'Vehículo que ingresa → vehiculos.id'],
+      ['mecanico_id', 'INT UNSIGNED', 'FK', 'Mecánico responsable → mecanicos.id (opcional)'],
+      ['estado', "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')", '', 'Etapa actual de la orden'],
+      ['falla_reportada', 'TEXT', '', 'Lo que reporta el cliente al ingresar'],
+      ['diagnostico', 'TEXT', '', 'Diagnóstico del mecánico (columna del bloque 9)'],
+      ['total_piezas', 'DECIMAL(12,2)', '', 'Suma de refacciones usadas'],
+      ['total_mano_obra', 'DECIMAL(12,2)', '', 'Mano de obra ya con descuento VIP'],
+      ['subtotal', 'DECIMAL(12,2)', '', 'Piezas + mano de obra, antes de IVA'],
+      ['iva', 'DECIMAL(12,2)', '', 'IVA del 16%'],
+      ['total', 'DECIMAL(12,2)', '', 'Total a cobrar; base del umbral de autorización'],
+      ['requiere_autorizacion', 'TINYINT(1)', '', 'La orden supera el umbral y necesita autorización'],
+      ['motivo_cancelacion', 'TEXT', '', 'Obligatorio al cancelar'],
+      ['created_at', 'DATETIME', '', 'Apertura de la orden'],
+      ['updated_at', 'DATETIME', '', 'Último cambio de etapa'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  detalle_orden: {
+    dominio: 'ordenes',
+    desc: 'Líneas de la orden: cada renglón es un servicio de mano de obra o una refacción, nunca ambos. La exclusividad se valida con triggers porque MySQL no permite CHECK sobre columnas con FK en cascada.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden a la que pertenece → ordenes_servicio.id'],
+      ['servicio_id', 'INT UNSIGNED', 'FK', 'Mano de obra → servicios.id (excluyente con refaccion_id)'],
+      ['refaccion_id', 'INT UNSIGNED', 'FK', 'Refacción usada → refacciones.id (excluyente con servicio_id)'],
+      ['cantidad', 'INT', '', 'Cantidad de servicios o piezas'],
+      ['precio_unitario', 'DECIMAL(12,2)', '', 'Precio congelado al momento de la venta'],
+      ['created_at', 'DATETIME', '', 'Alta del registro'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  fotos_vehiculo: {
+    dominio: 'ordenes',
+    desc: 'Evidencia fotográfica por orden (ingreso, proceso y entrega). La imagen no se guarda en la base: solo la ruta o URL del archivo en el almacenamiento del backend.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden a la que pertenece → ordenes_servicio.id'],
+      ['url_foto', 'VARCHAR(500)', '', 'Ruta o URL del archivo'],
+      ['etapa', "ENUM('Ingreso','Proceso','Entrega')", '', 'Clasificación de la foto'],
+      ['firma_conformidad', 'TINYINT(1)', '', 'Foto de entrega firmada por el cliente'],
+      ['created_at', 'DATETIME', '', 'Fecha de carga'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  orden_mecanicos: {
+    dominio: 'ordenes',
+    desc: 'Participantes de cada orden. La tabla ordenes_servicio guarda al responsable principal; aquí se registran todos los mecánicos que intervienen.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden → ordenes_servicio.id'],
+      ['mecanico_id', 'INT UNSIGNED', 'FK', 'Mecánico asignado → mecanicos.id'],
+      ['created_at', 'DATETIME', '', 'Fecha de asignación'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Desasignación lógica']
+    ]
+  },
+
+  historial_etapas: {
+    dominio: 'ordenes',
+    desc: 'Bitácora de cambios de etapa por orden. Es inmutable: no tiene updated_at ni activo, y sus triggers bloquean UPDATE y DELETE. Permite detectar órdenes con más de 5 días sin movimiento.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden que cambió de etapa → ordenes_servicio.id'],
+      ['etapa_anterior', "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')", '', 'Etapa previa; NULL al abrir la orden'],
+      ['etapa_nueva', "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')", '', 'Etapa a la que pasa'],
+      ['usuario_id', 'INT UNSIGNED', 'FK', 'Quién movió la etapa → usuarios.id'],
+      ['created_at', 'DATETIME', '', 'Momento exacto del cambio']
+    ]
+  },
+
+  /* ---------------- FINANZAS ---------------- */
+  pagos: {
+    dominio: 'finanzas',
+    desc: 'Anticipos, parcialidades y liquidaciones por orden. Siempre en pesos mexicanos y con referencia de la operación para poder conciliar el estado de cuenta.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden que se paga → ordenes_servicio.id'],
+      ['tipo', "ENUM('Anticipo','Parcialidad','Liquidacion')", '', 'Naturaleza del pago'],
+      ['monto', 'DECIMAL(12,2)', '', 'Monto en MXN'],
+      ['metodo_pago', "ENUM('Efectivo','Transferencia','Tarjeta')", '', 'Forma de pago'],
+      ['referencia', 'VARCHAR(100)', '', 'Folio o número de transferencia'],
+      ['created_at', 'DATETIME', '', 'Fecha de registro del pago'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  },
+
+  facturas: {
+    dominio: 'finanzas',
+    desc: 'Facturas CFDI 4.0 por orden. Una factura timbrada no se edita: se cancela con motivo y conserva el UUID que devuelve el PAC.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden que se factura → ordenes_servicio.id'],
+      ['numero_factura', 'VARCHAR(50)', 'UK', 'Folio fiscal; se llena al timbrar'],
+      ['subtotal', 'DECIMAL(12,2)', '', 'Piezas + mano de obra'],
+      ['iva', 'DECIMAL(12,2)', '', 'IVA trasladado del 16%'],
+      ['total', 'DECIMAL(12,2)', '', 'Total facturado'],
+      ['estado', "ENUM('Borrador','Timbrada','Cancelada')", '', 'Estado de la factura'],
+      ['uuid_cfdi', 'VARCHAR(100)', 'UK', 'UUID devuelto por el PAC'],
+      ['uso_cfdi', 'VARCHAR(10)', '', 'Uso del CFDI (catálogo SAT)'],
+      ['forma_pago', 'VARCHAR(10)', '', 'Forma de pago SAT: 01, 03…'],
+      ['metodo_pago', 'VARCHAR(10)', '', 'Método SAT: PUE o PPD'],
+      ['motivo_cancelacion', 'TEXT', '', 'Obligatorio al cancelar'],
+      ['created_at', 'DATETIME', '', 'Fecha de emisión'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico; una factura no se borra']
+    ]
+  },
+
+  autorizaciones: {
+    dominio: 'finanzas',
+    desc: 'Autorizaciones del administrador. Se generan por monto alto, por entrega con saldo pendiente o por reautorización cuando la orden crece, y dejan constancia del monto y del usuario que resolvió.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['orden_id', 'INT UNSIGNED', 'FK', 'Orden sujeta a autorización → ordenes_servicio.id'],
+      ['tipo', "ENUM('Monto_Alto','Saldo_Pendiente','Reautorizacion')", '', 'Motivo de la autorización'],
+      ['monto_orden', 'DECIMAL(12,2)', '', 'Total de la orden al solicitar'],
+      ['aprobado', 'TINYINT(1)', '', '0 pendiente o rechazada, 1 autorizada'],
+      ['aprobado_por', 'VARCHAR(150)', '', 'Administrador que resolvió'],
+      ['fecha_aprobacion', 'DATETIME', '', 'Fecha de la resolución'],
+      ['created_at', 'DATETIME', '', 'Fecha de la solicitud'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico; no se borran']
+    ]
+  },
+
+  /* ---------------- SEGURIDAD ---------------- */
+  usuarios: {
+    dominio: 'seguridad',
+    desc: 'Usuarios del sistema con su rol. El rol define qué ve cada quien: Administrador todo, Recepción sin finanzas, Mecánico solo placas y trabajo asignado (sin precios ni clientes confidenciales).',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['nombre', 'VARCHAR(150)', '', 'Nombre completo'],
+      ['correo', 'VARCHAR(150)', 'UK', 'Identificador de autenticación'],
+      ['password_hash', 'VARCHAR(255)', '', 'Contraseña cifrada; nunca en texto plano'],
+      ['rol', "ENUM('Administrador','Recepcion','Mecanico')", '', 'Define los permisos'],
+      ['mecanico_id', 'INT UNSIGNED', 'FK', 'Vínculo al catálogo de mecánicos → mecanicos.id'],
+      ['created_at', 'DATETIME', '', 'Alta del usuario'],
+      ['updated_at', 'DATETIME', '', 'Última modificación'],
+      ['activo', 'TINYINT(1)', '', 'Baja lógica']
+    ]
+  },
+
+  bitacora: {
+    dominio: 'seguridad',
+    desc: 'Auditoría inmutable de altas, cambios, cancelaciones, autorizaciones y consultas a expedientes confidenciales. Sin updated_at ni activo: sus triggers impiden editar o borrar asientos.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['usuario_id', 'INT UNSIGNED', 'FK', 'Quién ejecutó la acción → usuarios.id'],
+      ['tabla_afectada', 'VARCHAR(100)', '', 'Tabla sobre la que se actuó'],
+      ['registro_id', 'INT UNSIGNED', '', 'Registro afectado'],
+      ['accion', "ENUM('Creacion','Actualizacion','Cancelacion','Autorizacion','Consulta_Confidencial')", '', 'Tipo de evento auditado'],
+      ['detalle', 'TEXT', '', 'Contexto del cambio para reconstruirlo'],
+      ['created_at', 'DATETIME', '', 'Momento exacto; el asiento es inmutable']
+    ]
+  },
+
+  parametros: {
+    dominio: 'seguridad',
+    desc: 'Parámetros configurables del negocio (tolerancias y umbrales) sin tocar código. Es la única tabla sin relaciones: funciona como configuración global del sistema.',
+    cols: [
+      ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
+      ['clave', 'VARCHAR(50)', 'UK', 'Clave única del parámetro'],
+      ['valor', 'VARCHAR(100)', '', 'Valor vigente, convertido por la aplicación'],
+      ['descripcion', 'TEXT', '', 'Explicación y efecto en el negocio'],
+      ['created_at', 'DATETIME', '', 'Alta del parámetro'],
+      ['updated_at', 'DATETIME', '', 'Último cambio de valor'],
+      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+    ]
+  }
+};
+
+/* =====================================================================
+   2) RELACIONES — m: línea Mermaid · a/b: extremos · card: cardinalidad
+   ===================================================================== */
+
+const RELACIONES = [
+  { m: 'clientes ||--o{ vehiculos : "posee"',                        a: 'clientes', b: 'vehiculos',           card: '1 : N', via: 'vehiculos.cliente_id',           txt: 'Un cliente posee uno o varios vehículos.' },
+  { m: 'clientes ||--o{ ordenes_servicio : "solicita"',             a: 'clientes', b: 'ordenes_servicio',    card: '1 : N', via: 'ordenes_servicio.cliente_id',    txt: 'Un cliente acumula varias órdenes de servicio.' },
+  { m: 'proveedores ||--o{ refacciones : "suministra"',             a: 'proveedores', b: 'refacciones',       card: '1 : N', via: 'refacciones.proveedor_id',       txt: 'Un proveedor surte muchas refacciones (la refacción puede no tener proveedor).' },
+  { m: 'proveedores ||--o{ compras : "recibe pedidos"',             a: 'proveedores', b: 'compras',           card: '1 : N', via: 'compras.proveedor_id',           txt: 'Un proveedor recibe varias órdenes de compra.' },
+  { m: 'mecanicos ||--o{ ordenes_servicio : "responsable de"',      a: 'mecanicos', b: 'ordenes_servicio',    card: '1 : N', via: 'ordenes_servicio.mecanico_id',   txt: 'Un mecánico es responsable principal de varias órdenes.' },
+  { m: 'mecanicos ||--o{ orden_mecanicos : "participa en"',         a: 'mecanicos', b: 'orden_mecanicos',     card: '1 : N', via: 'orden_mecanicos.mecanico_id',    txt: 'Un mecánico participa en varias órdenes como apoyo.' },
+  { m: 'mecanicos |o--o{ usuarios : "perfil de"',                   a: 'mecanicos', b: 'usuarios',            card: '1 : N', via: 'usuarios.mecanico_id',           txt: 'Un mecánico puede estar vinculado a un usuario del sistema (opcional).' },
+  { m: 'servicios ||--o{ detalle_orden : "se cobra en"',            a: 'servicios', b: 'detalle_orden',       card: '1 : N', via: 'detalle_orden.servicio_id',      txt: 'Un servicio del catálogo aparece en muchas líneas de orden.' },
+  { m: 'vehiculos ||--o{ polizas_seguro : "asegurado por"',         a: 'vehiculos', b: 'polizas_seguro',      card: '1 : N', via: 'polizas_seguro.vehiculo_id',     txt: 'Un vehículo puede tener varias pólizas a lo largo del tiempo.' },
+  { m: 'vehiculos ||--o{ ordenes_servicio : "ingresa en"',          a: 'vehiculos', b: 'ordenes_servicio',    card: '1 : N', via: 'ordenes_servicio.vehiculo_id',   txt: 'Un vehículo entra al taller en varias órdenes.' },
+  { m: 'refacciones ||--o{ detalle_compra : "se compra en"',        a: 'refacciones', b: 'detalle_compra',    card: '1 : N', via: 'detalle_compra.refaccion_id',    txt: 'Una refacción se pide en varias líneas de compra.' },
+  { m: 'refacciones |o--o{ detalle_orden : "se usa en"',            a: 'refacciones', b: 'detalle_orden',      card: '1 : N', via: 'detalle_orden.refaccion_id',     txt: 'Una refacción se usa en muchas líneas de orden (opcional por línea).' },
+  { m: 'refacciones ||--o{ movimientos_inventario : "genera"',      a: 'refacciones', b: 'movimientos_inventario', card: '1 : N', via: 'movimientos_inventario.refaccion_id', txt: 'Una refacción acumula todos sus movimientos de inventario.' },
+  { m: 'compras ||--o{ detalle_compra : "contiene"',                a: 'compras', b: 'detalle_compra',         card: '1 : N', via: 'detalle_compra.compra_id',       txt: 'Una compra contiene varias líneas de piezas.' },
+  { m: 'ordenes_servicio |o--o{ compras : "origina"',               a: 'ordenes_servicio', b: 'compras',      card: '1 : N', via: 'compras.orden_id',               txt: 'Una orden puede originar compras de piezas especiales (opcional).' },
+  { m: 'ordenes_servicio ||--o{ detalle_orden : "detalla"',         a: 'ordenes_servicio', b: 'detalle_orden', card: '1 : N', via: 'detalle_orden.orden_id',         txt: 'Una orden se desglosa en varias líneas de piezas y mano de obra.' },
+  { m: 'ordenes_servicio ||--o{ fotos_vehiculo : "documenta"',      a: 'ordenes_servicio', b: 'fotos_vehiculo', card: '1 : N', via: 'fotos_vehiculo.orden_id',        txt: 'Una orden tiene fotos de ingreso, proceso y entrega.' },
+  { m: 'ordenes_servicio ||--o{ pagos : "recibe"',                  a: 'ordenes_servicio', b: 'pagos',         card: '1 : N', via: 'pagos.orden_id',                 txt: 'Una orden recibe anticipo, parcialidades y liquidación.' },
+  { m: 'ordenes_servicio ||--o{ facturas : "factura"',              a: 'ordenes_servicio', b: 'facturas',      card: '1 : N', via: 'facturas.orden_id',              txt: 'Una orden puede generar una o varias facturas.' },
+  { m: 'ordenes_servicio ||--o{ autorizaciones : "requiere"',       a: 'ordenes_servicio', b: 'autorizaciones', card: '1 : N', via: 'autorizaciones.orden_id',        txt: 'Una orden puede requerir autorización por monto, saldo o reautorización.' },
+  { m: 'ordenes_servicio ||--o{ orden_mecanicos : "asigna"',        a: 'ordenes_servicio', b: 'orden_mecanicos', card: '1 : N', via: 'orden_mecanicos.orden_id',       txt: 'Una orden asigna a uno o varios mecánicos.' },
+  { m: 'ordenes_servicio ||--o{ historial_etapas : "registra"',     a: 'ordenes_servicio', b: 'historial_etapas', card: '1 : N', via: 'historial_etapas.orden_id',      txt: 'Una orden registra cada cambio de etapa.' },
+  { m: 'usuarios ||--o{ bitacora : "genera"',                       a: 'usuarios', b: 'bitacora',             card: '1 : N', via: 'bitacora.usuario_id',            txt: 'Un usuario genera muchos asientos de bitácora.' },
+  { m: 'usuarios ||--o{ historial_etapas : "provoca"',              a: 'usuarios', b: 'historial_etapas',     card: '1 : N', via: 'historial_etapas.usuario_id',    txt: 'Un usuario provoca los cambios de etapa que registra el historial.' }
+];
+
+/* Clases visuales por dominio dentro del SVG */
+const CLASE_DOMINIO = {
+  catalogos:  'cat',
+  vehiculos:  'veh',
+  inventario: 'inv',
+  ordenes:    'ord',
+  finanzas:   'fin',
+  seguridad:  'seg'
+};
+
+/* Construye el código Mermaid a partir de los datos (una sola fuente de verdad) */
+function construirMermaid() {
+  const lineas = ['erDiagram'];
+
+  RELACIONES.forEach(r => lineas.push('  ' + r.m));
+
+  // Entidades sin relaciones (parametros) deben declararse aparte
+  Object.keys(TABLAS).forEach(t => {
+    const tieneRel = RELACIONES.some(r => r.a === t || r.b === t);
+    if (!tieneRel) lineas.push('  ' + t);
+  });
+
+  lineas.push('');
+  lineas.push('  classDef cat fill:#0f2b3d,stroke:#38bdf8,stroke-width:2px,color:#e2f4ff');
+  lineas.push('  classDef veh fill:#241a3d,stroke:#a78bfa,stroke-width:2px,color:#ede9fe');
+  lineas.push('  classDef inv fill:#2f2410,stroke:#fbbf24,stroke-width:2px,color:#fef3c7');
+  lineas.push('  classDef ord fill:#0f2a22,stroke:#34d399,stroke-width:2px,color:#d1fae5');
+  lineas.push('  classDef fin fill:#2e1520,stroke:#fb7185,stroke-width:2px,color:#ffe4e6');
+  lineas.push('  classDef seg fill:#1e2433,stroke:#94a3b8,stroke-width:2px,color:#e2e8f0');
+
+  Object.keys(DOMINIOS).forEach(dom => {
+    const tablas = Object.keys(TABLAS).filter(t => TABLAS[t].dominio === dom);
+    if (tablas.length) lineas.push('  class ' + tablas.join(',') + ' ' + CLASE_DOMINIO[dom]);
+  });
+
+  return lineas.join('\n');
+}
+
+const MERMAID_SRC = construirMermaid();
+
+
+</script>
+<script>
+/* =====================================================================
+   3) APLICACIÓN — render, interacción, zoom y exportación
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  const host      = document.getElementById('mermaidHost');
+  const viewport  = document.getElementById('viewport');
+  const canvas    = document.getElementById('canvas');
+  const loader    = document.getElementById('loader');
+  const panel     = document.getElementById('panel');
+  const scrim     = document.getElementById('scrim');
+  const panelBody = document.getElementById('panelBody');
+  const search    = document.getElementById('search');
+  const chips     = document.getElementById('chips');
+  const zoomLabel = document.getElementById('zoomLabel');
+
+  let scale = 1, tx = 0, ty = 0;
+  let nodos = [];
+  let dominioActivo = 'todos';
+  let suppressClick = false;
+  let tablaAbierta = null;
+  let interactuo = false;
+
+  /* ---------- utilidades ---------- */
+  const norm = (s) => (s || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const CLAVES = Object.keys(TABLAS);
+  const CLAVES_NORM = CLAVES.map(k => [k, norm(k).replace(/[^a-z0-9]/g, '')]);
+
+  function resolverTabla(texto) {
+    const plano = norm(texto).replace(/[^a-z0-9]/g, '');
+    if (!plano) return null;
+    const exacta = CLAVES_NORM.find(([, n]) => n === plano);
+    if (exacta) return exacta[0];
+    // tolera etiquetas con texto extra (contadores, sufijos de Mermaid)
+    const parcial = CLAVES_NORM
+      .filter(([, n]) => plano.startsWith(n) || plano.endsWith(n))
+      .sort((a, b) => b[1].length - a[1].length)[0];
+    return parcial ? parcial[0] : null;
+  }
+
+  function toast(msg, esError) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.toggle('is-error', !!esError);
+    el.classList.add('is-visible');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.remove('is-visible'), 2600);
+  }
+
+  /* ---------- 1. Render del diagrama ---------- */
+  async function renderDiagrama() {
+    if (typeof mermaid === 'undefined') {
+      loader.innerHTML =
+        '<div class="error-box"><strong>No se pudo cargar Mermaid.js</strong>' +
+        'Este archivo carga la librería desde <code>cdn.jsdelivr.net</code> y no hay conexión a internet. ' +
+        'Conéctate y recarga la página: el resto del documento funciona igual.</div>';
+      return;
+    }
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: 'base',
+      layout: 'dagre',
+      look: 'classic',
+      fontFamily: '"Segoe UI", system-ui, -apple-system, sans-serif',
+      er: {
+        useMaxWidth: false,
+        minEntityWidth: 150,
+        minEntityHeight: 50,
+        entityPadding: 12,
+        diagramPadding: 26
+      },
+      themeCSS: [
+        '.er.entityLabel { fill: #eef5ff; font-weight: 600; letter-spacing: .2px; }',
+        '.er.relationshipLabel { fill: #8fa3bd; font-size: 10px; }',
+        '.er.relationshipLine { stroke: #44556e; stroke-width: 1.5px; }',
+        '.er.entityBox { filter: drop-shadow(0 5px 14px rgba(0,0,0,.45)); }'
+      ].join(' '),
+      themeVariables: {
+        background: '#070b14',
+        fontFamily: '"Segoe UI", system-ui, sans-serif',
+        fontSize: '14px',
+        primaryColor: '#111a2b',
+        primaryBorderColor: '#334155',
+        primaryTextColor: '#e6edf7',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a',
+        lineColor: '#44556e',
+        textColor: '#e6edf7',
+        mainBkg: '#111a2b',
+        nodeBorder: '#334155',
+        edgeLabelBackground: '#0b1220'
+      }
+    });
+
+    try {
+      const { svg } = await mermaid.render('er-autopulse', MERMAID_SRC);
+      host.innerHTML = svg;
+      const svgEl = host.querySelector('svg');
+      svgEl.removeAttribute('style');
+      svgEl.setAttribute('role', 'img');
+      svgEl.setAttribute('aria-label', 'Diagrama entidad-relación de AutoPulse Elite');
+
+      etiquetarNodos(svgEl);
+      loader.style.display = 'none';
+      requestAnimationFrame(() => requestAnimationFrame(() => ajustar()));
+    } catch (err) {
+      loader.innerHTML =
+        '<div class="error-box"><strong>Error al renderizar el diagrama</strong><code>' +
+        String(err && err.message ? err.message : err) +
+        '</code></div>';
+    }
+  }
+
+  function etiquetarNodos(svgEl) {
+    nodos = Array.from(svgEl.querySelectorAll('g.node'));
+
+    nodos.forEach((g) => {
+      const etiqueta = g.querySelector('.entityLabel') || g.querySelector('text');
+      const clave = resolverTabla(etiqueta ? etiqueta.textContent : g.textContent);
+      if (!clave) return;
+
+      g.dataset.tabla = clave;
+      g.classList.add('clickable', 'dom-' + TABLAS[clave].dominio);
+      g.setAttribute('tabindex', '0');
+      g.setAttribute('role', 'button');
+      g.setAttribute('aria-label', 'Ver detalle de la tabla ' + clave);
+
+      const titulo = document.createElementNS(SVGNS, 'title');
+      titulo.textContent = clave + ' — ' + TABLAS[clave].desc;
+      g.insertBefore(titulo, g.firstChild);
+    });
+  }
+
+  /* ---------- 2. Zoom y paneo ---------- */
+  function aplicar() {
+    canvas.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+    zoomLabel.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function tamanoSVG(svgEl) {
+    const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+    if (vb && vb.width > 0) return { w: vb.width, h: vb.height };
+    const r = svgEl.getBoundingClientRect();
+    return { w: r.width / (scale || 1), h: r.height / (scale || 1) };
+  }
+
+  function ajustar() {
+    const svgEl = host.querySelector('svg');
+    if (!svgEl) return;
+    const { w, h } = tamanoSVG(svgEl);
+    const vw = viewport.clientWidth;
+    if (!w || !h || !vw) return;
+
+    // 1) Escala que hace caber el diagrama a lo ancho (con margen)
+    let k = Math.min((vw - 56) / w, 1.2);
+
+    // 2) El lienzo adopta el alto natural del diagrama: evita la franja
+    //    flotante con espacio muerto arriba y abajo.
+    const alto = Math.max(360, Math.min(820, h * k + 88));
+    viewport.style.height = alto + 'px';
+
+    // 3) Si aun así no cabe a lo alto, se reduce la escala
+    if (h * k > alto - 48) k = (alto - 48) / h;
+
+    scale = Math.max(k, 0.08);
+    tx = (vw - w * scale) / 2;
+    ty = (alto - h * scale) / 2;
+    aplicar();
+  }
+
+  function zoomEn(clientX, clientY, factor) {
+    const rect = viewport.getBoundingClientRect();
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+    const nueva = Math.min(3, Math.max(0.12, scale * factor));
+    tx = px - (px - tx) * (nueva / scale);
+    ty = py - (py - ty) * (nueva / scale);
+    scale = nueva;
+    aplicar();
+  }
+
+  viewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    interactuo = true;
+    zoomEn(e.clientX, e.clientY, e.deltaY < 0 ? 1.14 : 1 / 1.14);
+  }, { passive: false });
+
+  let arrastrando = false, movido = false, iniX = 0, iniY = 0, iniTx = 0, iniTy = 0;
+
+  viewport.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    arrastrando = true;
+    movido = false;
+    iniX = e.clientX; iniY = e.clientY;
+    iniTx = tx; iniTy = ty;
+  });
+
+  viewport.addEventListener('pointermove', (e) => {
+    if (!arrastrando) return;
+    const dx = e.clientX - iniX;
+    const dy = e.clientY - iniY;
+    if (!movido && Math.abs(dx) + Math.abs(dy) > 5) {
+      movido = true;
+      interactuo = true;
+      viewport.classList.add('is-panning');
+      // La captura se toma SOLO al arrastrar: si se toma en pointerdown,
+      // Chrome redirige el click al viewport y la tabla nunca lo recibe.
+      try { viewport.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+    if (movido) {
+      tx = iniTx + dx;
+      ty = iniTy + dy;
+      aplicar();
+    }
+  });
+
+  function terminarArrastre(e) {
+    if (!arrastrando) return;
+    arrastrando = false;
+    viewport.classList.remove('is-panning');
+    if (movido) {
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 260);
+    }
+    try { viewport.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  viewport.addEventListener('pointerup', terminarArrastre);
+  viewport.addEventListener('pointercancel', terminarArrastre);
+
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    const r = viewport.getBoundingClientRect();
+    interactuo = true;
+    zoomEn(r.left + r.width / 2, r.top + r.height / 2, 1.22);
+  });
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    const r = viewport.getBoundingClientRect();
+    interactuo = true;
+    zoomEn(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.22);
+  });
+  document.getElementById('zoomFit').addEventListener('click', () => {
+    interactuo = false;
+    ajustar();
+  });
+
+  let tResize;
+  window.addEventListener('resize', () => {
+    clearTimeout(tResize);
+    tResize = setTimeout(() => { if (!interactuo) ajustar(); }, 180);
+  });
+
+  /* ---------- 3. Clic en una tabla ---------- */
+  function nodoDesdeEvento(e) {
+    let g = e.target && e.target.closest ? e.target.closest('g.node') : null;
+    if (!g) {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      g = el && el.closest ? el.closest('g.node') : null;
+    }
+    return (g && g.dataset.tabla) ? g : null;
+  }
+
+  viewport.addEventListener('click', (e) => {
+    if (suppressClick) { suppressClick = false; return; }
+    const g = nodoDesdeEvento(e);
+    if (!g) return;
+    abrirPanel(g.dataset.tabla);
+  });
+
+  host.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const g = e.target.closest ? e.target.closest('g.node') : null;
+    if (!g || !g.dataset.tabla) return;
+    e.preventDefault();
+    abrirPanel(g.dataset.tabla);
+  });
+
+  /* ---------- 4. Panel de detalle ---------- */
+  function mapaFK(tabla) {
+    const mapa = {};
+    RELACIONES.forEach((r) => {
+      if (r.via.indexOf(tabla + '.') === 0) {
+        mapa[r.via.slice(tabla.length + 1)] = r.a;
+      }
+    });
+    return mapa;
+  }
+
+  function abrirPanel(tabla) {
+    const t = TABLAS[tabla];
+    if (!t) return;
+    tablaAbierta = tabla;
+
+    const dom = DOMINIOS[t.dominio];
+    const pk = t.cols.filter(c => c[2].indexOf('PK') > -1);
+    const fk = t.cols.filter(c => c[2].indexOf('FK') > -1);
+    const uk = t.cols.filter(c => c[2].indexOf('UK') > -1);
+    const fkRef = mapaFK(tabla);
+
+    document.getElementById('panelTitle').textContent = tabla;
+    document.getElementById('panelSub').textContent =
+      t.cols.length + ' columnas · ' + pk.length + ' PK · ' + fk.length + ' FK';
+    document.getElementById('panelDomainName').textContent = dom.nombre;
+
+    const chipDom = document.getElementById('panelDomain');
+    chipDom.style.color = dom.color;
+    chipDom.style.background = 'color-mix(in srgb, ' + dom.color + ' 12%, transparent)';
+    chipDom.style.borderColor = 'color-mix(in srgb, ' + dom.color + ' 38%, transparent)';
+
+    let html = '';
+
+    // Descripción
+    html += '<p class="panel-desc">' + t.desc + '</p>';
+
+    // Llaves
+    html += '<div class="panel-section"><h3>Llaves <span class="count">' +
+            (pk.length + fk.length + uk.length) + '</span></h3>';
+
+    pk.forEach(c => {
+      html += '<div class="key-row"><span class="badge badge-pk">PK</span>' +
+              '<span>' + c[0] + '</span><span class="arrow">—</span>' +
+              '<span style="color:var(--muted);font-size:11.5px">' + c[3] + '</span></div>';
+    });
+    fk.forEach(c => {
+      const ref = fkRef[c[0]] || '—';
+      html += '<div class="key-row"><span class="badge badge-fk">FK</span>' +
+              '<span>' + c[0] + '</span><span class="arrow">→</span>' +
+              '<span style="color:#bae6fd">' + ref + '.id</span></div>';
+    });
+    uk.forEach(c => {
+      html += '<div class="key-row"><span class="badge badge-uk">UK</span>' +
+              '<span>' + c[0] + '</span><span class="arrow">—</span>' +
+              '<span style="color:var(--muted);font-size:11.5px">' + c[3] + '</span></div>';
+    });
+    if (tabla === 'orden_mecanicos') {
+      html += '<div class="key-row"><span class="badge badge-uk">UK</span>' +
+              '<span>(orden_id, mecanico_id)</span></div>';
+    }
+    if (!pk.length && !fk.length && !uk.length) {
+      html += '<div class="empty-note">Esta tabla no declara llaves adicionales.</div>';
+    }
+    html += '</div>';
+
+    // Columnas
+    html += '<div class="panel-section"><h3>Columnas <span class="count">' +
+            t.cols.length + '</span></h3><div class="cols-list">';
+    t.cols.forEach(c => {
+      const badges = c[2]
+        ? c[2].split(',').map(k => '<span class="badge badge-' + k.trim().toLowerCase() + '">' +
+            k.trim() + '</span>').join(' ')
+        : '';
+      html += '<div class="col-item">' +
+                '<div class="col-head">' +
+                  '<span class="col-name">' + c[0] + '</span>' + badges +
+                  '<span class="col-type">' + c[1] + '</span>' +
+                '</div>' +
+                '<div class="col-desc">' + c[3] + '</div>' +
+              '</div>';
+    });
+    html += '</div></div>';
+
+    // Relaciones
+    const rels = RELACIONES.filter(r => r.a === tabla || r.b === tabla);
+    html += '<div class="panel-section"><h3>Relaciones <span class="count">' +
+            rels.length + '</span></h3>';
+
+    if (!rels.length) {
+      html += '<div class="empty-note">Tabla independiente: no participa en ninguna relación.</div>';
+    } else {
+      rels.forEach(r => {
+        const esPadre = r.a === tabla;
+        const otra = esPadre ? r.b : r.a;
+        const sentido = esPadre ? '1 a N con' : 'N a 1 con';
+        html += '<div class="rel">' +
+                  '<span class="card">' + r.card + '</span>' +
+                  '<div class="rel-main">' +
+                    '<div class="rel-title">' + sentido + ' <b>' + otra + '</b></div>' +
+                    '<div class="rel-meta">' + r.via + '</div>' +
+                    '<div class="rel-meta" style="color:#93a4bd;font-family:var(--font);font-size:11.5px;margin-top:4px">' + r.txt + '</div>' +
+                    '<button class="link-table" data-ir="' + otra + '">Abrir ' + otra + ' →</button>' +
+                  '</div>' +
+                '</div>';
+      });
+    }
+    html += '</div>';
+
+    panelBody.innerHTML = html;
+    panelBody.scrollTop = 0;
+
+    panel.classList.add('is-open');
+    scrim.classList.add('is-open');
+    panel.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    resaltar(tabla);
+  }
+
+  function cerrarPanel() {
+    panel.classList.remove('is-open');
+    scrim.classList.remove('is-open');
+    panel.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    tablaAbierta = null;
+    nodos.forEach(g => g.classList.remove('is-pulse'));
+  }
+
+  function resaltar(tabla) {
+    nodos.forEach(g => g.classList.toggle('is-pulse', g.dataset.tabla === tabla));
+    setTimeout(() => {
+      nodos.forEach(g => g.classList.remove('is-pulse'));
+    }, 3200);
+  }
+
+  panelBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-ir]');
+    if (!btn) return;
+    abrirPanel(btn.dataset.ir);
+  });
+
+  document.getElementById('panelClose').addEventListener('click', cerrarPanel);
+  scrim.addEventListener('click', cerrarPanel);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('is-open')) cerrarPanel();
+  });
+
+  /* ---------- 5. Filtros ---------- */
+  function aplicarFiltros() {
+    const q = norm(search.value.trim());
+    nodos.forEach(g => {
+      const t = g.dataset.tabla;
+      if (!t) return;
+      const coincideTexto = !q || norm(t).indexOf(q) > -1 || norm(TABLAS[t].desc).indexOf(q) > -1;
+      const coincideDominio = dominioActivo === 'todos' || TABLAS[t].dominio === dominioActivo;
+      const visible = coincideTexto && coincideDominio;
+      g.classList.toggle('is-dim', !visible);
+      g.classList.toggle('is-match', !!q && coincideTexto && coincideDominio);
+    });
+  }
+
+  search.addEventListener('input', aplicarFiltros);
+
+  chips.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    chips.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+    dominioActivo = chip.dataset.dominio;
+    aplicarFiltros();
+  });
+
+  /* ---------- 6. Exportar a PNG ---------- */
+  const EXPORT_CSS = [
+    '.er.entityLabel{fill:#eef5ff;font-weight:600;}',
+    '.er.relationshipLabel{fill:#8fa3bd;font-size:10px;}',
+    '.er.relationshipLine{stroke:#44556e;stroke-width:1.5px;}',
+    '.er.relationshipLabelBox{fill:#0b1220;opacity:.8;}'
+  ].join('');
+
+  async function exportarPNG() {
+    const svgEl = host.querySelector('svg');
+    if (!svgEl) { toast('El diagrama todavía no está listo', true); return; }
+
+    try {
+      const { w, h } = tamanoSVG(svgEl);
+      const clon = svgEl.cloneNode(true);
+
+      clon.setAttribute('xmlns', SVGNS);
+      clon.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+      clon.setAttribute('width', String(w));
+      clon.setAttribute('height', String(h));
+      clon.removeAttribute('style');
+
+      const estilo = document.createElementNS(SVGNS, 'style');
+      estilo.textContent = EXPORT_CSS;
+      clon.insertBefore(estilo, clon.firstChild);
+
+      const fondo = document.createElementNS(SVGNS, 'rect');
+      fondo.setAttribute('x', '0');
+      fondo.setAttribute('y', '0');
+      fondo.setAttribute('width', String(w));
+      fondo.setAttribute('height', String(h));
+      fondo.setAttribute('fill', '#070b14');
+      clon.insertBefore(fondo, estilo.nextSibling);
+
+      const xml = new XMLSerializer().serializeToString(clon);
+
+      // Se usa data: URL en lugar de blob: porque al abrir el archivo con
+      // doble clic (file://) Chrome marca el canvas como "tainted" y bloquea
+      // la exportación. Un data: URL sí permite leer el canvas.
+      const bytes = new TextEncoder().encode(xml);
+      let binario = '';
+      for (let i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+      const url = 'data:image/svg+xml;base64,' + btoa(binario);
+
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = () => rej(new Error('No se pudo convertir el SVG a imagen'));
+        img.src = url;
+      });
+
+      const factor = Math.min(2.5, 9000 / Math.max(w, h));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(w * factor);
+      cv.height = Math.round(h * factor);
+
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#070b14';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+
+      cv.toBlob((salida) => {
+        if (!salida) { toast('No se pudo generar el PNG', true); return; }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(salida);
+        a.download = 'autopulse-elite-diagrama-er.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        toast('PNG exportado (' + cv.width + '×' + cv.height + ' px)');
+      }, 'image/png');
+    } catch (err) {
+      toast('Error al exportar: ' + (err.message || err), true);
+    }
+  }
+
+  document.getElementById('btnExport').addEventListener('click', exportarPNG);
+
+  /* ---------- 7. Copiar el código Mermaid ---------- */
+  async function copiarMermaid() {
+    const texto = MERMAID_SRC;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(texto);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      toast('Código Mermaid copiado al portapapeles');
+    } catch (_) {
+      toast('No se pudo copiar. Revisa los permisos del navegador.', true);
+    }
+  }
+
+  document.getElementById('btnCopy').addEventListener('click', copiarMermaid);
+
+  /* ---------- 8. Arranque ---------- */
+  document.getElementById('statTablas').textContent = Object.keys(TABLAS).length;
+  document.getElementById('statRelaciones').textContent = RELACIONES.length;
+
+  renderDiagrama();
+})();
+
+</script>
+</body>
+</html>

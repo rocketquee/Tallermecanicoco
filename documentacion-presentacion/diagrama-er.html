@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Diagrama E-R · AutoPulse Elite</title>
+    <style>
+      :root {
+        --fondo: #0a0a0a;
+        --panel: #0d0d0d;
+        --panel-alto: #121212;
+        --linea: rgba(255, 255, 255, 0.08);
+        --linea-fuerte: rgba(255, 255, 255, 0.16);
+        --texto: #f5f5f5;
+        --suave: #a1a1a1;
+        --tenue: #737373;
+        --positivo: #4ade80;
+        --negativo: #f87171;
+        --radio: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        background-color: var(--fondo);
+        background-image:
+          radial-gradient(
+            circle at 10% 0%,
+            rgba(255, 255, 255, 0.05),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 90% 100%,
+            rgba(255, 255, 255, 0.035),
+            transparent 45%
+          );
+        color: var(--texto);
+        font-family:
+          'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .hoja {
+        width: min(1600px, 100% - 48px);
+        margin: 0 auto;
+        padding: 44px 0 28px;
+      }
+
+      .etiqueta {
+        margin: 0;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--tenue);
+      }
+
+      header h1 {
+        margin: 12px 0 0;
+        font-size: clamp(28px, 3.6vw, 42px);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+      }
+
+      .bajada {
+        max-width: 820px;
+        margin: 14px 0 0;
+        font-size: 13.5px;
+        line-height: 1.7;
+        color: var(--suave);
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--linea);
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 11px;
+        border: 1px solid var(--linea);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 11px;
+        color: var(--suave);
+      }
+
+      .chip b {
+        font-weight: 600;
+        color: var(--texto);
+      }
+
+      .punto {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--positivo);
+      }
+
+      .pk,
+      .fk {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 9px;
+        font-weight: 700;
+      }
+
+      .pk {
+        border: 1px solid rgba(252, 211, 77, 0.35);
+        background: rgba(252, 211, 77, 0.12);
+        color: #fcd34d;
+      }
+
+      .fk {
+        border: 1px solid rgba(125, 211, 252, 0.3);
+        background: rgba(125, 211, 252, 0.1);
+        color: #7dd3fc;
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* Barra de acciones y canvas                                        */
+      /* ---------------------------------------------------------------- */
+
+      .barra {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 20px;
+        padding: 9px 10px 9px 14px;
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        background: var(--panel);
+      }
+
+      .ayuda {
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.5;
+        color: var(--tenue);
+      }
+
+      .ayuda b {
+        font-weight: 500;
+        color: var(--suave);
+      }
+
+      .acciones {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .acciones button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        height: 32px;
+        padding: 0 10px;
+        border: 1px solid var(--linea);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--suave);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          color 140ms ease,
+          background 140ms ease;
+      }
+
+      .acciones button:hover {
+        border-color: var(--linea-fuerte);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--texto);
+      }
+
+      .acciones button:focus-visible {
+        outline: 2px solid var(--linea-fuerte);
+        outline-offset: 2px;
+      }
+
+      .nivel-zoom {
+        min-width: 46px;
+        text-align: center;
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 10.5px;
+        color: var(--tenue);
+      }
+
+      .marco {
+        position: relative;
+        height: clamp(520px, calc(100vh - 300px), 980px);
+        margin-top: 10px;
+        overflow: hidden;
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        background-color: var(--fondo);
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.07) 1px,
+          transparent 1px
+        );
+        background-size: 22px 22px;
+        cursor: grab;
+        touch-action: none;
+      }
+
+      .marco.arrastrando {
+        cursor: grabbing;
+      }
+
+      #diagrama {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      #diagrama svg {
+        display: block;
+        max-width: none !important;
+        height: auto;
+        transform-origin: 0 0;
+        will-change: transform;
+        pointer-events: auto;
+      }
+
+      .estado {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        padding: 24px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--tenue);
+      }
+
+      .estado[hidden] {
+        display: none;
+      }
+
+      .estado strong {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--texto);
+      }
+
+      .estado .sugerencia {
+        max-width: 440px;
+        line-height: 1.7;
+      }
+
+      .girador {
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--linea-fuerte);
+        border-top-color: var(--suave);
+        border-radius: 999px;
+        animation: girar 900ms linear infinite;
+      }
+
+      @keyframes girar {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        color: var(--negativo);
+      }
+
+      footer {
+        padding: 18px 0 8px;
+        font-size: 10.5px;
+        line-height: 1.7;
+        color: var(--tenue);
+      }
+
+      footer b {
+        font-weight: 500;
+        color: var(--suave);
+      }
+
+      @media (max-width: 640px) {
+        .hoja {
+          width: calc(100% - 32px);
+          padding-top: 28px;
+        }
+
+        .barra {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .acciones {
+          flex-wrap: wrap;
+        }
+      }
+
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .barra {
+          display: none;
+        }
+
+        .marco {
+          height: 90vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="hoja">
+      <header>
+        <p class="etiqueta">AutoPulse Elite · Documentación técnica</p>
+        <h1>Diagrama Entidad-Relación</h1>
+        <p class="bajada">
+          Modelo relacional completo de la base de datos
+          <strong>autopulse_elite</strong>: 21 tablas en MySQL 8.x InnoDB. Cada
+          relación respeta las llaves primarias y foráneas del esquema; las
+          tablas de auditoría (<code>bitacora</code>,
+          <code>historial_etapas</code>) son inmutables y solo conservan
+          <code>created_at</code>.
+        </p>
+
+        <div class="meta">
+          <span class="chip"><span class="punto"></span> 21 tablas</span>
+          <span class="chip"><b>24</b> relaciones</span>
+          <span class="chip"><span class="pk">PK</span> llave primaria</span>
+          <span class="chip"><span class="fk">FK</span> llave foránea</span>
+          <span class="chip"><b>1:N</b> cardinalidad</span>
+        </div>
+      </header>
+
+      <div class="barra">
+        <p class="ayuda">
+          <b>Arrastra</b> para mover el diagrama · <b>rueda</b> para acercar ·
+          botones para restablecer o descargar.
+        </p>
+
+        <div class="acciones">
+          <button type="button" id="menos" aria-label="Alejar">−</button>
+          <span class="nivel-zoom" id="nivel">100%</span>
+          <button type="button" id="mas" aria-label="Acercar">+</button>
+          <button type="button" id="centrar">Centrar</button>
+          <button type="button" id="descargar">Descargar SVG</button>
+        </div>
+      </div>
+
+      <section
+        class="marco"
+        id="marco"
+        aria-label="Diagrama entidad-relación interactivo"
+      >
+        <div id="diagrama"></div>
+
+        <div class="estado" id="cargando">
+          <div class="girador" aria-hidden="true"></div>
+          <strong>Dibujando las 21 tablas…</strong>
+          <span>Mermaid se carga desde el CDN.</span>
+        </div>
+
+        <div class="estado" id="error" hidden>
+          <strong class="error">No se pudo dibujar el diagrama</strong>
+          <span class="sugerencia">
+            Este archivo usa Mermaid vía CDN, así que necesita conexión a
+            internet la primera vez. Verifica tu red y recarga la página.
+          </span>
+        </div>
+      </section>
+
+      <script
+        src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"
+        onerror="window.__mermaidFallo = true"
+      ></script>
+
+      <pre id="fuente" hidden>
+erDiagram
+    clientes ||--o{ vehiculos : "posee"
+    clientes ||--o{ ordenes_servicio : "solicita"
+    vehiculos ||--o{ polizas_seguro : "tiene"
+    vehiculos ||--o{ ordenes_servicio : "ingresa_en"
+    mecanicos |o--o{ ordenes_servicio : "responsable"
+    mecanicos ||--o{ orden_mecanicos : "participa"
+    mecanicos |o--o{ usuarios : "usuario_de"
+    proveedores |o--o{ refacciones : "surte"
+    proveedores ||--o{ compras : "recibe_pedido"
+    compras ||--o{ detalle_compra : "contiene"
+    refacciones ||--o{ detalle_compra : "se_pide"
+    refacciones ||--o{ movimientos_inventario : "mueve"
+    refacciones |o--o{ detalle_orden : "se_usa"
+    servicios |o--o{ detalle_orden : "se_cobra"
+    ordenes_servicio ||--o{ detalle_orden : "detalla"
+    ordenes_servicio ||--o{ fotos_vehiculo : "documenta"
+    ordenes_servicio ||--o{ pagos : "cobra"
+    ordenes_servicio ||--o{ facturas : "factura"
+    ordenes_servicio ||--o{ autorizaciones : "requiere"
+    ordenes_servicio ||--o{ orden_mecanicos : "asigna"
+    ordenes_servicio ||--o{ historial_etapas : "cambia_etapa"
+    ordenes_servicio |o--o{ compras : "origina"
+    usuarios ||--o{ bitacora : "audita"
+    usuarios ||--o{ historial_etapas : "registra"
+
+    clientes {
+        int id PK
+        varchar nombre
+        varchar telefono1
+        varchar correo
+        enum categoria
+        decimal descuento_mano_obra
+        boolean confidencial
+        varchar rfc
+        boolean activo
+    }
+
+    proveedores {
+        int id PK
+        varchar nombre
+        varchar pais
+        enum moneda
+        int tiempo_entrega_dias
+        boolean activo
+    }
+
+    mecanicos {
+        int id PK
+        varchar nombre
+        varchar especialidad
+        varchar telefono
+        boolean activo
+    }
+
+    servicios {
+        int id PK
+        varchar nombre
+        decimal precio_mano_obra
+        decimal duracion_estimada_horas
+        boolean activo
+    }
+
+    vehiculos {
+        int id PK
+        int cliente_id FK
+        varchar placas
+        varchar vin
+        varchar marca
+        varchar modelo
+        int anio
+        decimal valor_aproximado
+        boolean activo
+    }
+
+    polizas_seguro {
+        int id PK
+        int vehiculo_id FK
+        varchar aseguradora
+        varchar numero_poliza
+        date vigencia_fin
+        text cobertura
+        boolean activo
+    }
+
+    refacciones {
+        int id PK
+        int proveedor_id FK
+        varchar nombre
+        varchar marca
+        int stock_actual
+        int stock_minimo
+        decimal precio_costo
+        decimal precio_venta
+        boolean activo
+    }
+
+    compras {
+        int id PK
+        int proveedor_id FK
+        int orden_id FK
+        datetime fecha_pedido
+        enum estado
+        enum moneda_original
+        decimal tipo_cambio
+        decimal total_mxn
+    }
+
+    detalle_compra {
+        int id PK
+        int compra_id FK
+        int refaccion_id FK
+        int cantidad
+        decimal precio_unitario_moneda
+    }
+
+    movimientos_inventario {
+        int id PK
+        int refaccion_id FK
+        enum tipo
+        int cantidad
+        varchar motivo
+        varchar usuario
+    }
+
+    ordenes_servicio {
+        int id PK
+        int cliente_id FK
+        int vehiculo_id FK
+        int mecanico_id FK
+        enum estado
+        text falla_reportada
+        text diagnostico
+        decimal total
+        boolean requiere_autorizacion
+        boolean activo
+    }
+
+    detalle_orden {
+        int id PK
+        int orden_id FK
+        int servicio_id FK
+        int refaccion_id FK
+        int cantidad
+        decimal precio_unitario
+    }
+
+    fotos_vehiculo {
+        int id PK
+        int orden_id FK
+        varchar url_foto
+        enum etapa
+        boolean firma_conformidad
+    }
+
+    pagos {
+        int id PK
+        int orden_id FK
+        enum tipo
+        decimal monto
+        enum metodo_pago
+        varchar referencia
+    }
+
+    facturas {
+        int id PK
+        int orden_id FK
+        varchar numero_factura
+        decimal subtotal
+        decimal iva
+        decimal total
+        varchar uuid_cfdi
+        enum estado
+    }
+
+    autorizaciones {
+        int id PK
+        int orden_id FK
+        enum tipo
+        decimal monto_orden
+        boolean aprobado
+        varchar aprobado_por
+        datetime fecha_aprobacion
+    }
+
+    orden_mecanicos {
+        int id PK
+        int orden_id FK
+        int mecanico_id FK
+        boolean activo
+    }
+
+    historial_etapas {
+        int id PK
+        int orden_id FK
+        enum etapa_anterior
+        enum etapa_nueva
+        int usuario_id FK
+        datetime created_at
+    }
+
+    usuarios {
+        int id PK
+        varchar nombre
+        varchar correo
+        varchar password_hash
+        enum rol
+        int mecanico_id FK
+        boolean activo
+    }
+
+    bitacora {
+        int id PK
+        int usuario_id FK
+        varchar tabla_afectada
+        int registro_id
+        enum accion
+        text detalle
+        datetime created_at
+    }
+
+    parametros {
+        int id PK
+        varchar clave
+        varchar valor
+        text descripcion
+        boolean activo
+    }
+      </pre>
+
+      <footer>
+        <b>AutoPulse Elite</b> · Archivo independiente de presentación. Ábrelo
+        con doble clic; el diagrama se dibuja con Mermaid desde el CDN y el resto
+        funciona sin servidor. El script SQL completo vive en <code>sql/</code> y
+        el detalle de cada columna en <code>docs/erd.md</code>.
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        var marco = document.getElementById('marco')
+        var lienzo = document.getElementById('diagrama')
+        var cargando = document.getElementById('cargando')
+        var error = document.getElementById('error')
+        var nivel = document.getElementById('nivel')
+
+        var svg = null
+        var escala = 1
+        var x = 0
+        var y = 0
+        var ancho = 0
+        var alto = 0
+        var arrastrando = false
+        var origen = { x: 0, y: 0 }
+        var vistaManual = false
+        var MIN_ZOOM = 0.15
+        var MAX_ZOOM = 3
+
+        function limitar(valor) {
+          return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, valor))
+        }
+
+        function aplicar() {
+          if (!svg) {
+            return
+          }
+          svg.style.transform =
+            'translate(' + x + 'px, ' + y + 'px) scale(' + escala + ')'
+          nivel.textContent = Math.round(escala * 100) + '%'
+        }
+
+        function medir() {
+          var caja = svg.viewBox && svg.viewBox.baseVal
+          if (caja && caja.width > 0 && caja.height > 0) {
+            ancho = caja.width
+            alto = caja.height
+          } else {
+            var rect = svg.getBoundingClientRect()
+            ancho = rect.width
+            alto = rect.height
+          }
+          svg.setAttribute('width', ancho)
+          svg.setAttribute('height', alto)
+          svg.style.width = ancho + 'px'
+          svg.style.height = alto + 'px'
+        }
+
+        function centrar() {
+          if (!svg) {
+            return
+          }
+          var disponibleAncho = marco.clientWidth
+          var disponibleAlto = marco.clientHeight
+          escala = limitar(
+            Math.min(disponibleAncho / ancho, disponibleAlto / alto, 1),
+          )
+          x = (disponibleAncho - ancho * escala) / 2
+          y = (disponibleAlto - alto * escala) / 2
+          vistaManual = false
+          aplicar()
+        }
+
+        function zoom(factor, puntoX, puntoY) {
+          if (!svg) {
+            return
+          }
+          var cx = puntoX
+          var cy = puntoY
+          if (typeof cx !== 'number' || typeof cy !== 'number') {
+            cx = marco.clientWidth / 2
+            cy = marco.clientHeight / 2
+          }
+          var previa = escala
+          escala = limitar(escala * factor)
+          x = cx - (cx - x) * (escala / previa)
+          y = cy - (cy - y) * (escala / previa)
+          vistaManual = true
+          aplicar()
+        }
+
+        function preparar() {
+          svg = lienzo.querySelector('svg')
+          if (!svg) {
+            throw new Error('Mermaid no devolvió un SVG')
+          }
+          svg.style.transformOrigin = '0 0'
+          medir()
+          centrar()
+        }
+
+        function descargar() {
+          if (!svg) {
+            return
+          }
+          var copia = svg.cloneNode(true)
+          copia.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+          var caja = (svg.viewBox && svg.viewBox.baseVal) || {
+            x: 0,
+            y: 0,
+            width: ancho,
+            height: alto,
+          }
+          var fondo = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'rect',
+          )
+          fondo.setAttribute('x', String(caja.x))
+          fondo.setAttribute('y', String(caja.y))
+          fondo.setAttribute('width', String(caja.width))
+          fondo.setAttribute('height', String(caja.height))
+          fondo.setAttribute('fill', '#0a0a0a')
+          copia.insertBefore(fondo, copia.firstChild)
+
+          var texto = new XMLSerializer().serializeToString(copia)
+          var blob = new Blob([texto], {
+            type: 'image/svg+xml;charset=utf-8',
+          })
+          var url = URL.createObjectURL(blob)
+          var enlace = document.createElement('a')
+          enlace.href = url
+          enlace.download = 'autopulse-modelo-er.svg'
+          document.body.appendChild(enlace)
+          enlace.click()
+          enlace.remove()
+          setTimeout(function () {
+            URL.revokeObjectURL(url)
+          }, 1000)
+        }
+
+        // Arrastre con puntero (ratón, lápiz o dedo).
+        marco.addEventListener('pointerdown', function (evento) {
+          if (evento.target.closest('button')) {
+            return
+          }
+          arrastrando = true
+          origen.x = evento.clientX - x
+          origen.y = evento.clientY - y
+          vistaManual = true
+          marco.classList.add('arrastrando')
+          if (marco.setPointerCapture) {
+            marco.setPointerCapture(evento.pointerId)
+          }
+        })
+
+        marco.addEventListener('pointermove', function (evento) {
+          if (!arrastrando) {
+            return
+          }
+          x = evento.clientX - origen.x
+          y = evento.clientY - origen.y
+          aplicar()
+        })
+
+        function soltar(evento) {
+          if (!arrastrando) {
+            return
+          }
+          arrastrando = false
+          marco.classList.remove('arrastrando')
+          if (marco.releasePointerCapture && evento.pointerId !== undefined) {
+            try {
+              marco.releasePointerCapture(evento.pointerId)
+            } catch (e) {
+              /* el puntero ya se liberó */
+            }
+          }
+        }
+
+        marco.addEventListener('pointerup', soltar)
+        marco.addEventListener('pointercancel', soltar)
+        marco.addEventListener('pointerleave', soltar)
+
+        marco.addEventListener(
+          'wheel',
+          function (evento) {
+            evento.preventDefault()
+            var rect = marco.getBoundingClientRect()
+            zoom(
+              evento.deltaY < 0 ? 1.12 : 1 / 1.12,
+              evento.clientX - rect.left,
+              evento.clientY - rect.top,
+            )
+          },
+          { passive: false },
+        )
+
+        document.getElementById('mas').addEventListener('click', function () {
+          zoom(1.2)
+        })
+        document.getElementById('menos').addEventListener('click', function () {
+          zoom(1 / 1.2)
+        })
+        document.getElementById('centrar').addEventListener('click', centrar)
+        document
+          .getElementById('descargar')
+          .addEventListener('click', descargar)
+
+        window.addEventListener('resize', function () {
+          // Solo se reajusta si el usuario no había movido la vista a mano.
+          if (svg && !vistaManual) {
+            centrar()
+          }
+        })
+
+        function mostrarError(detalle) {
+          cargando.hidden = true
+          error.hidden = false
+          if (detalle) {
+            console.error(detalle)
+          }
+        }
+
+        function iniciar() {
+          if (window.__mermaidFallo || !window.mermaid) {
+            mostrarError('No se cargó Mermaid desde el CDN')
+            return
+          }
+
+          window.mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'strict',
+            theme: 'dark',
+            themeVariables: {
+              darkMode: true,
+              background: '#0a0a0a',
+              fontFamily:
+                "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+              fontSize: '13px',
+              primaryColor: '#141414',
+              primaryTextColor: '#f5f5f5',
+              primaryBorderColor: '#3f3f3f',
+              lineColor: '#5a5a5a',
+              secondaryColor: '#0d0d0d',
+              tertiaryColor: '#101010',
+              mainBkg: '#121212',
+              nodeBorder: '#3f3f3f',
+              textColor: '#e5e5e5',
+              attributeBackgroundColorOdd: '#101010',
+              attributeBackgroundColorEven: '#141414',
+            },
+            er: {
+              diagramPadding: 28,
+              layoutDirection: 'TB',
+              minEntityWidth: 150,
+              minEntityHeight: 40,
+              entityPadding: 14,
+              useMaxWidth: false,
+            },
+          })
+
+          var fuente = document.getElementById('fuente').textContent
+
+          window.mermaid
+            .render('er-autopulse', fuente)
+            .then(function (resultado) {
+              lienzo.innerHTML = resultado.svg
+              preparar()
+              cargando.hidden = true
+            })
+            .catch(function (fallo) {
+              mostrarError(fallo)
+            })
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', iniciar)
+        } else {
+          iniciar()
+        }
+      })()
+    </script>
+  </body>
+</html>

@@ -1,17 +1,7 @@
-/** Reglas del tablero de bahías que ve el rol Mecánico. */
+/** Reglas de etapas del taller que usa el rol Mecánico. */
 
 import { ESTADOS_ORDEN } from '../types/ordenes'
-import type { EstadoOrden, Orden } from '../types/ordenes'
-
-/** Número de tarjetas fijas del tablero. */
-export const TOTAL_BAHIAS = 4
-
-/** Etapas que mantienen la unidad dentro del taller. */
-export const ETAPAS_EN_TALLER: ReadonlyArray<EstadoOrden> = [
-  'Recibido',
-  'Diagnostico',
-  'Reparacion',
-]
+import type { EstadoOrden } from '../types/ordenes'
 
 /** Flujo completo que se dibuja en el detalle de la orden. */
 export const ETAPAS_FLUJO: ReadonlyArray<EstadoOrden> = [
@@ -45,28 +35,17 @@ export const BARRA_POR_ETAPA: Record<EstadoOrden, string> = {
   Cancelado: 'bg-negative',
 }
 
-const SIGUIENTE_ETAPA: Partial<Record<EstadoOrden, EstadoOrden>> = {
-  Recibido: 'Diagnostico',
-  Diagnostico: 'Reparacion',
-  Reparacion: 'Listo',
-}
-
-export function siguienteEtapa(estado: EstadoOrden): EstadoOrden | null {
-  return SIGUIENTE_ETAPA[estado] ?? null
+/** Etapas a las que se puede mover la orden desde la actual (hacia adelante). */
+export function etapasSiguientes(estado: EstadoOrden): EstadoOrden[] {
+  const indice = ETAPAS_FLUJO.indexOf(estado)
+  if (indice < 0) {
+    return []
+  }
+  return ETAPAS_FLUJO.slice(indice + 1)
 }
 
 export function etiquetaEtapa(estado: EstadoOrden): string {
   return (
     ESTADOS_ORDEN.find((opcion) => opcion.valor === estado)?.etiqueta ?? estado
   )
-}
-
-export function estaEnBahia(orden: Orden): boolean {
-  return ETAPAS_EN_TALLER.includes(orden.estado)
-}
-
-/** Primero las unidades más avanzadas; a igual avance, la más antigua. */
-export function ordenarParaBahia(a: Orden, b: Orden): number {
-  const avance = PROGRESO_POR_ETAPA[b.estado] - PROGRESO_POR_ETAPA[a.estado]
-  return avance !== 0 ? avance : a.id - b.id
 }

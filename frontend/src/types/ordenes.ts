@@ -12,6 +12,8 @@ export interface Orden {
   id: number
   estado: EstadoOrden
   falla_reportada: string | null
+  /** Diagnóstico y notas capturados por el mecánico. */
+  diagnostico: string | null
   cliente_id: number
   cliente_nombre: string
   vehiculo_id: number
@@ -79,6 +81,7 @@ export interface OrdenDetalle {
   id: number
   estado: EstadoOrden
   falla_reportada: string | null
+  diagnostico: string | null
   cliente: ClienteOrden
   vehiculo: VehiculoOrden
   mecanico_id: number | null
@@ -92,4 +95,20 @@ export interface OrdenDetalle {
   created_at: string
   updated_at: string
   activo: boolean
+}
+
+/** Refacción que el mecánico consume al registrar su avance. */
+export interface RefaccionUsadaPayload {
+  refaccion_id: number
+  cantidad: number
+}
+
+/**
+ * Cuerpo de POST /api/v1/ordenes/{id}/registrar-avance.
+ * Los precios NO se envían: el backend los toma del catálogo (SEG-18).
+ */
+export interface AvanceMecanicoPayload {
+  diagnostico?: string | null
+  etapa_nueva?: EstadoOrden | null
+  refacciones: RefaccionUsadaPayload[]
 }

@@ -21,3 +21,5 @@ Los scripts de `sql/` se ejecutan en orden y reproducen el esquema completo:
 | `sql/05_finanzas.sql` | `pagos`, `facturas`, `autorizaciones` |
 | `sql/06_seguridad.sql` | `usuarios`, `bitacora`, `orden_mecanicos`, `historial_etapas`, `parametros` |
 | `sql/07_datos_prueba.sql` | Datos de ejemplo para desarrollo (solo local) |
+| `sql/08_datos_prueba_extra.sql` | Clientes, vehículos, servicios y órdenes adicionales de ejemplo |
+| `sql/09_avance_mecanico.sql` | Columna `ordenes_servicio.diagnostico` para el reporte de avance del mecánico |

@@ -131,7 +131,9 @@ Convenciones: nombres en español y `snake_case`, dinero en `DECIMAL(12,2)`, est
 ### Fase actual: base de datos y backend inicial
 
 El esquema está terminado: 21 tablas en MySQL 8.x (InnoDB, `utf8mb4_unicode_ci`). La API
-ya expone autenticación, clientes, vehículos y órdenes de servicio.
+ya expone autenticación, clientes, vehículos, órdenes de servicio, el catálogo de
+refacciones, el reporte de avance del mecánico, el surtido de inventario y la
+administración de usuarios.
 
 ```bash
 # 1. Clonar el repositorio
@@ -148,6 +150,7 @@ mysql -u root -p autopulse_elite < sql/03_inventario.sql
 mysql -u root -p autopulse_elite < sql/04_ordenes.sql
 mysql -u root -p autopulse_elite < sql/05_finanzas.sql
 mysql -u root -p autopulse_elite < sql/06_seguridad.sql
+mysql -u root -p autopulse_elite < sql/09_avance_mecanico.sql
 
 # 4. Opcional: datos de ejemplo para desarrollo
 mysql -u root -p autopulse_elite < sql/07_datos_prueba.sql
@@ -176,7 +179,7 @@ uvicorn app.main:app --reload
 ```
 
 La documentación interactiva queda en `http://127.0.0.1:8000/docs`. Las tablas se crean
-con los scripts `sql/01` a `sql/08`; Alembic queda pendiente para cuando se necesiten
+con los scripts `sql/01` a `sql/09`; Alembic queda pendiente para cuando se necesiten
 migraciones versionadas.
 
 ### Fase futura: frontend
@@ -195,6 +198,10 @@ AutoPulse-Elite/
 ├── README.md                  # Este archivo
 ├── .gitignore
 ├── opencode.example.json      # Plantilla de configuración local (MCP MySQL)
+├── documentacion-presentacion/ # Diagramas HTML independientes para presentaciones
+│   ├── arquitectura.html      # Usuario → React → FastAPI → MySQL
+│   ├── diagrama-er.html       # 21 tablas con Mermaid (CDN)
+│   └── README.md
 ├── docs/
 │   ├── indice.md              # Índice de documentación
 │   ├── requisitos.md          # Requisitos originales
@@ -210,7 +217,8 @@ AutoPulse-Elite/
 │   ├── 05_finanzas.sql        # pagos, facturas, autorizaciones
 │   ├── 06_seguridad.sql       # usuarios, bitacora, orden_mecanicos, historial_etapas, parametros
 │   ├── 07_datos_prueba.sql    # seeds base para desarrollo
-│   └── 08_datos_prueba_extra.sql # clientes, vehículos, servicios y órdenes de ejemplo
+│   ├── 08_datos_prueba_extra.sql # clientes, vehículos, servicios y órdenes de ejemplo
+│   └── 09_avance_mecanico.sql # columna diagnostico para el reporte de avance
 ├── backend/                   # API Python + FastAPI
 │   ├── app/
 │   │   ├── main.py
@@ -238,6 +246,8 @@ AutoPulse-Elite/
 ```
 
 - **`docs/`**: requisitos, contexto técnico, diagrama E-R y registro de decisiones.
+- **`documentacion-presentacion/`**: diagramas visuales en HTML que se abren con
+  doble clic, sin servidor, para presentaciones.
 - **`sql/`**: scripts divididos por bloques, en el orden en que deben ejecutarse.
 - **`backend/`**: API REST con FastAPI, modelos SQLAlchemy y módulos de autenticación, clientes, vehículos y órdenes.
 - **`frontend/`**: aplicación React con TypeScript, empaquetada con Vite (fase futura).
@@ -267,8 +277,10 @@ El criterio de aceptación del primer día es cubrir el ciclo básico: registrar
 - [x] Diseño de la base de datos por bloques (21 tablas).
 - [x] Diagrama E-R en Mermaid ([docs/erd.md](docs/erd.md)).
 - [x] Backend inicial: login JWT, roles, privacidad, clientes, vehículos y órdenes.
-- [ ] Módulos restantes del backend (detalle de orden, inventario, pagos, facturas).
-- [ ] Frontend con React + TypeScript.
+- [x] Inventario: catálogo, descuento por consumo y surtido con bitácora.
+- [x] Administración de usuarios y restablecimiento de contraseña (solo Admin).
+- [x] Frontend operativo: panel, clientes, vehículos, órdenes, inventario y configuración.
+- [ ] Módulos restantes del backend (proveedores, pagos, facturas, autorizaciones, reportes).
 - [ ] Integración directa con PAC para timbrar (fase futura).
 - [ ] Migración de los datos actuales de la libreta y Excel (SEG-16).
 

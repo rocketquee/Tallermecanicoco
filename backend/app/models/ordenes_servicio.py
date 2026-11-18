@@ -108,6 +108,9 @@ class OrdenServicio(Base):
         server_default="Recibido",
     )
     falla_reportada: Mapped[str | None] = mapped_column(Text)
+    # Diagnostico y notas que captura el mecanico al reportar su avance. Es
+    # independiente de ``falla_reportada``, que registra lo que dijo el cliente.
+    diagnostico: Mapped[str | None] = mapped_column(Text)
     total_piezas: Mapped[Decimal] = mapped_column(
         Numeric(12, 2), nullable=False, server_default=text("0.00")
     )

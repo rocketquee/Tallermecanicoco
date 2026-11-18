@@ -9,7 +9,14 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import engine, get_db
-from app.routers import auth, clientes, ordenes, usuarios, vehiculos
+from app.routers import (
+    auth,
+    clientes,
+    ordenes,
+    refacciones,
+    usuarios,
+    vehiculos,
+)
 
 
 @asynccontextmanager
@@ -37,6 +44,7 @@ app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(clientes.router, prefix=settings.API_V1_PREFIX)
 app.include_router(vehiculos.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ordenes.router, prefix=settings.API_V1_PREFIX)
+app.include_router(refacciones.router, prefix=settings.API_V1_PREFIX)
 app.include_router(usuarios.router, prefix=settings.API_V1_PREFIX)
 
 
@@ -52,6 +60,7 @@ def raiz() -> dict[str, str]:
         "clientes": f"{settings.API_V1_PREFIX}/clientes",
         "vehiculos": f"{settings.API_V1_PREFIX}/vehiculos",
         "ordenes": f"{settings.API_V1_PREFIX}/ordenes",
+        "refacciones": f"{settings.API_V1_PREFIX}/refacciones",
         "usuarios": f"{settings.API_V1_PREFIX}/usuarios",
     }
 

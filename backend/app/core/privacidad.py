@@ -124,6 +124,7 @@ def orden_visible(orden: OrdenServicio, usuario: Usuario) -> OrdenOut:
         id=orden.id,
         estado=orden.estado,
         falla_reportada=orden.falla_reportada,
+        diagnostico=orden.diagnostico,
         cliente_id=orden.cliente_id,
         cliente_nombre=(
             ETIQUETA_CONFIDENCIAL
@@ -192,6 +193,7 @@ def orden_detalle_visible(
         id=orden.id,
         estado=orden.estado,
         falla_reportada=orden.falla_reportada,
+        diagnostico=orden.diagnostico,
         cliente=ClienteOrdenOut(
             id=cliente.id,
             nombre=(

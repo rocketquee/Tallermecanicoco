@@ -60,6 +60,7 @@ class OrdenOut(BaseModel):
     id: int
     estado: EstadoOrden
     falla_reportada: Optional[str] = None
+    diagnostico: Optional[str] = None
     cliente_id: int
     cliente_nombre: str
     vehiculo_id: int
@@ -124,6 +125,7 @@ class OrdenDetalleOut(BaseModel):
     id: int
     estado: EstadoOrden
     falla_reportada: Optional[str] = None
+    diagnostico: Optional[str] = None
     cliente: ClienteOrdenOut
     vehiculo: VehiculoOrdenOut
     mecanico_id: Optional[int] = None
@@ -137,3 +139,65 @@ class OrdenDetalleOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     activo: bool
+
+
+class RefaccionUsadaIn(BaseModel):
+    """Refaccion que el mecanico consumio en la orden (INV-02, ORD-10).
+
+    El frontend solo envia id y cantidad. El precio unitario lo resuelve el
+    backend desde el catalogo, porque el rol Mecanico no puede ver importes
+    (SEG-18).
+    """
+
+    refaccion_id: int = Field(..., gt=0)
+    cantidad: int = Field(..., ge=1, le=999)
+
+
+class AvanceMecanicoIn(BaseModel):
+    """Cuerpo del reporte de avance del mecanico (ORD-04, ORD-10).
+
+    * ``diagnostico``: texto libre con hallazgos y notas del trabajo.
+    * ``etapa_nueva``: etapa destino; si se omite, la orden conserva la actual.
+    * ``refacciones``: piezas consumidas; cada una genera una linea en
+      ``detalle_orden`` y una salida de inventario (INV-02, INV-05).
+
+    Al menos uno de los tres campos debe traer un cambio; el router lo valida.
+    """
+
+    diagnostico: Optional[str] = Field(
+        None,
+        max_length=4000,
+        description="Diagnostico o notas del mecanico",
+    )
+    etapa_nueva: Optional[EstadoOrden] = Field(
+        None,
+        description=(
+            "Etapa destino. El Mecanico solo puede avanzar; el Administrador "
+            "puede corregir hacia atras (ORD-04, ORD-05)"
+        ),
+    )
+    refacciones: list[RefaccionUsadaIn] = Field(
+        default_factory=list,
+        max_length=50,
+        description="Refacciones usadas en esta visita",
+    )
+
+    @field_validator("diagnostico", mode="before")
+    @classmethod
+    def _limpiar_diagnostico(cls, valor: object) -> object:
+        if isinstance(valor, str):
+            valor = valor.replace("\r\n", "\n").strip()
+            return valor or None
+        return valor
+
+    @field_validator("refacciones")
+    @classmethod
+    def _sin_refacciones_repetidas(
+        cls, valor: list[RefaccionUsadaIn]
+    ) -> list[RefaccionUsadaIn]:
+        ids = [linea.refaccion_id for linea in valor]
+        if len(ids) != len(set(ids)):
+            raise ValueError(
+                "Cada refaccion debe aparecer una sola vez en el avance"
+            )
+        return valor

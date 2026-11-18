@@ -56,7 +56,7 @@ export const NAVEGACION_DASHBOARD: ItemNavegacion[] = [
     etiqueta: 'Inventario',
     ruta: '/inventario',
     icono: Boxes,
-    roles: TODOS,
+    roles: ['Administrador', 'Recepcion'],
   },
   {
     etiqueta: 'Proveedores y compras',

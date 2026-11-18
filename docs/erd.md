@@ -184,6 +184,7 @@ erDiagram
         int mecanico_id FK
         enum estado
         text falla_reportada
+        text diagnostico
         decimal total_piezas
         decimal total_mano_obra
         decimal subtotal

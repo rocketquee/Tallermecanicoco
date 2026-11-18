@@ -278,3 +278,89 @@ sin estado que no dependa de memoria del servidor.
 - **Sesiones en memoria:** no escalan y se pierden al reiniciar.
 - **Guardar el rol solo en el token:** un cambio de rol tardaría hasta 8 horas en aplicar.
 - **Filtrar la privacidad en SQL con columnas distintas:** duplica consultas y schemas.
+
+---
+
+## ADR-009 — Reporte de avance del mecánico en una sola transacción
+
+- **Estado:** aceptada
+- **Fecha:** 2026-11-17
+- **Requisitos:** ORD-04, ORD-06, ORD-08, ORD-10, INV-02, INV-05, SEG-18
+
+### Contexto
+El mecánico necesita dejar su diagnóstico, registrar las refacciones que consumió y
+mover la orden de etapa desde una sola pantalla. Si esas tres operaciones se guardaran
+por separado, una falla a mitad de camino dejaría el inventario, el detalle y la etapa
+desincronizados.
+
+### Decisión
+- Se agrega `ordenes_servicio.diagnostico` (`TEXT`) para el diagnóstico y las notas del
+  mecánico. Es un campo distinto de `falla_reportada`, que conserva lo que reportó el
+  cliente al ingresar la unidad.
+- `POST /api/v1/ordenes/{id}/registrar-avance` recibe diagnóstico, etapa destino y
+  refacciones usadas. Todo se ejecuta en una sola transacción:
+  1. valida la visibilidad de la orden y el sentido del avance;
+  2. bloquea las refacciones con `SELECT ... FOR UPDATE` y valida existencias;
+  3. inserta las líneas en `detalle_orden` con el `precio_venta` del catálogo;
+  4. descuenta `refacciones.stock_actual` y crea el movimiento de salida;
+  5. recalcula los totales de la orden (piezas, mano de obra con descuento VIP, IVA);
+  6. registra `historial_etapas` y `bitacora`.
+- El frontend nunca envía precios: el backend los resuelve desde el catálogo (SEG-18).
+- `GET /api/v1/refacciones` expone solo id, nombre, marca, existencia actual, mínimo y
+  bandera de refacción especial, sin importes.
+- El Mecánico solo puede avanzar sus propias órdenes y nunca retroceder; el
+  Administrador puede corregir hacia atrás. `Entregado` y `Cancelado` se manejan en sus
+  flujos propios.
+
+### Consecuencias
+- Ventajas: inventario, detalle, etapa y auditoría quedan consistentes o no se guarda
+  nada; el reporte del mecánico es atómico y trazable.
+- Costos: la operación mantiene locks sobre las refacciones mientras dura la
+  transacción; el catálogo debe tener existencias correctas antes de usarlo.
+- La migración `sql/09_avance_mecanico.sql` es obligatoria antes de desplegar el
+  endpoint, porque el modelo ORM ya mapea la nueva columna.
+
+### Alternativas descartadas
+- **Tres endpoints separados (notas, piezas, etapa):** permite estados intermedios
+  inconsistentes y complica la auditoría.
+- **Guardar las notas en `falla_reportada`:** mezcla la voz del cliente con la del
+  mecánico y pierde la distinción entre ambos.
+- **Aceptar precios desde el frontend:** rompe SEG-18 y permite manipular importes.
+
+---
+
+## ADR-010 — Surtido de inventario con movimiento y bitácora
+
+- **Estado:** aceptada
+- **Fecha:** 2026-11-17
+- **Requisitos:** INV-01, INV-02, INV-05, SEG-02, SEG-06
+
+### Contexto
+Administrador y Recepción necesitan reponer existencias desde la misma vista de
+Inventario. Cambiar `refacciones.stock_actual` con un `UPDATE` directo perdería el
+rastro de quién surtió, cuándo y cuánto, y rompería la trazabilidad de INV-05.
+
+### Decisión
+- `POST /api/v1/refacciones/{id}/entrada` recibe `cantidad` (1 a 9999) y un `motivo`
+  opcional. Solo Administrador y Recepción; el Mecánico recibe 403.
+- La fila se bloquea con `SELECT ... FOR UPDATE`, se suma la cantidad y, en la misma
+  transacción, se inserta un `movimientos_inventario` de tipo `Entrada` y un asiento en
+  `bitacora` con el stock anterior y el nuevo.
+- `GET /api/v1/refacciones?disponibles=false` alimenta la tabla de Inventario con
+  `stock_actual` y `stock_minimo`; el Mecánico sigue usando `disponibles=true` en su
+  modal de avance.
+- La vista `/inventario` solo se muestra a Administrador y Recepción. Cada fila tiene
+  el botón **Surtir**, que abre un modal con la cantidad sugerida para llegar al mínimo.
+
+### Consecuencias
+- Ventajas: toda entrada queda auditada y el stock nunca se modifica sin movimiento.
+- Costos: no existe todavía un ajuste negativo ni una corrección de conteo; si se
+  necesita, debe agregarse como un movimiento `Ajuste` con motivo obligatorio.
+- Las piezas especiales (`es_especial = 1`) siguen el flujo de compra ligada a una
+  orden; la vista las marca como «Especial», pero su existencia normalmente es 0.
+
+### Alternativas descartadas
+- **Actualizar el stock sin movimiento:** rápido, pero sin trazabilidad (INV-05).
+- **Permitir el surtido al Mecánico:** viola la separación de roles (SEG-02).
+- **Crear una orden de compra completa desde este módulo:** corresponde al módulo de
+  Proveedores y compras; aquí solo se registra la entrada física.

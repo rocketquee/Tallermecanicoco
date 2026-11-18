@@ -1,4 +1,9 @@
-import type { EstadoOrden, Orden, OrdenDetalle } from '../types/ordenes'
+import type {
+  AvanceMecanicoPayload,
+  EstadoOrden,
+  Orden,
+  OrdenDetalle,
+} from '../types/ordenes'
 import api from './api'
 
 export interface FiltrosOrdenes {
@@ -27,5 +32,20 @@ export async function avanzarEtapa(ordenId: number): Promise<Orden> {
 /** Detalle completo de una orden (cliente, vehiculo, conceptos y totales). */
 export async function obtenerOrden(ordenId: number): Promise<OrdenDetalle> {
   const { data } = await api.get<OrdenDetalle>(`/ordenes/${ordenId}`)
+  return data
+}
+
+/**
+ * Guarda en una sola operación el diagnóstico, las refacciones usadas y la
+ * nueva etapa. El backend descuenta inventario, recalcula totales y audita.
+ */
+export async function registrarAvance(
+  ordenId: number,
+  payload: AvanceMecanicoPayload,
+): Promise<OrdenDetalle> {
+  const { data } = await api.post<OrdenDetalle>(
+    `/ordenes/${ordenId}/registrar-avance`,
+    payload,
+  )
   return data
 }

@@ -1,7 +1,7 @@
-"""Endpoints basicos de ordenes de servicio (ORD-01 a ORD-09).
+"""Endpoints basicos de ordenes de servicio (ORD-01 a ORD-10).
 
-Cubre listar, crear y avanzar etapa, que es lo que necesita el tablero de
-bahias del mecanico. El detalle de piezas y mano de obra, los pagos, las
+Cubre listar, crear, avanzar etapa y registrar el avance del mecanico
+(diagnostico, refacciones usadas y cambio de etapa). Los pagos, las
 autorizaciones y las cancelaciones llegan en modulos posteriores.
 
 Reglas aplicadas al crear
@@ -11,7 +11,8 @@ Reglas aplicadas al crear
 * Si se asigna responsable, ``orden_mecanicos`` se llena tambien (ADR-003).
 * Se inserta el asiento de apertura en ``historial_etapas`` (ORD-06).
 * Se registra la creacion en ``bitacora`` (SEG-06).
-* Totales en 0.00; los calculara el backend cuando exista el detalle.
+* Totales en 0.00 al crear; ``registrar-avance`` los recalcula cuando el
+  mecanico agrega refacciones.
 
 Privacidad
 ----------
@@ -22,11 +23,12 @@ Privacidad
   (SEG-17); las placas y la etapa se conservan.
 """
 
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import Select, false, or_, select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
@@ -39,12 +41,15 @@ from app.models import (
     DetalleOrden,
     HistorialEtapa,
     Mecanico,
+    MovimientoInventario,
     OrdenMecanico,
     OrdenServicio,
+    Refaccion,
     Usuario,
     Vehiculo,
 )
 from app.schemas.ordenes import (
+    AvanceMecanicoIn,
     EstadoOrden,
     OrdenCreate,
     OrdenDetalleOut,
@@ -69,6 +74,75 @@ _SIGUIENTE_ETAPA: dict[str, str | None] = {
     "Entregado": None,
     "Cancelado": None,
 }
+
+# Etapas que forman el flujo de taller. El mecanico solo puede moverse hacia
+# adelante dentro de esta lista; el administrador puede corregir hacia atras
+# (ORD-04, ORD-05). ``Entregado`` y ``Cancelado`` tienen sus propios flujos.
+_FLUJO_TALLER: tuple[str, ...] = ("Recibido", "Diagnostico", "Reparacion", "Listo")
+_ETAPAS_FINALES = frozenset({"Entregado", "Cancelado"})
+_CENTAVO = Decimal("0.01")
+_TASA_IVA = Decimal("0.16")
+
+
+def _consulta_detalle() -> Select[tuple[OrdenServicio]]:
+    """Orden con todo lo necesario para responder ``OrdenDetalleOut``."""
+    return _consulta_base().options(
+        selectinload(OrdenServicio.detalles).selectinload(DetalleOrden.servicio),
+        selectinload(OrdenServicio.detalles).selectinload(DetalleOrden.refaccion),
+    )
+
+
+def _indice_etapa(estado: str) -> int | None:
+    """Posicion de la etapa dentro del flujo de taller (``None`` si es final)."""
+    try:
+        return _FLUJO_TALLER.index(estado)
+    except ValueError:
+        return None
+
+
+def _dinero(valor: Decimal) -> Decimal:
+    """Redondea a centavos con el criterio contable habitual."""
+    return valor.quantize(_CENTAVO, rounding=ROUND_HALF_UP)
+
+
+def _recalcular_totales(db: Session, orden: OrdenServicio) -> None:
+    """Recalcula los totales de la orden a partir de su detalle vigente.
+
+    * ``total_piezas``: suma de las lineas de refaccion.
+    * ``total_mano_obra``: suma de servicios con el descuento VIP del cliente.
+    * ``subtotal``, ``iva`` y ``total``.
+
+    El backend es la unica fuente de verdad de los importes; el frontend nunca
+    los envia (SEG-18).
+    """
+    lineas = db.scalars(
+        select(DetalleOrden).where(
+            DetalleOrden.orden_id == orden.id,
+            DetalleOrden.activo.is_(True),
+        )
+    ).all()
+
+    piezas = Decimal("0.00")
+    mano_obra = Decimal("0.00")
+    for linea in lineas:
+        importe = linea.precio_unitario * linea.cantidad
+        if linea.refaccion_id is not None:
+            piezas += importe
+        elif linea.servicio_id is not None:
+            mano_obra += importe
+
+    descuento = Decimal(orden.cliente.descuento_mano_obra or 0)
+    if descuento < 0:
+        descuento = Decimal("0")
+    elif descuento > 100:
+        descuento = Decimal("100")
+    factor_descuento = (Decimal("100") - descuento) / Decimal("100")
+
+    orden.total_piezas = _dinero(piezas)
+    orden.total_mano_obra = _dinero(mano_obra * factor_descuento)
+    orden.subtotal = _dinero(orden.total_piezas + orden.total_mano_obra)
+    orden.iva = _dinero(orden.subtotal * _TASA_IVA)
+    orden.total = _dinero(orden.subtotal + orden.iva)
 
 
 def _consulta_base() -> Select[tuple[OrdenServicio]]:
@@ -215,18 +289,7 @@ def obtener_orden(
     usuario: UsuarioActual,
     db: Session = Depends(get_db),
 ) -> OrdenDetalleOut:
-    stmt = (
-        _consulta_base()
-        .where(OrdenServicio.id == orden_id)
-        .options(
-            selectinload(OrdenServicio.detalles).selectinload(
-                DetalleOrden.servicio
-            ),
-            selectinload(OrdenServicio.detalles).selectinload(
-                DetalleOrden.refaccion
-            ),
-        )
-    )
+    stmt = _consulta_detalle().where(OrdenServicio.id == orden_id)
     orden = db.scalars(_solo_sus_ordenes(stmt, usuario)).first()
     if orden is None:
         raise HTTPException(
@@ -397,3 +460,212 @@ def avanzar_etapa(
 
     db.refresh(orden)
     return orden_visible(orden, usuario)
+
+
+@router.post(
+    "/{orden_id}/registrar-avance",
+    response_model=OrdenDetalleOut,
+    summary="Registrar avance del mecanico",
+    description=(
+        "Guarda el diagnostico/notas, las refacciones usadas y, si se indica, "
+        "la nueva etapa. Todo ocurre en una sola transaccion: las piezas se "
+        "insertan en `detalle_orden`, descuentan inventario (INV-02, INV-05), "
+        "se recalcula el total y se deja asiento en `historial_etapas` y "
+        "`bitacora` (ORD-04, ORD-06, ORD-10). El Mecanico solo puede avanzar "
+        "sus propias ordenes; el Administrador puede corregir hacia atras."
+    ),
+    dependencies=[Depends(requiere_roles("Administrador", "Mecanico"))],
+)
+def registrar_avance(
+    orden_id: int,
+    payload: AvanceMecanicoIn,
+    usuario: UsuarioActual,
+    db: Session = Depends(get_db),
+) -> OrdenDetalleOut:
+    orden = db.scalars(
+        _solo_sus_ordenes(
+            _consulta_base().where(OrdenServicio.id == orden_id), usuario
+        )
+    ).first()
+    if orden is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Orden {orden_id} no encontrada",
+        )
+    if not orden.activo:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"La orden {orden_id} esta dada de baja",
+        )
+
+    etapa_anterior = orden.estado
+    etapa_nueva = payload.etapa_nueva
+
+    if etapa_nueva in _ETAPAS_FINALES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"La etapa {etapa_nueva} se registra desde su propio flujo, "
+                "no desde el avance del mecanico"
+            ),
+        )
+    if etapa_anterior in _ETAPAS_FINALES and etapa_nueva is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"La orden esta en la etapa final {etapa_anterior}; "
+                "no se puede mover desde este reporte"
+            ),
+        )
+    if etapa_nueva == etapa_anterior:
+        etapa_nueva = None
+
+    if etapa_nueva is not None and usuario.rol == ROL_MECANICO:
+        actual = _indice_etapa(etapa_anterior)
+        destino = _indice_etapa(etapa_nueva)
+        if actual is None or destino is None or destino <= actual:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "El Mecanico solo puede avanzar la orden a una etapa "
+                    "posterior del flujo del taller"
+                ),
+            )
+
+    cambio_diagnostico = (
+        payload.diagnostico is not None
+        and payload.diagnostico != orden.diagnostico
+    )
+    if (
+        not cambio_diagnostico
+        and etapa_nueva is None
+        and not payload.refacciones
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El avance no tiene cambios que registrar",
+        )
+
+    # Se recorren y bloquean las refacciones antes de tocar la orden para que
+    # dos mecanicos no puedan dejar el stock en negativo. Se ordenan por id
+    # para que las transacciones tomen los locks siempre en el mismo orden.
+    refacciones: list[tuple[int, Refaccion]] = []
+    for item in sorted(payload.refacciones, key=lambda linea: linea.refaccion_id):
+        refaccion = db.scalars(
+            select(Refaccion)
+            .where(Refaccion.id == item.refaccion_id)
+            .with_for_update()
+        ).first()
+        if refaccion is None or not refaccion.activo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"La refaccion {item.refaccion_id} no existe o esta dada "
+                    "de baja"
+                ),
+            )
+        if refaccion.stock_actual < item.cantidad:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Stock insuficiente de '{refaccion.nombre}': disponible "
+                    f"{refaccion.stock_actual}, solicitado {item.cantidad}"
+                ),
+            )
+        refacciones.append((item.cantidad, refaccion))
+
+    try:
+        if cambio_diagnostico:
+            orden.diagnostico = payload.diagnostico
+
+        if etapa_nueva is not None:
+            orden.estado = etapa_nueva
+            db.add(
+                HistorialEtapa(
+                    orden_id=orden.id,
+                    etapa_anterior=etapa_anterior,
+                    etapa_nueva=etapa_nueva,
+                    usuario_id=usuario.id,
+                )
+            )
+
+        for cantidad, refaccion in refacciones:
+            db.add(
+                DetalleOrden(
+                    orden_id=orden.id,
+                    refaccion_id=refaccion.id,
+                    cantidad=cantidad,
+                    # El precio lo pone el backend; el mecanico nunca lo ve.
+                    precio_unitario=refaccion.precio_venta,
+                )
+            )
+            refaccion.stock_actual -= cantidad
+            db.add(
+                MovimientoInventario(
+                    refaccion_id=refaccion.id,
+                    tipo="Salida",
+                    cantidad=cantidad,
+                    motivo=f"Refaccion usada en la orden {orden.id}",
+                    usuario=usuario.nombre,
+                )
+            )
+
+        db.flush()
+        _recalcular_totales(db, orden)
+
+        cambios: list[str] = []
+        if etapa_nueva is not None:
+            cambios.append(f"etapa {etapa_anterior} -> {etapa_nueva}")
+        if cambio_diagnostico:
+            cambios.append("diagnostico actualizado")
+            if payload.diagnostico:
+                cambios.append(f"nuevo diagnostico: {payload.diagnostico}")
+        if refacciones:
+            total_unidades = sum(cantidad for cantidad, _ in refacciones)
+            cambios.append(
+                f"{len(refacciones)} refaccion(es), {total_unidades} pieza(s)"
+            )
+
+        db.add(
+            Bitacora(
+                usuario_id=usuario.id,
+                tabla_afectada=_TABLA,
+                registro_id=orden.id,
+                accion="Actualizacion",
+                detalle=f"Orden {orden.id}: " + "; ".join(cambios),
+            )
+        )
+        db.commit()
+    except OperationalError as exc:
+        db.rollback()
+        original = getattr(exc, "orig", None)
+        if original is not None and getattr(original, "args", None):
+            if original.args[0] == 1644 and len(original.args) > 1:
+                # Regla de negocio lanzada por un trigger (p. ej. XOR del
+                # detalle_orden): se responde como error de validacion.
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=str(original.args[1]),
+                ) from exc
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No se pudo registrar el avance de la orden",
+        ) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No se pudo registrar el avance de la orden",
+        ) from exc
+
+    detalle = db.scalars(
+        _solo_sus_ordenes(
+            _consulta_detalle().where(OrdenServicio.id == orden_id), usuario
+        ).execution_options(populate_existing=True)
+    ).first()
+    if detalle is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="La orden se guardo, pero no se pudo recargar",
+        )
+    return orden_detalle_visible(detalle, usuario)

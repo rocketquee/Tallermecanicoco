@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arquitectura del sistema · AutoPulse Elite</title>
+    <style>
+      :root {
+        --fondo: #0a0a0a;
+        --panel: #0d0d0d;
+        --panel-alto: #121212;
+        --linea: rgba(255, 255, 255, 0.08);
+        --linea-fuerte: rgba(255, 255, 255, 0.16);
+        --texto: #f5f5f5;
+        --suave: #a1a1a1;
+        --tenue: #737373;
+        --positivo: #4ade80;
+        --azul: #7dd3fc;
+        --violeta: #c4b5fd;
+        --ambar: #fcd34d;
+        --radio: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        background-color: var(--fondo);
+        background-image:
+          radial-gradient(
+            circle at 12% 0%,
+            rgba(255, 255, 255, 0.05),
+            transparent 42%
+          ),
+          radial-gradient(
+            circle at 88% 100%,
+            rgba(255, 255, 255, 0.035),
+            transparent 45%
+          );
+        color: var(--texto);
+        font-family:
+          'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .hoja {
+        width: min(1440px, 100% - 48px);
+        margin: 0 auto;
+        padding: 56px 0 40px;
+      }
+
+      .etiqueta {
+        margin: 0;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--tenue);
+      }
+
+      h1 {
+        margin: 14px 0 0;
+        font-size: clamp(30px, 4vw, 46px);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+      }
+
+      .bajada {
+        max-width: 760px;
+        margin: 16px 0 0;
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--suave);
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 22px;
+        padding-top: 22px;
+        border-top: 1px solid var(--linea);
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 11px;
+        border: 1px solid var(--linea);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 11px;
+        color: var(--suave);
+      }
+
+      .chip b {
+        font-weight: 600;
+        color: var(--texto);
+      }
+
+      .punto {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--positivo);
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* Flujo principal                                                   */
+      /* ---------------------------------------------------------------- */
+
+      .flujo {
+        display: flex;
+        align-items: stretch;
+        margin-top: 40px;
+      }
+
+      .capa {
+        display: flex;
+        flex: 1 1 0;
+        min-width: 0;
+        flex-direction: column;
+        padding: 20px;
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.035),
+          rgba(255, 255, 255, 0) 42%
+        ),
+        var(--panel);
+        transition:
+          border-color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .capa:hover {
+        border-color: var(--linea-fuerte);
+        transform: translateY(-2px);
+      }
+
+      .capa-cabecera {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .icono {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--suave);
+      }
+
+      .icono svg {
+        width: 19px;
+        height: 19px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .nivel {
+        margin: 0;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--tenue);
+      }
+
+      .capa h2 {
+        margin: 4px 0 0;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .capa p.descripcion {
+        margin: 16px 0 0;
+        font-size: 12.5px;
+        line-height: 1.65;
+        color: var(--suave);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 16px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .chips li {
+        padding: 4px 8px;
+        border: 1px solid var(--linea);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 10px;
+        color: var(--suave);
+        white-space: nowrap;
+      }
+
+      .pie-capa {
+        margin: 18px 0 0;
+        padding-top: 14px;
+        border-top: 1px solid var(--linea);
+        font-size: 11px;
+        line-height: 1.6;
+        color: var(--tenue);
+      }
+
+      .pie-capa b {
+        font-weight: 500;
+        color: var(--suave);
+      }
+
+      /* Conectores entre capas */
+
+      .conector {
+        display: flex;
+        flex: 0 0 112px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 6px;
+      }
+
+      .protocolo {
+        padding: 4px 9px;
+        border: 1px solid var(--linea);
+        border-radius: 999px;
+        background: var(--panel-alto);
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 9.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--texto);
+        white-space: nowrap;
+      }
+
+      .flecha {
+        width: 100%;
+        height: 16px;
+        overflow: visible;
+      }
+
+      .flecha line {
+        stroke: var(--linea-fuerte);
+        stroke-width: 1.4;
+      }
+
+      .flecha path {
+        fill: var(--linea-fuerte);
+      }
+
+      .detalle-conector {
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 9px;
+        color: var(--tenue);
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* Secciones inferiores                                              */
+      /* ---------------------------------------------------------------- */
+
+      .seccion {
+        margin-top: 44px;
+      }
+
+      .seccion-cabecera {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--linea);
+      }
+
+      .seccion h3 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .seccion-cabecera p {
+        margin: 0;
+        font-size: 11px;
+        color: var(--tenue);
+      }
+
+      .pasos {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .paso {
+        padding: 16px;
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        background: var(--panel);
+      }
+
+      .paso-numero {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border: 1px solid var(--linea-fuerte);
+        border-radius: 999px;
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--texto);
+      }
+
+      .paso h4 {
+        margin: 12px 0 0;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .paso p {
+        margin: 6px 0 0;
+        font-size: 11px;
+        line-height: 1.6;
+        color: var(--suave);
+      }
+
+      .paso code {
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.06);
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 10px;
+        color: var(--texto);
+        white-space: nowrap;
+      }
+
+      .reglas {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .regla {
+        padding: 16px;
+        border: 1px solid var(--linea);
+        border-radius: var(--radio);
+        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .regla p:first-child {
+        margin: 0;
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .regla[data-color='azul'] p:first-child {
+        color: var(--azul);
+      }
+
+      .regla[data-color='violeta'] p:first-child {
+        color: var(--violeta);
+      }
+
+      .regla[data-color='ambar'] p:first-child {
+        color: var(--ambar);
+      }
+
+      .regla[data-color='verde'] p:first-child {
+        color: var(--positivo);
+      }
+
+      .regla p:last-child {
+        margin: 8px 0 0;
+        font-size: 11px;
+        line-height: 1.6;
+        color: var(--suave);
+      }
+
+      footer {
+        width: min(1440px, 100% - 48px);
+        margin: 0 auto;
+        padding: 22px 0 36px;
+        border-top: 1px solid var(--linea);
+        font-size: 10.5px;
+        color: var(--tenue);
+      }
+
+      footer b {
+        font-weight: 500;
+        color: var(--suave);
+      }
+
+      @media (max-width: 1120px) {
+        .flujo {
+          flex-direction: column;
+        }
+
+        .conector {
+          flex: 0 0 auto;
+          flex-direction: column;
+          gap: 6px;
+          padding: 8px 0;
+        }
+
+        .protocolo {
+          order: 1;
+        }
+
+        .conector::before {
+          content: '';
+          order: 2;
+          width: 1px;
+          height: 30px;
+          background: var(--linea-fuerte);
+        }
+
+        .conector::after {
+          content: '';
+          order: 3;
+          width: 0;
+          height: 0;
+          border-left: 4px solid transparent;
+          border-right: 4px solid transparent;
+          border-top: 5px solid var(--linea-fuerte);
+        }
+
+        .flecha,
+        .detalle-conector {
+          display: none;
+        }
+
+        .pasos {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .reglas {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hoja {
+          width: calc(100% - 32px);
+          padding-top: 36px;
+        }
+
+        .pasos,
+        .reglas {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media print {
+        body {
+          background: var(--fondo);
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .hoja {
+          padding-top: 24px;
+        }
+
+        .capa:hover {
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="hoja">
+      <header>
+        <p class="etiqueta">AutoPulse Elite · Documentación técnica</p>
+        <h1>Arquitectura del sistema</h1>
+        <p class="bajada">
+          Pizarro Performance Garage opera con una arquitectura de tres capas:
+          un panel React en el navegador, una API REST en FastAPI y una base de
+          datos MySQL. Cada salto entre piezas viaja por un protocolo distinto y
+          queda autenticado con JWT.
+        </p>
+
+        <div class="meta">
+          <span class="chip"><span class="punto"></span> 3 capas</span>
+          <span class="chip"><b>Frontend</b> React + TypeScript</span>
+          <span class="chip"><b>Backend</b> FastAPI + SQLAlchemy</span>
+          <span class="chip"><b>Datos</b> MySQL 8.x · 21 tablas</span>
+          <span class="chip"><b>Seguridad</b> JWT HS256 por rol</span>
+        </div>
+      </header>
+
+      <section class="flujo" aria-label="Flujo de comunicación entre capas">
+        <article class="capa">
+          <header class="capa-cabecera">
+            <span class="icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />
+              </svg>
+            </span>
+            <div>
+              <p class="nivel">Capa cliente</p>
+              <h2>Usuario</h2>
+            </div>
+          </header>
+
+          <p class="descripcion">
+            Administrador, recepción y mecánicos entran desde el navegador del
+            taller: computadora de recepción, tablet o celular del dueño.
+          </p>
+
+          <ul class="chips">
+            <li>Administrador</li>
+            <li>Recepción</li>
+            <li>Mecánico</li>
+          </ul>
+
+          <p class="pie-capa">
+            <b>Sesión:</b> correo y contraseña; el servidor devuelve un token
+            con el rol y los permisos.
+          </p>
+        </article>
+
+        <div class="conector" aria-hidden="true">
+          <span class="protocolo">HTTPS</span>
+          <svg class="flecha" viewBox="0 0 66 16">
+            <line x1="2" y1="8" x2="55" y2="8" />
+            <path d="M55 3 L64 8 L55 13 Z" />
+          </svg>
+          <span class="detalle-conector">navegador ↔ Vite</span>
+        </div>
+
+        <article class="capa">
+          <header class="capa-cabecera">
+            <span class="icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" />
+              </svg>
+            </span>
+            <div>
+              <p class="nivel">Capa de presentación</p>
+              <h2>Frontend</h2>
+            </div>
+          </header>
+
+          <p class="descripcion">
+            Panel en React que dibuja el tablero de bahías, los expedientes de
+            clientes y las órdenes. No calcula dinero ni decide permisos: solo
+            presenta lo que autoriza la API.
+          </p>
+
+          <ul class="chips">
+            <li>React 19</li>
+            <li>TypeScript</li>
+            <li>Vite</li>
+            <li>Tailwind</li>
+            <li>Axios</li>
+          </ul>
+
+          <p class="pie-capa">
+            <b>Peticiones:</b> adjunta <code>Authorization: Bearer</code> en cada
+            llamada a <code>/api/v1</code>.
+          </p>
+        </article>
+
+        <div class="conector" aria-hidden="true">
+          <span class="protocolo">REST / JSON</span>
+          <svg class="flecha" viewBox="0 0 66 16">
+            <line x1="2" y1="8" x2="55" y2="8" />
+            <path d="M55 3 L64 8 L55 13 Z" />
+          </svg>
+          <span class="detalle-conector">/api/v1 · UTF-8</span>
+        </div>
+
+        <article class="capa">
+          <header class="capa-cabecera">
+            <span class="icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="6" rx="1.5" />
+                <rect x="3" y="14" width="18" height="6" rx="1.5" />
+                <path d="M7 7h.01M7 17h.01" />
+              </svg>
+            </span>
+            <div>
+              <p class="nivel">Capa de aplicación</p>
+              <h2>Backend</h2>
+            </div>
+          </header>
+
+          <p class="descripcion">
+            API REST que valida cada petición, aplica las reglas del taller
+            (etapas, privacidad, inventario) y escribe en una sola transacción
+            la orden, el detalle y la bitácora.
+          </p>
+
+          <ul class="chips">
+            <li>FastAPI</li>
+            <li>Pydantic v2</li>
+            <li>SQLAlchemy</li>
+            <li>JWT HS256</li>
+            <li>Uvicorn</li>
+          </ul>
+
+          <p class="pie-capa">
+            <b>Privacidad:</b> el rol Mecánico nunca recibe precios y los
+            clientes confidenciales salen enmascarados.
+          </p>
+        </article>
+
+        <div class="conector" aria-hidden="true">
+          <span class="protocolo">SQL</span>
+          <svg class="flecha" viewBox="0 0 66 16">
+            <line x1="2" y1="8" x2="55" y2="8" />
+            <path d="M55 3 L64 8 L55 13 Z" />
+          </svg>
+          <span class="detalle-conector">PyMySQL · InnoDB</span>
+        </div>
+
+        <article class="capa">
+          <header class="capa-cabecera">
+            <span class="icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5.5" rx="7" ry="2.8" />
+                <path d="M5 5.5v13c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-13" />
+                <path d="M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8" />
+              </svg>
+            </span>
+            <div>
+              <p class="nivel">Capa de persistencia</p>
+              <h2>Base de Datos</h2>
+            </div>
+          </header>
+
+          <p class="descripcion">
+            MySQL guarda las 21 tablas del negocio con borrado lógico: nada se
+            elimina físicamente. La bitácora y el historial de etapas son
+            inmutables y están protegidos por triggers.
+          </p>
+
+          <ul class="chips">
+            <li>MySQL 8.x</li>
+            <li>InnoDB</li>
+            <li>utf8mb4</li>
+            <li>FK RESTRICT</li>
+          </ul>
+
+          <p class="pie-capa">
+            <b>Auditoría:</b> cada cambio de etapa o de inventario deja rastro
+            con usuario, fecha y hora.
+          </p>
+        </article>
+      </section>
+
+      <section class="seccion">
+        <header class="seccion-cabecera">
+          <h3>Flujo de una petición</h3>
+          <p>Del clic del mecánico a la fila en MySQL</p>
+        </header>
+
+        <div class="pasos">
+          <article class="paso">
+            <span class="paso-numero">01</span>
+            <h4>Inicio de sesión</h4>
+            <p>
+              El navegador envía <code>POST /api/v1/login</code> por HTTPS con
+              correo y contraseña.
+            </p>
+          </article>
+
+          <article class="paso">
+            <span class="paso-numero">02</span>
+            <h4>Token con rol</h4>
+            <p>
+              FastAPI verifica el hash scrypt y devuelve un JWT firmado con el
+              rol del usuario.
+            </p>
+          </article>
+
+          <article class="paso">
+            <span class="paso-numero">03</span>
+            <h4>Petición autenticada</h4>
+            <p>
+              El frontend adjunta el token en cada llamada REST y recibe JSON
+              listo para pintar.
+            </p>
+          </article>
+
+          <article class="paso">
+            <span class="paso-numero">04</span>
+            <h4>Transacción SQL</h4>
+            <p>
+              El backend abre una transacción: valida stock, escribe el detalle,
+              descuenta inventario y audita.
+            </p>
+          </article>
+
+          <article class="paso">
+            <span class="paso-numero">05</span>
+            <h4>Respuesta filtrada</h4>
+            <p>
+              La API enmascara precios y datos confidenciales según el rol antes
+              de responder.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="seccion">
+        <header class="seccion-cabecera">
+          <h3>Reglas de comunicación</h3>
+          <p>Contratos que sostienen la arquitectura</p>
+        </header>
+
+        <div class="reglas">
+          <article class="regla" data-color="azul">
+            <p>HTTPS / TLS</p>
+            <p>
+              Todo el tráfico del navegador viaja cifrado. En desarrollo Vite
+              hace proxy a la API local.
+            </p>
+          </article>
+
+          <article class="regla" data-color="violeta">
+            <p>REST / JSON</p>
+            <p>
+              Recursos versionados en <code>/api/v1</code>. Errores con
+              <code>detail</code> legible y códigos HTTP estándar.
+            </p>
+          </article>
+
+          <article class="regla" data-color="ambar">
+            <p>SQL parametrizado</p>
+            <p>
+              SQLAlchemy arma las consultas con parámetros: nunca se concatena
+              texto del usuario.
+            </p>
+          </article>
+
+          <article class="regla" data-color="verde">
+            <p>Transacciones atómicas</p>
+            <p>
+              Si falla un paso de la operación, no se guarda nada; inventario,
+              etapa y bitácora quedan consistentes.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <b>AutoPulse Elite</b> · Archivo independiente de presentación. Ábrelo con
+      doble clic; no requiere servidor ni conexión a internet.
+    </footer>
+  </body>
+</html>
