@@ -1,38 +1,33 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
+  ArrowRight,
   Car,
-  Check,
   CircleAlert,
   EyeOff,
   FileText,
-  Fuel,
   Gauge,
+  LoaderCircle,
   Mail,
   Phone,
   Printer,
   RefreshCw,
   User,
   Wrench,
-  X,
 } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { clasesBoton } from '../../components/estilosBoton'
-import { EncabezadoPagina } from '../../components/panel/EncabezadoPagina'
-import { EtiquetaOrden } from '../../components/panel/EtiquetaOrden'
-import { Panel, PanelCabecera } from '../../components/panel/Panel'
+import { Boton } from '../../components/ui/Boton'
+import { clasesBoton } from '../../components/ui/estilosBoton'
+import { EncabezadoPagina } from '../../components/ui/EncabezadoPagina'
+import { EtiquetaOrden } from '../../components/ui/EtiquetaOrden'
+import { Panel, PanelCabecera } from '../../components/ui/Panel'
+import { useAuth } from '../../context/useAuth'
 import { formatearFechaCorta, formatearMoneda } from '../../lib/formato'
-import {
-  etiquetaCombustible,
-  inspeccionProvisional,
-} from '../../lib/inspeccion-vehiculo'
-import type { InspeccionVehiculo } from '../../lib/inspeccion-vehiculo'
-import { etiquetaEtapa } from '../../lib/ordenes-taller'
+import { etapasSiguientes, etiquetaEtapa } from '../../lib/ordenes-taller'
 import { mensajeDeError } from '../../services/errores'
-import { obtenerOrden } from '../../services/ordenes'
+import { avanzarEtapa, obtenerOrden } from '../../services/ordenes'
 import type { ClienteOrden, OrdenDetalle, VehiculoOrden } from '../../types/ordenes'
 
 const numeroOrden = (id: number) => `ORD-${String(id).padStart(4, '0')}`
@@ -204,139 +199,6 @@ function TarjetaVehiculo({ vehiculo }: { vehiculo: VehiculoOrden }) {
   )
 }
 
-function EtiquetaEstadoGeneral({ estado }: { estado: string }) {
-  const estilo =
-    estado === 'Muy bueno' || estado === 'Bueno'
-      ? 'border-positive/30 bg-positive/10 text-positive'
-      : estado === 'Regular'
-        ? 'border-amber-400/30 bg-amber-400/10 text-amber-300'
-        : 'border-negative/30 bg-negative/10 text-negative'
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium whitespace-nowrap ${estilo}`}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {estado}
-    </span>
-  )
-}
-
-function PanelEstadoVehiculo({
-  inspeccion,
-}: {
-  inspeccion: InspeccionVehiculo
-}) {
-  return (
-    <Panel>
-      <PanelCabecera
-        titulo="Estado del vehículo"
-        descripcion="Registro de recepción al ingresar al taller."
-        extra={
-          <span
-            className="self-start rounded-full border border-line bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium tracking-wide text-faint uppercase sm:self-auto"
-            title="Los datos de inspección aún no se guardan en la base; se muestran valores provisionales."
-          >
-            Provisional
-          </span>
-        }
-      />
-
-      <div className="space-y-5 px-4 py-4 sm:px-5">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-panel border border-line bg-white/[0.02] px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.12em] text-faint uppercase">
-              <Gauge className="h-3 w-3" strokeWidth={1.8} />
-              Kilometraje
-            </p>
-            <p className="mt-1.5 text-[15px] font-semibold text-foreground tabular-nums">
-              {inspeccion.kilometraje === null
-                ? '—'
-                : `${inspeccion.kilometraje.toLocaleString('es-MX')} km`}
-            </p>
-          </div>
-          <div className="rounded-panel border border-line bg-white/[0.02] px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.12em] text-faint uppercase">
-              <CircleAlert className="h-3 w-3" strokeWidth={1.8} />
-              Estado general
-            </p>
-            <div className="mt-1.5">
-              <EtiquetaEstadoGeneral estado={inspeccion.estadoGeneral} />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between text-[10px] font-medium tracking-[0.12em] text-faint uppercase">
-            <span className="inline-flex items-center gap-1.5">
-              <Fuel className="h-3 w-3" strokeWidth={1.8} />
-              Combustible
-            </span>
-            <span className="text-muted normal-case">
-              {etiquetaCombustible(inspeccion.nivelCombustible)} ·{' '}
-              <span className="tabular-nums">
-                {inspeccion.nivelCombustible}%
-              </span>
-            </span>
-          </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
-            <div
-              className={`h-full rounded-full transition-[width] duration-500 ${
-                inspeccion.nivelCombustible <= 25
-                  ? 'bg-negative'
-                  : inspeccion.nivelCombustible <= 50
-                    ? 'bg-amber-400'
-                    : 'bg-positive'
-              }`}
-              style={{ width: `${inspeccion.nivelCombustible}%` }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <p className="text-[10px] font-medium tracking-[0.12em] text-faint uppercase">
-            Inventario del vehículo
-          </p>
-          <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
-            {inspeccion.inventario.map((item) => (
-              <li
-                key={item.nombre}
-                className={`flex items-center gap-1.5 text-[11px] ${
-                  item.presente ? 'text-muted' : 'text-faint'
-                }`}
-              >
-                <span
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                    item.presente
-                      ? 'border-positive/30 bg-positive/10 text-positive'
-                      : 'border-line bg-white/[0.02] text-faint'
-                  }`}
-                >
-                  {item.presente ? (
-                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                  ) : (
-                    <X className="h-2.5 w-2.5" strokeWidth={3} />
-                  )}
-                </span>
-                <span className="truncate">{item.nombre}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <p className="text-[10px] font-medium tracking-[0.12em] text-faint uppercase">
-            Observaciones
-          </p>
-          <p className="mt-1.5 text-[11px] leading-5 text-muted">
-            {inspeccion.observaciones}
-          </p>
-        </div>
-      </div>
-    </Panel>
-  )
-}
-
 function PanelTotales({ orden }: { orden: OrdenDetalle }) {
   const piezas = aNumero(orden.total_piezas)
   const manoObra = aNumero(orden.total_mano_obra)
@@ -455,13 +317,7 @@ function PanelDatosOrden({ orden }: { orden: OrdenDetalle }) {
   )
 }
 
-function HojaImpresion({
-  orden,
-  inspeccion,
-}: {
-  orden: OrdenDetalle
-  inspeccion: InspeccionVehiculo
-}) {
+function HojaImpresion({ orden }: { orden: OrdenDetalle }) {
   const subtotal = aNumero(orden.subtotal)
   const iva = aNumero(orden.iva)
   const total = aNumero(orden.total)
@@ -611,26 +467,6 @@ function HojaImpresion({
         </table>
       </div>
 
-      <section className="mt-5 border-t border-neutral-300 pt-3 text-[10px]">
-        <p className="text-[9px] font-semibold tracking-[0.14em] text-neutral-500 uppercase">
-          Recepción del vehículo
-        </p>
-        <p className="mt-1 text-neutral-700">
-          Kilometraje{' '}
-          {inspeccion.kilometraje === null
-            ? '—'
-            : `${inspeccion.kilometraje.toLocaleString('es-MX')} km`}{' '}
-          · Combustible {etiquetaCombustible(inspeccion.nivelCombustible)} (
-          {inspeccion.nivelCombustible}%) · Estado {inspeccion.estadoGeneral}
-        </p>
-        <p className="mt-0.5 text-neutral-700">
-          Inventario:{' '}
-          {inspeccion.inventario
-            .map((item) => `${item.nombre} ${item.presente ? 'sí' : 'no'}`)
-            .join(' · ')}
-        </p>
-      </section>
-
       <div className="mt-14 grid grid-cols-2 gap-10 text-center text-[9px] text-neutral-600">
         <div className="border-t border-neutral-400 pt-1">
           Firma del cliente
@@ -671,6 +507,7 @@ function EsqueletoDetalle() {
 }
 
 export function DetalleOrden() {
+  const { usuario } = useAuth()
   const { id } = useParams<{ id: string }>()
   const ordenId = Number(id)
   const idValido = Number.isInteger(ordenId) && ordenId > 0
@@ -679,6 +516,9 @@ export function DetalleOrden() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [recarga, setRecarga] = useState(0)
+  const [avanzando, setAvanzando] = useState(false)
+  const [mensajeAccion, setMensajeAccion] = useState<string | null>(null)
+  const [errorAccion, setErrorAccion] = useState<string | null>(null)
 
   useEffect(() => {
     if (!idValido) {
@@ -714,15 +554,6 @@ export function DetalleOrden() {
       vigente = false
     }
   }, [ordenId, idValido, recarga])
-
-  const inspeccion = useMemo(
-    () =>
-      inspeccionProvisional(
-        orden?.id ?? 0,
-        orden?.vehiculo.kilometraje_entrada ?? null,
-      ),
-    [orden],
-  )
 
   const totalConceptos = orden
     ? new Set(orden.detalles.map((linea) => linea.tipo)).size
@@ -779,6 +610,37 @@ export function DetalleOrden() {
     )
   }
 
+  const siguiente = etapasSiguientes(orden.estado)[0] ?? null
+  const puedeAvanzar =
+    orden.activo &&
+    (usuario?.rol === 'Administrador' || usuario?.rol === 'Mecanico')
+
+  async function alAvanzarEtapa() {
+    if (!orden || !siguiente) {
+      return
+    }
+
+    setAvanzando(true)
+    setMensajeAccion(null)
+    setErrorAccion(null)
+    try {
+      await avanzarEtapa(orden.id)
+      // Se recarga el detalle para traer los totales recalculados por el
+      // backend (piezas + mano de obra + IVA) sin mostrar el esqueleto.
+      const detalle = await obtenerOrden(orden.id)
+      setOrden(detalle)
+      setMensajeAccion(
+        `La orden avanzó a ${etiquetaEtapa(detalle.estado)}.`,
+      )
+    } catch (fallo) {
+      setErrorAccion(
+        mensajeDeError(fallo, 'No se pudo avanzar la etapa de la orden.'),
+      )
+    } finally {
+      setAvanzando(false)
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">
       <EncabezadoPagina
@@ -798,6 +660,18 @@ export function DetalleOrden() {
               <RefreshCw className="h-3.5 w-3.5" />
               Actualizar
             </Boton>
+            {puedeAvanzar && siguiente && (
+              <Boton onClick={alAvanzarEtapa} disabled={avanzando}>
+                {avanzando ? (
+                  <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-3.5 w-3.5" />
+                )}
+                {avanzando
+                  ? 'Avanzando…'
+                  : `Avanzar a ${etiquetaEtapa(siguiente)}`}
+              </Boton>
+            )}
             <Boton onClick={() => window.print()}>
               <Printer className="h-3.5 w-3.5" />
               Imprimir Orden
@@ -805,6 +679,40 @@ export function DetalleOrden() {
           </>
         }
       />
+
+      {mensajeAccion && (
+        <div
+          role="status"
+          className="flex items-start justify-between gap-4 rounded-panel border border-positive/30 bg-positive/10 px-4 py-3.5 text-[12px] leading-5 text-foreground"
+        >
+          <p>{mensajeAccion}</p>
+          <button
+            type="button"
+            onClick={() => setMensajeAccion(null)}
+            aria-label="Cerrar aviso"
+            className="rounded-md px-1.5 text-lg leading-none text-positive/70 transition hover:text-positive"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {errorAccion && (
+        <div
+          role="alert"
+          className="flex items-start justify-between gap-4 rounded-panel border border-negative/30 bg-negative/10 px-4 py-3.5 text-[12px] leading-5 text-negative"
+        >
+          <p>{errorAccion}</p>
+          <button
+            type="button"
+            onClick={() => setErrorAccion(null)}
+            aria-label="Cerrar error"
+            className="rounded-md px-1.5 text-lg leading-none text-negative/70 transition hover:text-negative"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <EtiquetaOrden estado={orden.estado} />
@@ -974,7 +882,7 @@ export function DetalleOrden() {
             <p className="border-t border-line px-4 py-3 text-[11px] text-faint sm:px-5">
               {totalConceptos > 0
                 ? 'Los importes se calculan con el precio pactado al momento de cargar el concepto.'
-                : 'Los conceptos se agregan desde el módulo de órdenes del administrador.'}
+                : 'Las refacciones se agregan cuando el mecánico registra su avance desde esta misma orden.'}
             </p>
           </Panel>
 
@@ -982,12 +890,11 @@ export function DetalleOrden() {
         </div>
 
         <aside className="min-w-0 space-y-5">
-          <PanelEstadoVehiculo inspeccion={inspeccion} />
           <PanelDatosOrden orden={orden} />
         </aside>
       </div>
 
-      <HojaImpresion orden={orden} inspeccion={inspeccion} />
+      <HojaImpresion orden={orden} />
     </div>
   )
 }

@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, RefreshCw } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { CampoTexto } from '../../components/CampoTexto'
-import { clasesBoton } from '../../components/estilosBoton'
-import { EncabezadoPagina } from '../../components/panel/EncabezadoPagina'
-import { EstadoTabla } from '../../components/panel/EstadoTabla'
-import { Panel, PanelCabecera } from '../../components/panel/Panel'
+import { ArrowLeft, Pencil, Plus, RefreshCw } from 'lucide-react'
+import { Boton } from '../../components/ui/Boton'
+import { CampoTexto } from '../../components/formularios/CampoTexto'
+import { clasesBoton } from '../../components/ui/estilosBoton'
+import { EncabezadoPagina } from '../../components/ui/EncabezadoPagina'
+import { EstadoTabla } from '../../components/ui/EstadoTabla'
+import { Panel, PanelCabecera } from '../../components/ui/Panel'
 import { useAuth } from '../../context/useAuth'
 import { listarClientes } from '../../services/clientes'
 import { mensajeDeError } from '../../services/errores'
 import { listarVehiculos } from '../../services/vehiculos'
 import type { Cliente } from '../../types/clientes'
 import type { Vehiculo } from '../../types/vehiculos'
+import { EditarVehiculoModal } from './EditarVehiculoModal'
 
 interface EstadoUbicacion {
   mensaje?: string
@@ -53,6 +54,7 @@ export function Vehiculos() {
   const [mensaje, setMensaje] = useState<string | null>(
     () => (ubicacion.state as EstadoUbicacion | null)?.mensaje ?? null,
   )
+  const [editando, setEditando] = useState<Vehiculo | null>(null)
 
   // El aviso de "vehículo creado" viaja en el state de la ruta; se consume
   // una sola vez para que no reaparezca al recargar.
@@ -248,7 +250,7 @@ export function Vehiculos() {
           onReintentar={() => setRecarga((valor) => valor + 1)}
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-[13px]">
+            <table className="w-full min-w-[880px] text-left text-[13px]">
               <thead className="bg-white/[0.02] text-[10px] tracking-[0.14em] text-faint uppercase">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium sm:px-5">
@@ -269,6 +271,14 @@ export function Vehiculos() {
                   >
                     Año
                   </th>
+                  {puedeGestionar && (
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-right font-medium sm:px-5"
+                    >
+                      <span className="sr-only">Acciones</span>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -326,6 +336,21 @@ export function Vehiculos() {
                       <td className="px-4 py-4 text-right text-muted tabular-nums sm:px-5">
                         {vehiculo.anio}
                       </td>
+
+                      {puedeGestionar && (
+                        <td className="px-4 py-4 text-right sm:px-5">
+                          <Boton
+                            variante="secundario"
+                            onClick={() => setEditando(vehiculo)}
+                            className="min-h-9 px-3 py-1.5 text-[11px]"
+                            title="Editar vehículo"
+                            aria-label={`Editar ${vehiculo.placas}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Editar
+                          </Boton>
+                        </td>
+                      )}
                     </tr>
                   )
                 })}
@@ -341,6 +366,19 @@ export function Vehiculos() {
           </p>
         )}
       </Panel>
+
+      {editando && (
+        <EditarVehiculoModal
+          vehiculo={editando}
+          clientes={Object.values(clientes)}
+          onCerrar={() => setEditando(null)}
+          onGuardado={(texto) => {
+            setRecarga((valor) => valor + 1)
+            setEditando(null)
+            setMensaje(texto)
+          }}
+        />
+      )}
     </div>
   )
 }

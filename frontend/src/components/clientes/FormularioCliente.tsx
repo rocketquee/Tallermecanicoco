@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { Boton } from '../Boton'
-import { CampoAreaTexto } from '../CampoAreaTexto'
-import { CampoCheckbox } from '../CampoCheckbox'
-import { CampoSelect } from '../CampoSelect'
-import { CampoTexto } from '../CampoTexto'
+import { Boton } from '../ui/Boton'
+import { CampoAreaTexto } from '../formularios/CampoAreaTexto'
+import { CampoCheckbox } from '../formularios/CampoCheckbox'
+import { CampoSelect } from '../formularios/CampoSelect'
+import { CampoTexto } from '../formularios/CampoTexto'
 import type {
   CategoriaCliente,
   Cliente,

@@ -83,10 +83,31 @@ varios casos, pública. La operación diaria involucra cuatro etapas fijas por c
 servicio, refacciones que en su mayoría se importan, pagos que se realizan en parcialidades y
 un requisito de facturación fiscal (CFDI 4.0) que obliga a conservar datos fiscales exactos.
 
-La practica se enfocó en responder una pregunta concreta: **¿cómo se modela un taller de lujo
+La práctica se enfocó en responder una pregunta concreta: **¿cómo se modela un taller de lujo
 sin perder trazabilidad ni discreción?** La respuesta tiene tres componentes: un esquema
 relacional que impide estados imposibles, una capa de seguridad que recorta la información
 según el rol y una bitácora que reconstruye quién hizo qué y cuándo.
+
+#### 2.1.1 Qué hace "de lujo" a este taller
+
+No es un adjetivo comercial: son condiciones operativas que un sistema genérico de talleres no
+contempla y que aquí se tradujeron en decisiones de diseño concretas.
+
+| Condición del taller de lujo | Consecuencia operativa | Cómo lo resuelve AutoPulse Elite |
+|---|---|---|
+| Autos con valor de seis cifras dentro del taller | Hay que saber cuánto dinero en custodia hay en todo momento y responder ante la aseguradora | `vehiculos.valor_aproximado` + reporte de valor en custodia (VEH-07, REP-04) |
+| Clientes que son figuras públicas | El personal no debe poder asociar un nombre a un auto | `clientes.confidencial` + enmascaramiento por rol (SEG-17, SEG-18) |
+| Refacciones importadas de Italia, Alemania e Inglaterra | Compras en EUR/GBP, plazos de 2 a 8 semanas y costo real en pesos | `compras.moneda_original`, `tipo_cambio`, `total_mxn` (PRV-09) |
+| Reparaciones que superan los $250,000 MXN | Ningún trabajo ni compra puede arrancar sin aprobación del dueño | `requiere_autorizacion` + tabla `autorizaciones` (AUT-01 a AUT-05) |
+| Pagos en parcialidades y anticipos | Hay que distinguir lo cobrado de lo pendiente, orden por orden | `pagos` con tipo y monto; saldo derivado (PAG-03, PAG-05) |
+| Facturación fiscal formal | Los datos del receptor deben ser exactos y la factura no se edita | Datos CFDI en `clientes` y `facturas` (FAC-03, FAC-05) |
+| Beneficios de cortesía | Auto de reemplazo, recogida a domicilio y 10 % en mano de obra | `categoria = 'VIP'`, `descuento_mano_obra`, notas de recogida (CLI-03, CLI-08) |
+| Personal con perfiles muy distintos | El mecánico no debe ver precios ni nombres; recepción no debe ver finanzas | Tres roles con permisos y enmascaramiento en el servidor (SEG-01 a SEG-04) |
+
+La diferencia con un taller convencional no está en la cantidad de tablas, sino en que **cada
+dato tiene un nivel de exposición distinto**. Un sistema de talleres normal suele asumir que
+todos los empleados pueden ver todo; aquí esa suposición habría violado el requisito de
+discreción desde el primer día.
 
 ### 2.2 Objetivo general
 
@@ -610,7 +631,15 @@ class OrdenServicio(Base):
         INTEGER(unsigned=True), ForeignKey("mecanicos.id"), nullable=True
     )
     estado: Mapped[str] = mapped_column(
-        Enum("Recibido", "Diagnostico", "Reparacion", "Listo", name="estado_orden"),
+        Enum(
+            "Recibido",
+            "Diagnostico",
+            "Reparacion",
+            "Listo",
+            "Entregado",
+            "Cancelado",
+            name="estado_orden",
+        ),
         nullable=False,
         default="Recibido",
     )
@@ -661,7 +690,7 @@ orden de creación de los scripts y el orden en que se cargan los datos de prueb
 
 | Tabla | Propósito | Llave primaria | Llaves foráneas | Notas de diseño |
 |---|---|---|---|---|
-| `ordenes_servicio` | Núcleo transaccional del taller. | `id` | `cliente_id`, `vehiculo_id`, `mecanico_id` | `estado` con las cuatro etapas, totales desglosados (subtotal, IVA, total), `requiere_autorizacion` (AUT-01), `diagnostico` (bloque 9) y `notas` para la recogida a domicilio (CLI-08). |
+| `ordenes_servicio` | Núcleo transaccional del taller. | `id` | `cliente_id`, `vehiculo_id`, `mecanico_id` | `estado` con las cuatro etapas de trabajo (`Recibido`, `Diagnostico`, `Reparacion`, `Listo`) más los estados terminales `Entregado` y `Cancelado`; totales desglosados (subtotal, IVA, total), `requiere_autorizacion` (AUT-01), `diagnostico` (bloque 9) y `notas` para la recogida a domicilio (CLI-08). |
 | `detalle_orden` | Piezas y mano de obra de cada orden. | `id` | `orden_id`, `servicio_id`, `refaccion_id` | Exactamente uno de `servicio_id` o `refaccion_id` debe estar presente; `precio_unitario` congela el precio del momento (ORD-10, PAG-01). |
 | `fotos_vehiculo` | Evidencia fotográfica del estado del auto. | `id` | `orden_id → ordenes_servicio.id` | `url_foto` apunta al archivo fuera de la base (VEH-08), `etapa ENUM('Ingreso','Proceso','Entrega')` y `firma_conformidad`. |
 
@@ -669,9 +698,9 @@ orden de creación de los scripts y el orden en que se cargan los datos de prueb
 
 | Tabla | Propósito | Llave primaria | Llaves foráneas | Notas de diseño |
 |---|---|---|---|---|
-| `pagos` | Anticipos y pagos parciales. | `id` | `orden_id → ordenes_servicio.id` | `tipo ENUM('Anticipo','Parcialidad','Liquidacion')`, monto y moneda MXN (PAG-07). |
-| `facturas` | Documentos fiscales de una orden. | `id` | `orden_id → ordenes_servicio.id` | `numero_factura` y `uuid_cfdi` son `UNIQUE`; guarda estado, fechas y los datos necesarios para CFDI 4.0 (FAC-03, FAC-05). |
-| `autorizaciones` | Aprobaciones del administrador. | `id` | `orden_id → ordenes_servicio.id` | `tipo ENUM('Orden','EntregaConSaldo','Compra')`, monto, `aprobado`, usuario y fecha (AUT-03, AUT-05). |
+| `pagos` | Anticipos y pagos parciales. | `id` | `orden_id → ordenes_servicio.id` | `tipo ENUM('Anticipo','Parcialidad','Liquidacion')`, `metodo_pago ENUM('Efectivo','Transferencia','Tarjeta')`, monto y moneda MXN (PAG-07). |
+| `facturas` | Documentos fiscales de una orden. | `id` | `orden_id → ordenes_servicio.id` | `numero_factura` y `uuid_cfdi` son `UNIQUE`; `estado ENUM('Borrador','Timbrada','Cancelada')` y los datos necesarios para CFDI 4.0 (FAC-03, FAC-05). |
+| `autorizaciones` | Aprobaciones del administrador. | `id` | `orden_id → ordenes_servicio.id` | `tipo ENUM('Monto_Alto','Saldo_Pendiente','Reautorizacion')`, monto, `aprobado`, usuario y fecha (AUT-03, AUT-05, AUT-07). |
 
 #### 5.4.6 Seguridad y cierre
 
@@ -912,7 +941,7 @@ Esa ausencia es una decisión, no un olvido:
 #### 5.8.2 Cómo se manejan las transacciones desde el backend
 
 Toda operación que toca más de una tabla se ejecuta en **una sola transacción**. El caso más
-complejo es `POST /api/v1/ordenes/{id}/registrar-avance`, que puede escribir hasta en cinco
+complejo es `POST /api/v1/ordenes/{id}/registrar-avance`, que puede escribir hasta en seis
 tablas: `ordenes_servicio`, `detalle_orden`, `refacciones`, `movimientos_inventario`,
 `historial_etapas` y `bitacora`. El orden de las operaciones no es casual:
 
@@ -1293,7 +1322,7 @@ def _solo_sus_ordenes(consulta, usuario):
             OrdenServicio.id.in_(
                 select(OrdenMecanico.orden_id).where(
                     OrdenMecanico.mecanico_id == usuario.mecanico_id,
-                    OrdenMecanico.activo.is_(True),
+                    OrdenMecanico.activo == 1,
                 )
             ),
         )
@@ -1513,7 +1542,8 @@ cierra la sesión de inmediato y borra el token del equipo.
 
 1. En el menú, elija **Órdenes de servicio**.
 2. Use la barra de búsqueda para filtrar por **ID, cliente, placas o responsable**.
-3. Use el filtro de estado para ver solo `Recibido`, `Diagnostico`, `Reparacion` o `Listo`.
+3. Use el filtro de estado para ver solo `Recibido`, `Diagnostico`, `Reparacion`, `Listo`,
+   `Entregado` o `Cancelado`.
 4. Cada fila muestra el vehículo, la etapa actual, el responsable y el total. El mecánico ve
    únicamente sus órdenes y el total aparece vacío.
 5. Pulse **Ver detalle** para abrir la orden completa: cliente, vehículo, conceptos, totales e
@@ -1558,7 +1588,7 @@ descuenta inventario en la misma operación.
 | "Stock insuficiente de 'X': disponible N, solicitado M" | Otro mecánico usó la pieza o el stock cambió | Ajuste la cantidad o pida a recepción que surta inventario. |
 | "La refacción X no existe o está dada de baja" | La pieza se desactivó del catálogo | Elija otra o consulte con recepción. |
 | "El Mecánico solo puede avanzar la orden a una etapa posterior" | Se intentó retroceder | Solo el administrador puede regresar una orden. |
-| "La etapa Listo se registra desde su propio flujo" | Se intentó cerrar la orden desde el avance | El cierre lo hace administrador o recepción. |
+| "La etapa Entregado se registra desde su propio flujo" | Se intentó cerrar la orden desde el avance del mecánico | El cierre lo hace administrador o recepción desde el flujo de entrega. |
 | "No tienes permiso para esta operación" | La orden no está asignada al usuario | Pida al administrador que lo asigne. |
 
 > **Importante:** el mecánico no ve importes. Si al guardar aparece un total, algo está mal y
@@ -1605,7 +1635,7 @@ y regresa al login. **En equipos compartidos, cierre siempre la sesión**, inclu
 | Reglas que el modelo no expresa | Cumplido | 6 triggers, uno de ellos con traducción a `422` |
 | Autenticación y autorización | Cumplido | JWT HS256, `requiere_roles`, recarga del usuario en cada petición |
 | Discreción del cliente | Parcial | Enmascaramiento completo en la aplicación; SEG-19 (nivel BD) y SEG-20 (auditoría de lecturas) pendientes |
-| API documentada | Cumplido | 18 operaciones bajo `/api/v1`, Swagger en `/docs` |
+| API documentada | Cumplido | 20 operaciones bajo `/api/v1`, Swagger en `/docs` |
 | Interfaz usable por rol | Cumplido | React 19 + TS, menú por rol, tablero de bahías, modal de avance |
 | Documentación mantenible | Cumplido | `docs/requisitos.md`, `erd.md`, `decisiones-tecnicas.md`, este reporte |
 

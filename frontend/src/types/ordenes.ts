@@ -103,6 +103,12 @@ export interface RefaccionUsadaPayload {
   cantidad: number
 }
 
+/** Servicio de mano de obra que el mecánico aplica en la orden. */
+export interface ServicioUsadoPayload {
+  servicio_id: number
+  cantidad: number
+}
+
 /**
  * Cuerpo de POST /api/v1/ordenes/{id}/registrar-avance.
  * Los precios NO se envían: el backend los toma del catálogo (SEG-18).
@@ -111,4 +117,5 @@ export interface AvanceMecanicoPayload {
   diagnostico?: string | null
   etapa_nueva?: EstadoOrden | null
   refacciones: RefaccionUsadaPayload[]
+  servicios: ServicioUsadoPayload[]
 }

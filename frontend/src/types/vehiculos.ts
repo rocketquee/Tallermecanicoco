@@ -29,3 +29,8 @@ export interface VehiculoPayload {
   kilometraje_entrada: number | null
   valor_aproximado: number | null
 }
+
+/** Cuerpo de PUT /api/v1/vehiculos/{id}: actualización parcial. */
+export type VehiculoUpdatePayload = Partial<VehiculoPayload> & {
+  activo?: boolean
+}

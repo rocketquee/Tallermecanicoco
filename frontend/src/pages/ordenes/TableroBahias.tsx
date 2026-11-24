@@ -10,10 +10,10 @@ import {
   User,
   Wrench,
 } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { clasesBoton } from '../../components/estilosBoton'
-import { EncabezadoPagina } from '../../components/panel/EncabezadoPagina'
-import { EtiquetaOrden } from '../../components/panel/EtiquetaOrden'
+import { Boton } from '../../components/ui/Boton'
+import { clasesBoton } from '../../components/ui/estilosBoton'
+import { EncabezadoPagina } from '../../components/ui/EncabezadoPagina'
+import { EtiquetaOrden } from '../../components/ui/EtiquetaOrden'
 import { formatearFechaCorta } from '../../lib/formato'
 import {
   BARRA_POR_ETAPA,

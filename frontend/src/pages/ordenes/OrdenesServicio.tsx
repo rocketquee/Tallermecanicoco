@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, EyeOff, RefreshCw } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { CampoSelect } from '../../components/CampoSelect'
-import { CampoTexto } from '../../components/CampoTexto'
-import { clasesBoton } from '../../components/estilosBoton'
-import { EncabezadoPagina } from '../../components/panel/EncabezadoPagina'
-import { EstadoTabla } from '../../components/panel/EstadoTabla'
-import { EtiquetaOrden } from '../../components/panel/EtiquetaOrden'
-import { Panel, PanelCabecera } from '../../components/panel/Panel'
+import { ChevronRight, EyeOff, Plus, RefreshCw } from 'lucide-react'
+import { Boton } from '../../components/ui/Boton'
+import { CampoSelect } from '../../components/formularios/CampoSelect'
+import { CampoTexto } from '../../components/formularios/CampoTexto'
+import { clasesBoton } from '../../components/ui/estilosBoton'
+import { EncabezadoPagina } from '../../components/ui/EncabezadoPagina'
+import { EstadoTabla } from '../../components/ui/EstadoTabla'
+import { EtiquetaOrden } from '../../components/ui/EtiquetaOrden'
+import { Panel, PanelCabecera } from '../../components/ui/Panel'
 import { useAuth } from '../../context/useAuth'
 import { formatearFechaCorta, formatearMoneda } from '../../lib/formato'
 import { listarOrdenes } from '../../services/ordenes'
@@ -133,9 +133,9 @@ function VistaOrdenes() {
         descripcion="Consulta el vehículo, la etapa actual, el responsable y el total de cada orden. El mecánico solo ve las órdenes donde participa."
         acciones={
           <>
-            <Link to="/dashboard" className={clasesBoton('secundario')}>
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Volver a Principal
+            <Link to="/ordenes/nuevo" className={clasesBoton('primario')}>
+              <Plus className="h-3.5 w-3.5" />
+              Nueva orden
             </Link>
             <Boton
               variante="secundario"

@@ -1,4 +1,8 @@
-import type { Vehiculo, VehiculoPayload } from '../types/vehiculos'
+import type {
+  Vehiculo,
+  VehiculoPayload,
+  VehiculoUpdatePayload,
+} from '../types/vehiculos'
 import api from './api'
 
 export interface FiltrosVehiculos {
@@ -22,5 +26,17 @@ export async function crearVehiculo(
   payload: VehiculoPayload,
 ): Promise<Vehiculo> {
   const { data } = await api.post<Vehiculo>('/vehiculos', payload)
+  return data
+}
+
+/** Actualiza parcialmente un vehiculo. Solo Administrador y Recepcion. */
+export async function actualizarVehiculo(
+  vehiculoId: number,
+  payload: VehiculoUpdatePayload,
+): Promise<Vehiculo> {
+  const { data } = await api.put<Vehiculo>(
+    `/vehiculos/${vehiculoId}`,
+    payload,
+  )
   return data
 }

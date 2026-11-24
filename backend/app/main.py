@@ -12,8 +12,12 @@ from app.core.database import engine, get_db
 from app.routers import (
     auth,
     clientes,
+    compras,
+    dashboard,
     ordenes,
+    proveedores,
     refacciones,
+    servicios,
     usuarios,
     vehiculos,
 )
@@ -41,11 +45,15 @@ app = FastAPI(
 # Modulos de la API. Cada router define su prefijo corto (/clientes) y aqui
 # se le antepone /api/v1.
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
+app.include_router(dashboard.router, prefix=settings.API_V1_PREFIX)
 app.include_router(clientes.router, prefix=settings.API_V1_PREFIX)
 app.include_router(vehiculos.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ordenes.router, prefix=settings.API_V1_PREFIX)
 app.include_router(refacciones.router, prefix=settings.API_V1_PREFIX)
+app.include_router(servicios.router, prefix=settings.API_V1_PREFIX)
 app.include_router(usuarios.router, prefix=settings.API_V1_PREFIX)
+app.include_router(proveedores.router, prefix=settings.API_V1_PREFIX)
+app.include_router(compras.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", tags=["inicio"])
@@ -57,11 +65,17 @@ def raiz() -> dict[str, str]:
         "docs": "/docs",
         "salud": f"{settings.API_V1_PREFIX}/salud",
         "login": f"{settings.API_V1_PREFIX}/login",
+        "dashboard_valor_custodia": (
+            f"{settings.API_V1_PREFIX}/dashboard/valor-custodia"
+        ),
         "clientes": f"{settings.API_V1_PREFIX}/clientes",
         "vehiculos": f"{settings.API_V1_PREFIX}/vehiculos",
         "ordenes": f"{settings.API_V1_PREFIX}/ordenes",
         "refacciones": f"{settings.API_V1_PREFIX}/refacciones",
+        "servicios": f"{settings.API_V1_PREFIX}/servicios",
         "usuarios": f"{settings.API_V1_PREFIX}/usuarios",
+        "proveedores": f"{settings.API_V1_PREFIX}/proveedores",
+        "compras": f"{settings.API_V1_PREFIX}/compras",
     }
 
 

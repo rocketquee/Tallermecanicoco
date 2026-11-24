@@ -111,7 +111,7 @@ def listar_vehiculos(
 ) -> list[VehiculoOut]:
     stmt = select(Vehiculo)
     if not incluir_inactivos:
-        stmt = stmt.where(Vehiculo.activo.is_(True))
+        stmt = stmt.where(Vehiculo.activo == 1)
     if cliente_id is not None:
         stmt = stmt.where(Vehiculo.cliente_id == cliente_id)
     if q:

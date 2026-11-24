@@ -56,7 +56,7 @@ def _cliente_o_404(
     if con_vehiculos:
         # Solo vehiculos vigentes; el historial queda en la BD (SEG-07).
         stmt = stmt.options(
-            selectinload(Cliente.vehiculos.and_(Vehiculo.activo.is_(True)))
+            selectinload(Cliente.vehiculos.and_(Vehiculo.activo == 1))
         )
     cliente = db.scalar(stmt)
     if cliente is None:
@@ -114,7 +114,7 @@ def listar_clientes(
 ) -> list[Cliente]:
     stmt = select(Cliente)
     if not incluir_inactivos:
-        stmt = stmt.where(Cliente.activo.is_(True))
+        stmt = stmt.where(Cliente.activo == 1)
     if categoria is not None:
         stmt = stmt.where(Cliente.categoria == categoria)
     if q:

@@ -1,293 +1,419 @@
 # AutoPulse Elite
 
-Sistema web de gestión para **Pizarro Performance Garage**, un taller especializado en autos de lujo. Reúne clientes VIP, vehículos, órdenes de servicio, inventario, compras internacionales, pagos y datos de facturación CFDI 4.0 en un solo lugar, accesible desde computadora, tablet y celular. Hoy la operación se lleva en una libreta y Excel; AutoPulse Elite busca eliminar la dispersión de información y dar trazabilidad completa en un negocio donde la discreción con figuras públicas es crítica.
+Sistema web de gestión para **Pizarro Performance Garage**, un taller especializado en autos de lujo. Concentra clientes VIP, vehículos, órdenes de servicio, inventario, usuarios y bitácora en un solo lugar, con permisos por rol y trazabilidad completa. La operación actual vive en libretas y Excel; este sistema la ordena y protege la discreción de clientes que son figuras públicas.
 
-> **Nota:** la base de datos (21 tablas) y el backend inicial con FastAPI ya están implementados. El frontend con React es la siguiente fase. La API incluye autenticación JWT, clientes, vehículos y órdenes de servicio.
+> **Estado:** núcleo operativo funcional de punta a punta. La base de datos MySQL 8.x (21 tablas), la API con FastAPI + JWT y el frontend con React + TypeScript están implementados para clientes, vehículos, órdenes, inventario, usuarios y proveedores/compras. Los módulos de pagos, facturación, autorizaciones y reportes se construirán en la siguiente fase. El detalle de lo que falta está en [`docs/pendientes.md`](docs/pendientes.md).
 
-## Características principales
+## Contenido
 
-Los códigos entre paréntesis remiten al requisito correspondiente en [`docs/requisitos.md`](docs/requisitos.md) y [`docs/requisitos-actualizados.md`](docs/requisitos-actualizados.md).
-
-### Clientes
-
-- **Registro:** nombre, dos teléfonos, correo, dirección y nombre del asistente o chofer del cliente (CLI-01). Búsqueda por nombre del dueño en menos de 3 segundos (CLI-05) e historial de órdenes, pagos y saldo por cliente (CLI-06).
-- **Clientes VIP (hoy unos 15):** se marcan y desmarcan desde el sistema (CLI-02) y reciben prioridad en la fila de órdenes, 10% de descuento automático en mano de obra, auto de cortesía y recogida a domicilio (CLI-03). El administrador es el responsable de su atención (CLI-04).
-- **Préstamo de auto de cortesía:** el auto se registra como activo del taller y cada préstamo guarda a quién se prestó, fecha y hora, kilometraje de salida y de regreso, y una revisión de rayones (CLI-07).
-- **Recogida a domicilio:** la orden lleva notas con la dirección y los datos de recogida para el chofer (CLI-08).
-- **Clientes confidenciales:** pueden marcarse como confidenciales (SEG-17). En sus órdenes el mecánico ve solo placas y el trabajo asignado, nunca el nombre del dueño (SEG-18); la restricción se aplica por fila en la base de datos (SEG-19) y queda registro de quién consultó el expediente (SEG-20).
-
-### Vehículos
-
-- **Expediente:** placas, número de serie, marca, modelo, año, color, kilometraje de entrada y valor aproximado (VEH-01), asociado a su dueño (VEH-02), con búsqueda por placas en menos de 3 segundos (VEH-06).
-- **Póliza de seguro:** aseguradora, número, vigencia y cobertura (VEH-04), con aviso al administrador 30 días antes del vencimiento (VEH-05).
-- **Fotos del estado:** hasta 30 por auto, de máximo 10 MB cada una, clasificadas en ingreso, proceso y entrega, con fecha y hora automáticas y firma de conformidad en las de entrega (VEH-03). Se almacenan en un servidor de archivos aparte, no en la base de datos (VEH-08).
-- **Valor en custodia:** cálculo en cualquier momento del valor total de los autos que están dentro del taller (VEH-07).
-
-### Órdenes de servicio
-
-- **Apertura y etapas:** orden al llegar el auto con dueño, placas, número de serie y falla reportada (ORD-01), en cuatro etapas: recibido, diagnóstico, reparación y listo (ORD-02), con un tablero único de todos los autos en el taller y su etapa (ORD-03).
-- **Responsabilidades por rol:** recepción solo registra la llegada; el mecánico avanza de diagnóstico a reparación y a listo; solo el administrador puede regresar una orden a una etapa anterior (ORD-04, ORD-05).
-- **Asignación y trabajo:** uno o más mecánicos por orden (ORD-09), con registro de las piezas usadas y la mano de obra (ORD-10).
-- **Alertas de retraso:** aviso al administrador y al mecánico si una orden lleva más de 5 días sin cambiar de etapa (ORD-06), excluyendo las que están "esperando pieza en camino" (ORD-07), más un listado de órdenes con retraso (ORD-12).
-- **Prioridad VIP:** la fila de trabajo da prioridad a las órdenes de clientes VIP (ORD-13).
-- **Bitácora:** registro de quién hizo cada trabajo y a qué hora (ORD-08).
-- **Cancelación:** solo el administrador, con motivo obligatorio y registro del usuario, sin borrar la orden (ORD-11).
-
-### Inventario
-
-- **Tornillería y consumibles:** catálogo con existencias (INV-01), descuento automático de cada pieza al asignarla a una orden (INV-02) y alerta cuando quedan 2 unidades o menos (INV-03).
-- **Piezas especiales por marca:** se tratan como compras ligadas a una orden, sin existencias en inventario (INV-04).
-- **Ajustes manuales:** solo el administrador, con motivo y registro en bitácora (INV-05).
-
-### Proveedores y compras
-
-- **Proveedores de Italia, Alemania e Inglaterra:** registrados con país y contacto (PRV-01) y con su tiempo de entrega calculado, hoy de 2 a 8 semanas (PRV-02).
-- **Pedidos:** cada uno con su estado y fecha estimada de llegada (PRV-03), lista de pendientes con su fecha (PRV-04) y registro de quién lo solicitó y para qué orden (PRV-05).
-- **Órdenes de compra:** borrador automático con las piezas faltantes (PRV-06) que no puede enviarse sin la aprobación del administrador ni sin el anticipo del 50% registrado, cuando aplique (PRV-07). Incluye el listado de piezas que hay que pedir esta semana (PRV-08).
-- **Moneda y tipo de cambio:** cada compra guarda moneda original (EUR o GBP), costo en esa moneda, tipo de cambio del día y equivalente en pesos (PRV-09); esos costos y tipos de cambio quedan ocultos para mecánicos y recepción (PRV-10).
-
-### Pagos
-
-- **Cálculo del total:** piezas + mano de obra + IVA 16%, con desglose visible para el cliente (PAG-01); el descuento VIP de 10% aplica solo a la mano de obra (PAG-02). El cobro es siempre en pesos mexicanos (PAG-07).
-- **Anticipos y pagos en partes:** anticipo del 50% obligatorio cuando el subtotal de piezas supera un umbral configurable —propuesta: $20,000 a $30,000 MXN— y el resto al entregar (PAG-03). El umbral de "piezas caras" es un parámetro configurable (PAG-06) y los pagos en partes solo se permiten a clientes marcados como de confianza (PAG-04).
-- **Saldos:** cuánto ha pagado y cuánto debe cada cliente y cada orden (PAG-05).
-
-### Facturación
-
-- **Cierre y factura:** cierre de la orden y generación de la factura con un solo botón (FAC-01), bloqueado si hay saldo pendiente salvo que el administrador haya autorizado entregar con saldo (FAC-02). La factura incluye logotipo del taller, datos fiscales, número de orden y desglose de piezas, mano de obra e IVA en formato CFDI 4.0 (FAC-03).
-- **Datos para timbrar:** el sistema genera el paquete completo de CFDI 4.0 (régimen fiscal, uso de CFDI, código postal y demás datos obligatorios); en esta fase el contador o el taller lo manda a timbrar con un PAC (FAC-05). La integración directa con el PAC queda como fase futura, a definir con el contador (FAC-06).
-- **Facturas emitidas:** no se pueden editar; su cancelación exige motivo y usuario (FAC-04).
-
-### Autorizaciones
-
-- **Umbral de monto:** toda orden cuyo total con IVA supere $250,000 MXN requiere autorización del administrador, sin aplicar por pieza suelta (AUT-01). La compra de piezas y el inicio del trabajo quedan bloqueados hasta que la orden esté autorizada (AUT-02) y solo el administrador puede autorizar, sin delegar (AUT-03).
-- **Tolerancia:** si una orden ya autorizada sube más allá de una tolerancia configurable (5% o 10%), se congelan compras y trabajo hasta una nueva autorización (AUT-07, AUT-08). El valor exacto está por definir con el cliente: su ejemplo ($300,000 a $320,000) es un aumento de 6.7%, así que solo se cumple con una tolerancia de 5% o menos.
-- **Entrega con saldo:** el administrador puede autorizar la entrega con saldo pendiente (AUT-04).
-- **Registro y consulta:** cada autorización se guarda con usuario, fecha, hora y monto (AUT-05), y las órdenes que esperan autorización se consultan también desde el celular (AUT-06).
-
-### Reportes
-
-- **Panel matutino:** autos por etapa, piezas que llegan esta semana y órdenes que esperan autorización (REP-01).
-- **Cobranza:** reporte semanal de lo facturado y lo pendiente de cobro (REP-02).
-- **Mecánicos:** ingresos generados y carga de trabajo por mecánico, para repartir bonos (REP-03).
-- **Aseguradora:** reporte de valor en custodia (REP-04).
-- **Margen por orden:** costo real en pesos (con tipo de cambio) contra precio cobrado (REP-07).
-- **Exportación:** reportes en Excel y PDF (REP-05). Los reportes pueden entregarse hasta un mes después del arranque (REP-06).
-
-### Seguridad y trazabilidad
-
-- **Autenticación y roles:** acceso individual para 5 usuarios —1 administrador, 3 mecánicos y 1 de recepción— (SEG-01, SEG-14) con permisos por rol y por cliente (SEG-05).
-- **Restricciones por rol:** los mecánicos no ven precios de cobro ni ganancias (SEG-02); recepción no ve finanzas ni lo que gana cada mecánico (SEG-03); el administrador tiene acceso total (SEG-04); costos de compra y tipos de cambio quedan ocultos para mecánicos y recepción (PRV-10).
-- **Auditoría:** bitácora inmutable de altas, cambios, cancelaciones y autorizaciones (SEG-06) y borrado lógico, nada se elimina físicamente (SEG-07).
-- **Respaldos:** automático diario, con pérdida máxima aceptable de 1 día de datos (SEG-08), y copia guardada fuera del taller (SEG-09).
-- **Cifrado:** datos cifrados en tránsito y en reposo (SEG-15).
-- **Rendimiento:** toda orden o resultado de búsqueda se muestra en 2 a 3 segundos como máximo (SEG-10), dimensionado para 5 usuarios, unos 8 ingresos por semana y 10 autos simultáneos (SEG-14).
-- **Dispositivos:** tableta con botones grandes para mecánicos, apta para manos sucias (SEG-11); computadora para recepción y celular para el administrador, solo consulta (SEG-12).
-- **Captura:** no pedir dos veces el mismo dato (SEG-13).
+- [Stack tecnológico](#stack-tecnológico)
+- [Funcionalidad disponible](#funcionalidad-disponible)
+- [Pendientes del sistema](#pendientes-del-sistema)
+- [Requisitos previos](#requisitos-previos)
+- [Levantar el proyecto desde cero](#levantar-el-proyecto-desde-cero)
+- [Usuarios de prueba](#usuarios-de-prueba)
+- [Rutas del frontend y permisos](#rutas-del-frontend-y-permisos)
+- [Endpoints de la API](#endpoints-de-la-api)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Solución de problemas](#solución-de-problemas)
+- [Documentación](#documentación)
+- [Equipo y licencia](#equipo-y-licencia)
 
 ## Stack tecnológico
 
-### Base de datos (fase actual)
-
-| Componente | Tecnología |
+| Capa | Tecnología |
 |---|---|
-| Motor | MySQL 8.x (InnoDB, `utf8mb4`) |
-| Cliente principal | MySQL Workbench |
-| Alternativas | DBeaver, OpenNavicat (diseño E-R asistido por IA) |
-| Diagramas | Mermaid (ERD en Markdown) |
+| Base de datos | MySQL 8.x, InnoDB, `utf8mb4` |
+| Backend | Python 3.10+ · FastAPI · SQLAlchemy 2.x · Pydantic v2 · Uvicorn |
+| Autenticación | JWT (HS256) con roles: Administrador, Recepción y Mecánico |
+| Frontend | React 19 · TypeScript · Vite · Tailwind CSS 4 |
+| Gráficas | Recharts (disponible para reportes) |
+| Documentación | Markdown y Mermaid |
 
-Convenciones: nombres en español y `snake_case`, dinero en `DECIMAL(12,2)`, estados con `ENUM`, fechas con `DATETIME` y llaves foráneas con `ON UPDATE CASCADE` / `ON DELETE RESTRICT`.
+Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DECIMAL(12,2)`, estados con `ENUM`, fechas con `DATETIME` y llaves foráneas con `ON DELETE RESTRICT` para que nada se borre físicamente. Las tablas de bitácora son inmutables y están protegidas con triggers.
 
-### Backend (fase futura)
+## Funcionalidad disponible
 
-- **Python 3.10+** con **FastAPI** y **Uvicorn**
-- **SQLAlchemy 2.x** como ORM y **Alembic** para migraciones
-- **Pydantic v2** para validación
-- **JWT con roles** (Administrador, Recepción, Mecánico)
+### Implementado
 
-### Frontend (fase futura)
+- **Autenticación y roles.** Login con correo y contraseña, token JWT y menú distinto por rol. El backend valida cada endpoint; el frontend además protege las rutas por rol.
+- **Clientes.** Alta, edición, búsqueda, categoría VIP/Regular, clientes confidenciales, datos fiscales y condiciones comerciales. El rol Mecánico recibe los clientes confidenciales enmascarados.
+- **Vehículos.** Alta, edición y consulta por placas, VIN, marca o modelo, con kilometraje de entrada y valor aproximado. El valor se oculta al rol Mecánico.
+- **Órdenes de servicio.** Alta de orden en estado `Recibido`, tablero por bahías, detalle con conceptos y totales, avance de etapa desde el detalle y registro de avance del mecánico con mano de obra y consumo de refacciones. Los totales (piezas + mano de obra con descuento VIP + IVA) los calcula siempre el backend.
+- **Inventario.** Catálogo con existencias, alerta de stock bajo, alta de refacciones, baja lógica, surtido con movimiento y asiento en bitácora.
+- **Usuarios.** Listado y restablecimiento de contraseña, exclusivo del Administrador.
+- **Proveedores y compras.** Directorio con país, contacto, moneda y días de entrega; alta y edición de proveedores; órdenes de compra con folio, estado, fecha estimada de llegada y totales en la moneda del proveedor y en MXN. Las compras nacen en `Borrador` y quedan auditadas.
+- **Panel principal.** Indicadores reales: autos en taller, órdenes por etapa, listas para entrega, clientes, valor en custodia (solo Administrador), refacciones por reponer, pendientes y últimas órdenes.
+- **Trazabilidad.** Bitácora de operaciones e historial de etapas por orden.
 
-- **React 18+** con **TypeScript** y **Vite**
-- **Tailwind CSS** + **shadcn/ui** para la interfaz
-- **TanStack Query** para datos del servidor
-- **React Hook Form + Zod** para formularios
-- **Recharts** para reportes
-- **PWA** para instalar el sitio en el celular del administrador
-- Interfaz de tablet para mecánicos, con botones grandes aptos para manos sucias
+### Pendiente para siguientes fases
 
-### Almacenamiento y despliegue (fase futura)
+- Pagos, anticipos, saldos y autorizaciones por monto.
+- Facturación CFDI 4.0 y timbrado con PAC.
+- Recepción de compras que incremente el inventario automáticamente.
+- Reportes exportables a Excel y PDF.
+- Fotos del vehículo y pólizas de seguro.
+- Seguridad a nivel de fila (SEG-19) y auditoría de lecturas confidenciales (SEG-20).
 
-- Fotos fuera de la base de datos: sistema de archivos local en desarrollo y almacenamiento S3-compatible (MinIO o Cloudflare R2) en producción.
-- Backend en Railway o Render; frontend en Vercel o Netlify; MySQL en Aiven o PlanetScale; CI/CD con GitHub Actions.
+## Pendientes del sistema
+
+El listado completo, con identificadores (PEN-01 a PEN-39), evidencia en el código, impacto,
+prioridad y criterio de aceptación, vive en **[`docs/pendientes.md`](docs/pendientes.md)**.
+
+Los cuatro módulos que hoy muestran “Próximamente” son:
+
+| Ruta | Módulo | Qué falta |
+|---|---|---|
+| `/pagos` | Pagos | Anticipos, parcialidades y saldo |
+| `/facturacion` | Facturación | CFDI 4.0 y timbrado |
+| `/autorizaciones` | Autorizaciones | Aprobación por monto |
+| `/reportes` | Reportes | Indicadores y exportación |
+
+En los módulos ya construidos falta, entre lo más importante, **asignar o cambiar mecánico**,
+**cancelar una orden con motivo**, la **administración de usuarios**, la **consulta de bitácora**
+y las **pruebas automatizadas**.
 
 ## Requisitos previos
 
-- **MySQL 8.x** (obligatorio para la fase actual).
-- **Git** para clonar el repositorio.
-- **Python 3.10+** y **Node.js** (solo necesarios cuando se implementen el backend y el frontend).
+| Herramienta | Versión recomendada | Para qué |
+|---|---|---|
+| MySQL Server | 8.0 o superior | Base de datos |
+| Python | 3.10 o superior | API |
+| Node.js | 22 o superior | Frontend (Vite 8) |
+| npm | 10 o superior | Dependencias del frontend |
+| Git | cualquiera reciente | Clonar el repositorio |
 
-## Instalación y ejecución
+En Windows, agrega `mysql`, `python` y `npm` al `PATH` para poder ejecutar los comandos desde la terminal.
 
-### Fase actual: base de datos y backend inicial
+## Levantar el proyecto desde cero
 
-El esquema está terminado: 21 tablas en MySQL 8.x (InnoDB, `utf8mb4_unicode_ci`). La API
-ya expone autenticación, clientes, vehículos, órdenes de servicio, el catálogo de
-refacciones, el reporte de avance del mecánico, el surtido de inventario y la
-administración de usuarios.
+### 1. Clonar el repositorio
 
 ```bash
-# 1. Clonar el repositorio
 git clone https://github.com/<usuario>/AutoPulse-Elite.git
 cd AutoPulse-Elite
-
-# 2. Crear la base de datos
-mysql -u root -p -e "CREATE DATABASE autopulse_elite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# 3. Ejecutar los bloques SQL en orden
-mysql -u root -p autopulse_elite < sql/01_catalogos.sql
-mysql -u root -p autopulse_elite < sql/02_vehiculos.sql
-mysql -u root -p autopulse_elite < sql/03_inventario.sql
-mysql -u root -p autopulse_elite < sql/04_ordenes.sql
-mysql -u root -p autopulse_elite < sql/05_finanzas.sql
-mysql -u root -p autopulse_elite < sql/06_seguridad.sql
-mysql -u root -p autopulse_elite < sql/09_avance_mecanico.sql
-
-# 4. Opcional: datos de ejemplo para desarrollo
-mysql -u root -p autopulse_elite < sql/07_datos_prueba.sql
-mysql -u root -p autopulse_elite < sql/08_datos_prueba_extra.sql
 ```
 
-El detalle de tablas y relaciones está en [docs/erd.md](docs/erd.md) y el avance en la sección [Estado del proyecto](#estado-del-proyecto).
-
-> **Configuración local:** copia `opencode.example.json` a `opencode.json` y coloca tus credenciales de MySQL. `opencode.json` está en `.gitignore` para que ninguna contraseña llegue a GitHub.
-
-### Backend
+### 2. Crear la base de datos
 
 ```bash
-cd backend
+mysql -u root -p -e "CREATE DATABASE autopulse_elite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+### 3. Ejecutar los scripts SQL en orden
+
+Los scripts están en `sql/` y son idempotentes en el orden indicado. Se importan con `utf8mb4` para conservar los acentos.
+
+**PowerShell (Windows).** El operador `<` no existe en PowerShell, así que se usa el comando `source` del cliente `mysql`:
+
+```powershell
+# Ejecutar desde la raíz del repositorio (E:\Tallermecanico)
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/01_catalogos.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/02_vehiculos.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/03_inventario.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/04_ordenes.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/05_finanzas.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/06_seguridad.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/09_avance_mecanico.sql"
+
+# Datos de ejemplo (solo desarrollo)
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/07_datos_prueba.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/08_datos_prueba_extra.sql"
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/10_proveedores_demo.sql"
+
+# Procedimiento y función almacenados
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/11_procedimientos_funciones.sql"
+```
+
+**CMD.** La redirección clásica también funciona (una línea por script):
+
+```bat
+mysql -u root -p --default-character-set=utf8mb4 autopulse_elite < sql\01_catalogos.sql
+```
+
+> Si el cliente `mysql` no está en el `PATH`, usa la ruta completa, por ejemplo
+> `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"`. Si el servicio no está corriendo,
+> inícialo con `Get-Service *mysql*` y `Start-Service <nombre-del-servicio>`.
+
+Verifica que se hayan creado las 21 tablas y las rutinas del bloque 11:
+
+```bash
+mysql -u root -p -e "USE autopulse_elite; SHOW TABLES;"
+mysql -u root -p -e "USE autopulse_elite; SHOW PROCEDURE STATUS WHERE Db = 'autopulse_elite';"
+mysql -u root -p -e "USE autopulse_elite; SHOW FUNCTION STATUS WHERE Db = 'autopulse_elite';"
+mysql -u root -p -e "USE autopulse_elite; CALL sp_calcular_total_orden(4);"
+mysql -u root -p -e "USE autopulse_elite; SELECT fn_valor_en_custodia();"
+```
+
+### 4. Configurar y arrancar el backend
+
+```powershell
+cd E:\Tallermecanico\backend
+
+# Crear el entorno virtual (solo la primera vez)
 python -m venv .venv
 
-# Windows (CMD)
-.venv\Scripts\activate.bat
-# Linux / macOS
-source .venv/bin/activate
+# Windows (PowerShell). Si la política de ejecución lo bloquea:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 
-pip install -r requirements.txt
-copy .env.example .env       # Windows: configurar MySQL y JWT_SECRET_KEY
-cp .env.example .env         # Linux / macOS
-uvicorn app.main:app --reload
+# Windows (CMD)
+# .venv\Scripts\activate.bat
+
+# Linux / macOS
+# source .venv/bin/activate
+
+# Instalar dependencias
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+# Crear el archivo de configuración
+Copy-Item .env.example .env      # Windows (PowerShell)
+# cp .env.example .env           # Linux / macOS
 ```
 
-La documentación interactiva queda en `http://127.0.0.1:8000/docs`. Las tablas se crean
-con los scripts `sql/01` a `sql/09`; Alembic queda pendiente para cuando se necesiten
-migraciones versionadas.
+Edita `backend/.env` con tus datos reales:
 
-### Fase futura: frontend
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=TU_CONTRASENA
+DB_NAME=autopulse_elite
+JWT_SECRET_KEY=una_clave_larga_y_aleatoria
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=480
+```
 
-```bash
-cd frontend
+Arranca la API (con el entorno virtual activo y desde `backend`):
+
+```powershell
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Comprueba que responde y que ve la base de datos:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/api/v1/salud
+```
+
+- API: <http://127.0.0.1:8000/>
+- Salud: <http://127.0.0.1:8000/api/v1/salud>
+- Swagger: <http://127.0.0.1:8000/docs>
+
+La respuesta de `/api/v1/salud` debe incluir `"estado": "ok"` y `"tablas": 21`.
+
+### 5. Arrancar el frontend
+
+En **otra terminal** (deja la API corriendo), desde la raíz del proyecto:
+
+```powershell
+cd E:\Tallermecanico\frontend
 npm install
 npm run dev
 ```
 
+Abre <http://localhost:5173>. Vite redirige las peticiones `/api` a `http://127.0.0.1:8000`, así que el backend debe estar corriendo.
+
+Para verificar que el frontend compila y pasa el linter:
+
+```powershell
+npm run build     # tsc -b + vite build
+npm run lint      # ESLint
+npm run preview   # sirve dist/ localmente (opcional)
+```
+
+> Requisitos del frontend: Node.js 22 o superior y npm 10 o superior. Si `npm run dev` muestra
+> `ECONNREFUSED` o `502`, el backend no está escuchando en el puerto 8000.
+
+## Usuarios de prueba
+
+El script `sql/07_datos_prueba.sql` crea tres usuarios. Todos usan la misma contraseña:
+
+**Contraseña:** `AutoPulse2026!`
+
+| Correo | Nombre | Rol | Qué puede ver |
+|---|---|---|---|
+| `gabriel@pizarrogarage.mx` | Gabriel Pizarro | Administrador | Todo, incluidos importes y configuración |
+| `ana.torres@pizarrogarage.mx` | Ana Torres | Recepción | Clientes, vehículos, órdenes e inventario; sin configuración |
+| `luis.ramirez@pizarrogarage.mx` | Luis Ramírez | Mecánico | Solo sus órdenes, placas y trabajo; sin precios ni clientes confidenciales |
+
+> En producción, cambia estas contraseñas desde **Configuración → Usuarios → Restablecer contraseña**.
+
+## Rutas del frontend y permisos
+
+| Ruta | Pantalla | Administrador | Recepción | Mecánico |
+|---|---|:---:|:---:|:---:|
+| `/login` | Inicio de sesión | ✓ | ✓ | ✓ |
+| `/dashboard` | Panel principal | ✓ | ✓ | ✓ |
+| `/clientes` | Directorio de clientes | ✓ | ✓ | ✓ |
+| `/clientes/nuevo` | Alta de cliente | ✓ | ✓ | — |
+| `/clientes/:id` | Expediente del cliente | ✓ | ✓ | ✓ |
+| `/vehiculos` | Vehículos | ✓ | ✓ | ✓ |
+| `/vehiculos/nuevo` | Alta de vehículo | ✓ | ✓ | — |
+| `/ordenes` | Órdenes / tablero de bahías | ✓ | ✓ | ✓ |
+| `/ordenes/nuevo` | Nueva orden | ✓ | ✓ | — |
+| `/ordenes/:id` | Detalle de la orden | ✓ | ✓ | ✓ |
+| `/inventario` | Inventario | ✓ | ✓ | — |
+| `/proveedores` | Proveedores y compras | ✓ | ✓ | — |
+| `/configuracion` | Usuarios y contraseñas | ✓ | — | — |
+| `/autorizaciones` | Próximamente | ✓ | ✓ | — |
+| `/pagos`, `/facturacion`, `/reportes` | Próximamente | ✓ | — | — |
+
+Las rutas inexistentes muestran una pantalla **404** en lugar de redirigir en silencio. Las rutas sin permiso redirigen al panel principal; el backend vuelve a validar el rol en cada petición.
+
+## Endpoints de la API
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/v1/login` | Login con JSON `{correo, password}` |
+| `POST` | `/api/v1/login/token` | Login OAuth2 para el botón *Authorize* de Swagger |
+| `GET` | `/api/v1/login/me` | Usuario de la sesión actual |
+| `GET` | `/api/v1/salud` | Estado de la API y de MySQL |
+| `GET` | `/api/v1/dashboard/valor-custodia` | Valor en custodia calculado por `fn_valor_en_custodia()` (Administrador) |
+| `GET/POST` | `/api/v1/clientes` | Listar y crear clientes |
+| `GET/PUT` | `/api/v1/clientes/{id}` | Consultar y editar cliente |
+| `GET/POST` | `/api/v1/vehiculos` | Listar y crear vehículos |
+| `GET/PUT` | `/api/v1/vehiculos/{id}` | Detalle y edición de vehículo |
+| `GET/POST` | `/api/v1/ordenes` | Listar y crear órdenes |
+| `GET` | `/api/v1/ordenes/{id}` | Detalle con conceptos y totales |
+| `POST` | `/api/v1/ordenes/{id}/avanzar-etapa` | Avance lineal de etapa y recálculo de totales |
+| `POST` | `/api/v1/ordenes/{id}/registrar-avance` | Diagnóstico, mano de obra, refacciones y nueva etapa |
+| `GET` | `/api/v1/refacciones` | Catálogo de refacciones |
+| `POST` | `/api/v1/refacciones` | Alta de refacción (Administrador y Recepción) |
+| `PUT` | `/api/v1/refacciones/{id}` | Edición y baja lógica (`activo = false`) |
+| `POST` | `/api/v1/refacciones/{id}/entrada` | Surtir inventario |
+| `GET` | `/api/v1/servicios` | Catálogo de mano de obra (sin precios) |
+| `GET` | `/api/v1/usuarios` | Listar usuarios (Administrador) |
+| `POST` | `/api/v1/usuarios/{id}/restablecer-password` | Restablecer contraseña (Administrador) |
+| `GET/POST` | `/api/v1/proveedores` | Listar y crear proveedores (altas: Administrador) |
+| `GET/PUT` | `/api/v1/proveedores/{id}` | Consultar y editar proveedor |
+| `GET/POST` | `/api/v1/compras` | Listar compras y registrar una (Administrador) |
+| `GET` | `/api/v1/compras/{id}` | Detalle de la compra con sus líneas |
+
+La documentación interactiva con esquemas completos está en `/docs` y el contrato OpenAPI en `/openapi.json`.
+
 ## Estructura del proyecto
 
-```
+```text
 AutoPulse-Elite/
-├── AGENTS.md                  # Reglas del proyecto para OpenCode
-├── README.md                  # Este archivo
-├── .gitignore
-├── opencode.example.json      # Plantilla de configuración local (MCP MySQL)
-├── documentacion-presentacion/ # Diagramas HTML independientes para presentaciones
-│   ├── arquitectura.html      # Usuario → React → FastAPI → MySQL
-│   ├── diagrama-er.html       # 21 tablas con Mermaid (CDN)
-│   └── README.md
-├── docs/
-│   ├── indice.md              # Índice de documentación
-│   ├── requisitos.md          # Requisitos originales
+├── AGENTS.md                       # Reglas del proyecto
+├── README.md                       # Este archivo
+├── docs/                           # Documentación consolidada de la práctica
+│   ├── reporte-practica.md         # Reporte técnico (portada, requisitos, BD, roles, capturas)
+│   ├── reporte-practica.pdf        # Reporte imprimible para entrega
+│   ├── reporte-final.html          # El mismo reporte con diseño de impresión
+│   ├── reporte-final.pdf           # Versión A4 lista para entregar
+│   ├── pendientes.md               # Auditoría: qué falta para el 100 % funcional
+│   ├── diagrama-er-interactivo.html # Diagrama E-R navegable con descarga PNG
+│   ├── vendor/mermaid.min.js       # Copia local de Mermaid (diagrama sin internet)
+│   ├── requisitos.md
 │   ├── requisitos-actualizados.md
-│   ├── contexto-tecnico.md    # Stack y decisiones técnicas
-│   ├── erd.md                 # Diagrama E-R en Mermaid (21 tablas)
-│   └── decisiones-tecnicas.md # ADRs (Architecture Decision Records)
+│   ├── contexto-tecnico.md
+│   ├── erd.md
+│   ├── decisiones-tecnicas.md
+│   └── indice.md
+├── documentacion-tecnica/          # Versión extendida de referencia
+│   ├── reporte-practica.md
+│   └── guia-capturas.md            # Guion detallado de las 47 capturas
+├── documentacion-presentacion/     # Diagramas HTML para presentaciones
+├── scripts/                        # Utilidades de documentación
+│   └── generar-pdf.py              # Markdown -> PDF
 ├── sql/
-│   ├── 01_catalogos.sql       # clientes, mecanicos, proveedores, servicios
-│   ├── 02_vehiculos.sql       # vehiculos, polizas_seguro
-│   ├── 03_inventario.sql      # refacciones, compras, detalle_compra, movimientos_inventario
-│   ├── 04_ordenes.sql         # ordenes_servicio, detalle_orden, fotos_vehiculo
-│   ├── 05_finanzas.sql        # pagos, facturas, autorizaciones
-│   ├── 06_seguridad.sql       # usuarios, bitacora, orden_mecanicos, historial_etapas, parametros
-│   ├── 07_datos_prueba.sql    # seeds base para desarrollo
-│   ├── 08_datos_prueba_extra.sql # clientes, vehículos, servicios y órdenes de ejemplo
-│   └── 09_avance_mecanico.sql # columna diagnostico para el reporte de avance
-├── backend/                   # API Python + FastAPI
+│   ├── 01_catalogos.sql
+│   ├── 02_vehiculos.sql
+│   ├── 03_inventario.sql
+│   ├── 04_ordenes.sql
+│   ├── 05_finanzas.sql
+│   ├── 06_seguridad.sql
+│   ├── 07_datos_prueba.sql
+│   ├── 08_datos_prueba_extra.sql
+│   ├── 09_avance_mecanico.sql
+│   ├── 10_proveedores_demo.sql
+│   └── 11_procedimientos_funciones.sql
+├── backend/
 │   ├── app/
-│   │   ├── main.py
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── routers/
-│   │   ├── services/
-│   │   └── core/              # config, seguridad, sesión de BD
-│   ├── alembic/
-│   ├── tests/
+│   │   ├── main.py                 # FastAPI, arranque y registro de routers
+│   │   ├── core/                   # Configuración, BD, JWT, dependencias y privacidad
+│   │   ├── models/                 # Un archivo por tabla (21 modelos SQLAlchemy)
+│   │   ├── schemas/                # Un archivo por módulo (Pydantic)
+│   │   ├── routers/                # Un archivo por módulo funcional
+│   │   └── services/               # Reservada para extraer la lógica de negocio
+│   ├── tests/                      # Pruebas automatizadas (pendiente)
+│   ├── scripts/                    # Utilidades de datos
+│   ├── storage/fotos/              # Fotos subidas (contenido no versionado)
 │   ├── requirements.txt
 │   └── .env.example
-└── frontend/                  # (fase futura) React + TypeScript
+└── frontend/
     ├── src/
     │   ├── components/
+    │   │   ├── layout/             # Layout, Sidebar y guardas de ruta
+    │   │   ├── ui/                 # Botón, panel, encabezado, badges y estilos
+    │   │   ├── formularios/        # Campos de texto, select, checkbox y área
+    │   │   ├── clientes/           # Componentes del expediente del cliente
+    │   │   ├── login/              # Pantalla y formulario de acceso
+    │   │   └── dashboard/          # Encabezado del panel principal
     │   ├── pages/
-    │   ├── hooks/
-    │   ├── services/          # llamadas a la API
-    │   ├── types/
-    │   └── App.tsx
-    ├── public/
+    │   │   ├── login/              # Inicio de sesión
+    │   │   ├── dashboard/          # Panel principal
+    │   │   ├── clientes/           # Lista, alta y expediente
+    │   │   ├── vehiculos/          # Lista, alta y edición
+    │   │   ├── ordenes/            # Lista, alta, detalle, tablero y avance
+    │   │   ├── inventario/         # Catálogo, alta, baja y surtido
+    │   │   ├── configuracion/      # Usuarios y contraseñas
+    │   │   └── sistema/            # 404 y módulos “Próximamente”
+    │   ├── context/                # Sesión y autenticación
+    │   ├── lib/                    # Formato, roles y reglas del taller
+    │   ├── services/               # Llamadas a la API (Axios)
+    │   └── types/                  # Tipos TypeScript
     ├── package.json
-    ├── vite.config.ts
-    └── tailwind.config.js
+    └── vite.config.ts
 ```
 
-- **`docs/`**: requisitos, contexto técnico, diagrama E-R y registro de decisiones.
-- **`documentacion-presentacion/`**: diagramas visuales en HTML que se abren con
-  doble clic, sin servidor, para presentaciones.
-- **`sql/`**: scripts divididos por bloques, en el orden en que deben ejecutarse.
-- **`backend/`**: API REST con FastAPI, modelos SQLAlchemy y módulos de autenticación, clientes, vehículos y órdenes.
-- **`frontend/`**: aplicación React con TypeScript, empaquetada con Vite (fase futura).
+## Solución de problemas
 
-> Hoy existen `AGENTS.md`, `README.md`, `docs/` completo, los scripts `sql/01` a `sql/07` y el backend inicial. La carpeta `frontend/` se creará al iniciar esa fase.
+| Síntoma | Causa probable | Solución |
+|---|---|---|
+| `Access denied for user ...` | Credenciales incorrectas en `.env` | Revisa `DB_USER` y `DB_PASSWORD`; prueba el mismo usuario con `mysql -u ... -p` |
+| La API arranca pero `/salud` falla | MySQL detenido o base inexistente | Inicia el servicio de MySQL y confirma que `autopulse_elite` existe |
+| La pantalla queda en `Verificando sesión…` | Backend caído o token vencido | Levanta `uvicorn`, cierra sesión y vuelve a entrar |
+| `502` o `ECONNREFUSED` en el navegador | Vite no encuentra la API en el puerto 8000 | Arranca el backend antes que el frontend |
+| Acentos rotos al importar SQL | Cliente MySQL con otra codificación | Usa `--default-character-set=utf8mb4` |
+| `npm run build` falla por variables sin usar | `noUnusedLocals` está activo | Elimina imports o variables que no se usen |
+| Contraseña olvidada | No hay recuperación por correo | Un Administrador la restablece desde Configuración |
 
-## Decisiones técnicas clave
+## Documentación
 
-1. **Aplicación web, no de escritorio.** El administrador consulta desde su celular, el mecánico usa una tablet en el taller y recepción trabaja desde computadora, sin instalar nada. La PWA permite "instalar" el sitio en el celular del administrador.
-2. **MySQL en lugar de PostgreSQL.** Es más ligero para desarrollo local, tiene soporte en proveedores gratuitos (Aiven, PlanetScale) y es suficiente para el volumen previsto: 5 usuarios, unos 8 ingresos por semana y hasta 10 autos simultáneos.
-3. **Python + FastAPI en lugar de Node.js o Java.** Permite prototipar rápido la lógica de negocio (IVA, autorizaciones, márgenes con tipo de cambio) y genera documentación OpenAPI automática.
-4. **React + TypeScript en lugar de Vue o Angular.** Mayor ecosistema de componentes y mejor soporte para PWA; TypeScript reduce errores al conectar con la API.
-5. **Fotos fuera de la base de datos.** Se guardan en almacenamiento de objetos y la BD solo conserva la ruta y metadatos: 30 fotos de 10 MB por auto y 8 autos por semana equivaldrían a cerca de 2.4 GB semanales dentro de MySQL.
-6. **Borrado lógico.** Las llaves foráneas usan `ON DELETE RESTRICT`: nada se elimina físicamente, lo que preserva la trazabilidad y la auditoría exigida por el negocio.
-7. **CFDI 4.0 sin timbrado en esta fase.** El sistema genera el paquete de datos completo para timbrar (régimen fiscal, uso de CFDI, código postal y demás obligatorios); el contador o el taller lo envía a un PAC. La integración directa con un PAC queda como fase futura.
+- [`docs/reporte-practica.md`](docs/reporte-practica.md) — reporte consolidado: objetivos,
+  requisitos, stack, desarrollo de la base, roles, triggers, transacciones y guion de capturas.
+- [`docs/reporte-final.html`](docs/reporte-final.html) — el mismo reporte con diseño de
+  impresión: portada, índice paginado, texto justificado y tablas contenidas. Se abre con doble
+  clic en el navegador.
+- [`docs/reporte-final.pdf`](docs/reporte-final.pdf) — versión imprimible en A4, con numeración
+  de páginas, lista para entregar.
+- [`docs/reporte-practica.pdf`](docs/reporte-practica.pdf) — la misma versión lista para entregar,
+  con portada, índice y numeración de páginas.
+- [`scripts/generar-pdf.py`](scripts/generar-pdf.py) — regenera el PDF desde el Markdown
+  (`python scripts/generar-pdf.py`).
+- [`docs/diagrama-er-interactivo.html`](docs/diagrama-er-interactivo.html) — diagrama E-R
+  navegable con las 21 tablas, panel de atributos y descarga en PNG (abrir en el navegador).
+- [`docs/requisitos.md`](docs/requisitos.md) — requisitos originales del taller.
+- [`docs/requisitos-actualizados.md`](docs/requisitos-actualizados.md) — requisitos ajustados
+  durante el análisis.
+- [`docs/erd.md`](docs/erd.md) — diagrama entidad-relación en Mermaid (21 tablas).
+- [`docs/decisiones-tecnicas.md`](docs/decisiones-tecnicas.md) — decisiones de arquitectura (ADR).
+- [`docs/indice.md`](docs/indice.md) — índice de toda la documentación y de los scripts SQL.
+- [`docs/contexto-tecnico.md`](docs/contexto-tecnico.md) — contexto y restricciones del proyecto.
+- [`documentacion-tecnica/reporte-practica.md`](documentacion-tecnica/reporte-practica.md) —
+  versión extendida del reporte.
+- [`documentacion-tecnica/guia-capturas.md`](documentacion-tecnica/guia-capturas.md) — paso a
+  paso detallado de las 47 capturas que demuestran el sistema.
 
-## Alcance del primer entregable
+Para obtener el PDF desde el HTML: abre `docs/reporte-final.html`, pulsa `Ctrl + P`, elige
+**Guardar como PDF**, tamaño **A4**, márgenes **Predeterminados** y activa **Gráficos de fondo**.
 
-El criterio de aceptación del primer día es cubrir el ciclo básico: registrar cliente (CLI-01) y auto (VEH-01), abrir una orden y moverla por sus etapas (ORD-01 a ORD-05), descontar piezas (INV-02), calcular el total con IVA (PAG-01) y generar la factura con los datos CFDI 4.0 listos para timbrar (FAC-01 a FAC-03). El timbrado con PAC queda fuera de este alcance, salvo que se decida integrarlo desde el inicio. Los reportes (REP-06) pueden entregarse hasta un mes después del arranque.
+## Equipo y licencia
 
-## Estado del proyecto
-
-**Fase actual: backend inicial completado (autenticación, clientes, vehículos y órdenes). Siguiente: frontend con React.**
-
-- [x] Levantamiento de requisitos (originales y actualizados).
-- [x] Contexto técnico y definición del stack.
-- [x] Diseño de la base de datos por bloques (21 tablas).
-- [x] Diagrama E-R en Mermaid ([docs/erd.md](docs/erd.md)).
-- [x] Backend inicial: login JWT, roles, privacidad, clientes, vehículos y órdenes.
-- [x] Inventario: catálogo, descuento por consumo y surtido con bitácora.
-- [x] Administración de usuarios y restablecimiento de contraseña (solo Admin).
-- [x] Frontend operativo: panel, clientes, vehículos, órdenes, inventario y configuración.
-- [ ] Módulos restantes del backend (proveedores, pagos, facturas, autorizaciones, reportes).
-- [ ] Integración directa con PAC para timbrar (fase futura).
-- [ ] Migración de los datos actuales de la libreta y Excel (SEG-16).
-
-## Equipo
-
-- Jonnatan Martinez Aquino — Diseño de base de datos y desarrollo.
-
-## Licencia
+- **Jonnatan Martinez Aquino** — Diseño de base de datos y desarrollo.
 
 Este proyecto se distribuye bajo la licencia **MIT**.

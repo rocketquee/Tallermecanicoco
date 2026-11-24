@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Boton } from '../../components/Boton'
-import { clasesBoton } from '../../components/estilosBoton'
+import { Boton } from '../../components/ui/Boton'
+import { clasesBoton } from '../../components/ui/estilosBoton'
 import {
   EtiquetaCategoria,
   EtiquetaConfidencial,

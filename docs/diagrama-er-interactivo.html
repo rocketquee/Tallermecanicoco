@@ -1,0 +1,3650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoPulse Elite · Diagrama E-R interactivo</title>
+<style>
+  :root {
+    --bg: #070b12;
+    --bg-soft: #0b1220;
+    --panel: #0e1624;
+    --card: #111c2d;
+    --card-hover: #16243a;
+    --border: #1e2f47;
+    --border-soft: #172436;
+    --text: #e8eef8;
+    --muted: #8ea3c0;
+    --accent: #22d3ee;
+    --accent-soft: rgba(34, 211, 238, .12);
+    --violet: #a78bfa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --shadow: 0 24px 60px rgba(0, 0, 0, .55);
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 520px at 12% -10%, rgba(34, 211, 238, .10), transparent 60%),
+      radial-gradient(900px 480px at 95% 0%, rgba(167, 139, 250, .09), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  button { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Encabezado ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8, 13, 22, .86);
+    backdrop-filter: blur(14px);
+    position: relative;
+    z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .logo {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(145deg, #0f2a3a, #0b1a2b);
+    border: 1px solid #1e4a5c;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 24px rgba(34, 211, 238, .12);
+    flex: 0 0 auto;
+  }
+  .logo svg { width: 23px; height: 23px; }
+  .brand h1 {
+    margin: 0;
+    font-size: 16px;
+    letter-spacing: .2px;
+    white-space: nowrap;
+  }
+  .brand h1 span { color: var(--accent); }
+  .brand p {
+    margin: 1px 0 0;
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .stats { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(17, 28, 45, .7);
+    color: var(--muted);
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  /* ---------- Distribución ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    height: calc(100dvh - 69px);
+  }
+
+  /* ---------- Índice lateral ---------- */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: rgba(10, 16, 27, .72);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .sidebar-head { padding: 16px 16px 10px; }
+  .sidebar-head h2 {
+    margin: 0 0 2px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.1px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .sidebar-head p { margin: 0 0 12px; font-size: 11.5px; color: #647a98; }
+  .search {
+    position: relative;
+  }
+  .search svg {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; color: #637a99; pointer-events: none;
+  }
+  .search input {
+    width: 100%;
+    padding: 9px 10px 9px 32px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-size: 12.5px;
+  }
+  .search input::placeholder { color: #5f7694; }
+
+  .index {
+    overflow-y: auto;
+    padding: 4px 10px 18px;
+    scrollbar-width: thin;
+    scrollbar-color: #28405c transparent;
+  }
+  .index::-webkit-scrollbar { width: 7px; }
+  .index::-webkit-scrollbar-thumb { background: #28405c; border-radius: 99px; }
+  .grupo { margin-top: 12px; }
+  .grupo h3 {
+    margin: 0 6px 5px;
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #6e86a5;
+    font-weight: 600;
+  }
+  .tabla-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px;
+    margin: 2px 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: background .14s, border-color .14s, color .14s;
+  }
+  .tabla-btn:hover { background: var(--card); border-color: var(--border); }
+  .tabla-btn.activa { background: var(--accent-soft); border-color: rgba(34, 211, 238, .35); }
+  .tabla-btn .nombre {
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 12px;
+    color: #cfe0f3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tabla-btn.activa .nombre { color: var(--accent); }
+  .tabla-btn .n {
+    margin-left: auto;
+    font-size: 10px;
+    color: #627a99;
+    background: #0d1725;
+    border: 1px solid var(--border-soft);
+    border-radius: 5px;
+    padding: 0 5px;
+    line-height: 17px;
+  }
+  .tabla-btn .pk-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); opacity: .75; flex: 0 0 auto; }
+  .sin-resultados { padding: 18px 8px; color: #617897; font-size: 12px; text-align: center; }
+
+  /* ---------- Zona del diagrama ---------- */
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background:
+      linear-gradient(rgba(30, 47, 71, .13) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 47, 71, .13) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(8, 13, 22, .6);
+    flex-wrap: wrap;
+  }
+  .toolbar .hint {
+    color: #7189a8;
+    font-size: 11.5px;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .toolbar .hint kbd {
+    font-family: inherit;
+    font-size: 10.5px;
+    padding: 1px 5px;
+    background: #111c2d;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    color: #a9bcd4;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 31px;
+    padding: 0 10px;
+    background: #111c2d;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #c6d6e8;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .14s, border-color .14s, transform .1s;
+  }
+  .btn:hover { background: var(--card-hover); border-color: #2b4563; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn svg { width: 14px; height: 14px; }
+  .btn.primary {
+    background: linear-gradient(145deg, #0e7490, #155e75);
+    border-color: #22d3ee;
+    color: #ecfeff;
+  }
+  .btn.primary:hover { background: linear-gradient(145deg, #0891b2, #0e7490); }
+  .zoom-label {
+    min-width: 44px;
+    text-align: center;
+    color: #8ea3c0;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .diagram-scroll {
+    flex: 1;
+    overflow: auto;
+    padding: 22px;
+    scrollbar-width: thin;
+    scrollbar-color: #28405c transparent;
+    position: relative;
+  }
+  .diagram-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+  .diagram-scroll::-webkit-scrollbar-thumb { background: #28405c; border-radius: 99px; border: 2px solid #0a101b; }
+  .diagram-scroll::-webkit-scrollbar-corner { background: transparent; }
+  #diagrama { display: inline-block; min-width: 100%; text-align: center; }
+  #diagrama svg { display: inline-block; height: auto; }
+
+  .estado {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 10px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    background: rgba(7, 11, 18, .55);
+    pointer-events: none;
+  }
+  .estado.oculto { display: none; }
+  .spinner {
+    width: 30px; height: 30px;
+    border: 2px solid #1e2f47;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: girar .8s linear infinite;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+
+  .leyenda {
+    display: flex;
+    gap: 16px;
+    padding: 8px 18px;
+    border-top: 1px solid var(--border-soft);
+    background: rgba(8, 13, 22, .72);
+    color: #7890ae;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .leyenda span { display: inline-flex; align-items: center; gap: 5px; }
+  .leyenda .k {
+    font-family: Consolas, monospace;
+    font-size: 9.5px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid #2a4563;
+    color: #b9cbe0;
+    background: #0d1725;
+  }
+  .leyenda .k.pk { color: var(--amber); border-color: rgba(251, 191, 36, .4); }
+  .leyenda .k.fk { color: var(--violet); border-color: rgba(167, 139, 250, .4); }
+
+  /* Resaltado de tablas en el SVG */
+  #diagrama svg g[data-tabla] { cursor: pointer; }
+  #diagrama svg g[data-tabla] rect,
+  #diagrama svg g[data-tabla] path { transition: stroke .16s, filter .16s; }
+  #diagrama svg g[data-tabla]:hover rect,
+  #diagrama svg g[data-tabla]:hover path { stroke: var(--accent) !important; }
+  #diagrama svg g[data-tabla].hover-tabla rect,
+  #diagrama svg g[data-tabla].hover-tabla path { stroke: var(--accent) !important; }
+  #diagrama svg g[data-tabla].tabla-activa rect,
+  #diagrama svg g[data-tabla].tabla-activa path {
+    stroke: var(--accent) !important;
+    stroke-width: 2.4px !important;
+    filter: drop-shadow(0 0 9px rgba(34, 211, 238, .55));
+  }
+
+  /* ---------- Panel lateral ---------- */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 13, .6);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s;
+    z-index: 40;
+  }
+  .backdrop.abierto { opacity: 1; visibility: visible; }
+  .con-panel { overflow: hidden; }
+
+  .panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(1060px, 100vw);
+    height: 100dvh;
+    background: linear-gradient(180deg, #0e1726, #0a111d 180px);
+    border-left: 1px solid #24405f;
+    box-shadow: var(--shadow);
+    transform: translateX(102%);
+    transition: transform .26s cubic-bezier(.22, .8, .28, 1);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel.abierto { transform: translateX(0); }
+  .panel-head {
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(460px 160px at 100% 0%, rgba(34, 211, 238, .10), transparent 65%),
+      transparent;
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .panel-head .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--accent);
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    margin-bottom: 5px;
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 23px;
+    letter-spacing: -.3px;
+    padding-right: 42px;
+    overflow-wrap: anywhere;
+  }
+  .panel-head .desc { margin: 8px 0 0; color: #9db1cb; font-size: 12.8px; line-height: 1.55; }
+  .panel-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .pill {
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #0c1624;
+    color: #93a9c4;
+  }
+  .pill.cyan { color: var(--accent); border-color: rgba(34, 211, 238, .3); background: rgba(34, 211, 238, .07); }
+  .pill.violet { color: var(--violet); border-color: rgba(167, 139, 250, .3); background: rgba(167, 139, 250, .07); }
+  .pill.amber { color: var(--amber); border-color: rgba(251, 191, 36, .3); background: rgba(251, 191, 36, .07); }
+
+  .cerrar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: #101c2d;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    color: #9db1cb;
+    transition: background .14s, color .14s;
+  }
+  .cerrar:hover { background: #182739; color: var(--text); }
+  .cerrar svg { width: 15px; height: 15px; }
+
+  .panel-body {
+    overflow-y: auto;
+    padding: 18px 22px 40px;
+    scrollbar-width: thin;
+    scrollbar-color: #28405c transparent;
+  }
+  .panel-body::-webkit-scrollbar { width: 8px; }
+  .panel-body::-webkit-scrollbar-thumb { background: #28405c; border-radius: 99px; }
+  .seccion-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.1px;
+    color: #7f97b5;
+    font-weight: 600;
+  }
+  .seccion-titulo .cuenta {
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 0;
+    color: #6b83a1;
+    background: #0c1624;
+    border: 1px solid var(--border-soft);
+    padding: 1px 7px;
+    border-radius: 99px;
+    font-weight: 400;
+  }
+
+  /* Tabla real de atributos */
+  .tabla-scroll {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: auto;
+    max-height: 46vh;
+    scrollbar-width: thin;
+    scrollbar-color: #2a4260 transparent;
+  }
+  .tabla-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+  .tabla-scroll::-webkit-scrollbar-thumb { background: #2a4260; border-radius: 99px; }
+  table.atributos {
+    width: 100%;
+    min-width: 760px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  table.atributos thead th:nth-child(1) { width: 38px; }
+  table.atributos thead th:nth-child(2) { width: 17%; }
+  table.atributos thead th:nth-child(3) { width: 22%; }
+  table.atributos thead th:nth-child(4) { width: 9%; }
+  table.atributos thead th:nth-child(5) { width: 6%; }
+  table.atributos thead th:nth-child(6) { width: 11%; }
+  table.atributos thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #101d2f;
+    color: #9fb6d2;
+    text-align: left;
+    font-size: 9.8px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 9px 10px;
+    border-bottom: 1px solid #2a4563;
+    white-space: nowrap;
+  }
+  table.atributos tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #16243a;
+    vertical-align: top;
+    color: #c7d6e8;
+  }
+  table.atributos tbody tr:nth-child(even) { background: rgba(255, 255, 255, .018); }
+  table.atributos tbody tr:hover { background: rgba(34, 211, 238, .055); }
+  table.atributos tbody tr:last-child td { border-bottom: 0; }
+  table.atributos tbody tr.fila-pk { background: rgba(251, 191, 36, .05); }
+  table.atributos tbody tr.fila-fk { background: rgba(167, 139, 250, .045); }
+  table.atributos tbody tr.fila-pk.fila-fk { background: rgba(251, 191, 36, .06); }
+  .col-num { width: 34px; color: #5f7897 !important; text-align: right; font-family: Consolas, monospace; font-size: 10.5px; }
+  .col-col code, .col-tipo code, .col-def code {
+    font-family: "Cascadia Code", Consolas, monospace;
+    font-size: 11.5px;
+  }
+  .col-col code { color: #e2edfb; font-weight: 600; white-space: normal; overflow-wrap: anywhere; }
+  .col-tipo code { color: #7dd3fc; white-space: normal; overflow-wrap: anywhere; }
+  .col-def code { color: #9fb0c6; font-size: 10.5px; overflow-wrap: anywhere; }
+  .col-null { text-align: center; white-space: nowrap; font-size: 11px; }
+  .col-null .si { color: #93a9c4; }
+  .col-null .no { color: #86efac; }
+  .dash { color: #4d6482; }
+  .col-llave { white-space: nowrap; }
+  .col-desc { color: #93a9c4; font-size: 11.5px; line-height: 1.5; }
+  .fk-link {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 1px 6px;
+    background: rgba(167, 139, 250, .09);
+    border: 1px dashed rgba(167, 139, 250, .45);
+    border-radius: 5px;
+    color: #c4b5fd;
+    font-family: Consolas, monospace;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background .14s, color .14s;
+  }
+  .fk-link:hover { background: rgba(167, 139, 250, .2); color: #ede9fe; }
+  .tag {
+    display: inline-block;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    line-height: 15px;
+    margin-right: 3px;
+  }
+  .tag.pk { color: #fbbf24; background: rgba(251, 191, 36, .13); border: 1px solid rgba(251, 191, 36, .35); }
+  .tag.fk { color: #c4b5fd; background: rgba(167, 139, 250, .13); border: 1px solid rgba(167, 139, 250, .35); }
+  .tag.auto { color: #7dd3fc; background: rgba(34, 211, 238, .1); border: 1px solid rgba(34, 211, 238, .3); }
+
+  /* Relaciones: tabla → cardinalidad → tabla */
+  .rel {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    text-align: left;
+    padding: 11px 14px;
+    margin-bottom: 8px;
+    background: #0e1929;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .14s, border-color .14s, transform .1s;
+  }
+  .rel:hover { background: #142135; border-color: #2a4563; }
+  .rel:active { transform: translateY(1px); }
+  .rel .nodo {
+    flex: 0 1 auto;
+    max-width: 40%;
+    font-family: "Cascadia Code", Consolas, monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #b9cbe0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rel .nodo.actual { color: var(--accent); }
+  .rel .vinculo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+  }
+  .rel .card-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    color: #67e8f9;
+    background: rgba(34, 211, 238, .09);
+    border: 1px solid rgba(34, 211, 238, .3);
+    border-radius: 6px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+  .rel .flecha { color: #67e8f9; font-size: 14px; line-height: 1; }
+  .rel .meta-rel {
+    flex: 1 1 250px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    color: #7c93ae;
+    font-size: 10.5px;
+  }
+  .rel .meta-rel .sentido {
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #7dd3fc;
+    background: rgba(34, 211, 238, .08);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .rel .meta-rel code {
+    font-family: Consolas, monospace;
+    font-size: 10px;
+    color: #8ea3c0;
+  }
+
+  .nota {
+    margin-top: 18px;
+    padding: 11px 13px;
+    border-left: 2px solid rgba(34, 211, 238, .5);
+    background: rgba(34, 211, 238, .055);
+    color: #93a9c4;
+    font-size: 11.5px;
+    border-radius: 0 8px 8px 0;
+  }
+  .nota b { color: #c9e7ee; }
+  .vacio { color: #6b83a1; font-size: 12px; padding: 6px 0 12px; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 20px);
+    background: #0f2534;
+    border: 1px solid #2a6a7d;
+    color: #d9f7fd;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 80;
+  }
+  .toast.visible { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Adaptación a pantallas pequeñas ---------- */
+  @media (max-width: 980px) {
+    body { overflow: auto; }
+    .topbar { flex-wrap: wrap; gap: 10px; }
+    .stats { margin-left: 0; }
+    .layout { grid-template-columns: 1fr; height: auto; }
+    .sidebar { border-right: 0; border-bottom: 1px solid var(--border); max-height: 240px; }
+    .index { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; padding: 0 12px 12px; }
+    .grupo { min-width: 190px; margin-top: 4px; }
+    .workspace { height: 68vh; }
+    .toolbar .hint { width: 100%; order: 9; }
+    .panel { width: 100vw; }
+  }
+  @media (max-width: 560px) {
+    .brand p { display: none; }
+    .stats .chip:nth-child(n+3) { display: none; }
+    .diagram-scroll { padding: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="12" cy="5" rx="7" ry="2.6"></ellipse>
+        <path d="M5 5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V5"></path>
+        <path d="M5 11v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6"></path>
+      </svg>
+    </div>
+    <div>
+      <h1>AutoPulse <span>Elite</span> · Diagrama E-R</h1>
+      <p>Pizarro Performance Garage · MySQL 8 / InnoDB · 21 tablas</p>
+    </div>
+  </div>
+  <div class="stats" aria-label="Resumen del modelo">
+    <span class="chip"><span class="dot"></span><b>21</b> tablas</span>
+    <span class="chip"><b>218</b> columnas</span>
+    <span class="chip"><b>24</b> relaciones</span>
+    <span class="chip"><b>6</b> triggers</span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Índice de tablas">
+    <div class="sidebar-head">
+      <h2>Tablas del modelo</h2>
+      <p>Haz clic para ver atributos y relaciones</p>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+        </svg>
+        <input id="buscar" type="search" placeholder="Buscar tabla o columna…" autocomplete="off" aria-label="Buscar tabla o columna">
+      </div>
+    </div>
+    <nav class="index" id="indice"></nav>
+  </aside>
+
+  <main class="workspace">
+    <div class="toolbar">
+      <span class="hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:0 0 auto">
+          <path d="M9 18h6M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"></path>
+        </svg>
+        Haz clic en una tabla del diagrama o del índice · se abre su ficha completa · <kbd>Esc</kbd> cierra · <kbd>Ajustar</kbd> muestra todo el modelo
+      </span>
+      <button class="btn" id="alejar" type="button" aria-label="Alejar">−</button>
+      <span class="zoom-label" id="zoom-label">100%</span>
+      <button class="btn" id="acercar" type="button" aria-label="Acercar">+</button>
+      <button class="btn" id="ajustar" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+        Ajustar
+      </button>
+      <button class="btn primary" id="descargar" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        Descargar PNG
+      </button>
+    </div>
+
+    <div class="diagram-scroll" id="scroll">
+      <div id="diagrama"></div>
+      <div class="estado" id="estado">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>Generando el diagrama con Mermaid…</div>
+      </div>
+    </div>
+
+    <div class="leyenda">
+      <span><i class="k pk">PK</i> Llave primaria</span>
+      <span><i class="k fk">FK</i> Llave foránea</span>
+      <span>Cardinalidad: <b>1 a N</b> · <b>0..N</b> · <b>0..1</b></span>
+      <span>Motor InnoDB · <code>ON DELETE RESTRICT</code></span>
+    </div>
+  </main>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-titulo" aria-hidden="true">
+  <div class="panel-head">
+    <div class="eyebrow" id="panel-grupo">Catálogo</div>
+    <h2 id="panel-titulo">tabla</h2>
+    <p class="desc" id="panel-desc"></p>
+    <div class="panel-meta" id="panel-meta"></div>
+    <button class="cerrar" id="cerrar" type="button" aria-label="Cerrar panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+    <h3 class="seccion-titulo">Atributos de la tabla <span class="cuenta" id="cuenta-columnas">0</span></h3>
+    <div id="lista-atributos"></div>
+    <h3 class="seccion-titulo" style="margin-top:24px">Relaciones <span class="cuenta" id="cuenta-relaciones">0</span></h3>
+    <div id="lista-relaciones"></div>
+    <div class="nota" id="panel-nota"></div>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/mermaid.min.js"></script>
+<script>
+  /* Respaldo: si la copia local no está disponible, se intenta el CDN. */
+  if (typeof mermaid === "undefined") {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"><\/script>');
+  }
+</script>
+<script>
+(function () {
+  "use strict";
+
+  const DB = {
+  "generated": "2026-11-18",
+  "tables": [
+    {
+      "name": "clientes",
+      "comment": "Clientes del taller, incluidos VIP y confidenciales (CLI-01 a CLI-06)",
+      "desc": "Personas y empresas dueñas de los autos. Guarda contacto, categoría VIP, bandera de confidencialidad y los datos fiscales que exige el CFDI 4.0.",
+      "domain": "Catálogos",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del cliente (CLI-01)",
+          "pk": true
+        },
+        {
+          "name": "nombre",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre del dueño del vehículo; búsqueda indexada <3s (CLI-01, CLI-05)"
+        },
+        {
+          "name": "telefono1",
+          "type": "VARCHAR(20)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Teléfono principal de contacto (CLI-01)"
+        },
+        {
+          "name": "telefono2",
+          "type": "VARCHAR(20)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Teléfono secundario de contacto (CLI-01)"
+        },
+        {
+          "name": "correo",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Correo electrónico de contacto (CLI-01)"
+        },
+        {
+          "name": "direccion",
+          "type": "VARCHAR(255)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Dirección del cliente (CLI-01)"
+        },
+        {
+          "name": "nombre_asistente",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre del asistente o chofer del cliente (CLI-01)"
+        },
+        {
+          "name": "categoria",
+          "type": "ENUM('Regular','VIP')",
+          "null": false,
+          "auto": false,
+          "def": "Regular",
+          "comment": "Categoría del cliente; VIP recibe prioridad en la fila de órdenes (CLI-02, CLI-03, ORD-13)"
+        },
+        {
+          "name": "descuento_mano_obra",
+          "type": "DECIMAL(5,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "Porcentaje de descuento aplicable solo a mano de obra; VIP = 10.00 (CLI-03, PAG-02)"
+        },
+        {
+          "name": "permite_pagos_parciales",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Autoriza pagos en partes solo a clientes de confianza (PAG-04)"
+        },
+        {
+          "name": "confidencial",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Cliente confidencial: el mecánico solo ve placas y trabajo asignado (SEG-17, SEG-18, SEG-19)"
+        },
+        {
+          "name": "notas",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Notas internas de atención al cliente"
+        },
+        {
+          "name": "rfc",
+          "type": "VARCHAR(20)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "RFC del cliente para CFDI 4.0 (FAC-05)"
+        },
+        {
+          "name": "razon_social",
+          "type": "VARCHAR(200)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Razón social o nombre fiscal para CFDI 4.0 (FAC-05)"
+        },
+        {
+          "name": "regimen_fiscal",
+          "type": "VARCHAR(100)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Régimen fiscal del cliente requerido por CFDI 4.0 (FAC-05)"
+        },
+        {
+          "name": "codigo_postal",
+          "type": "VARCHAR(10)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Código postal del domicilio fiscal requerido por CFDI 4.0 (FAC-05)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "nombre",
+        "telefono1",
+        "categoria",
+        "confidencial",
+        "rfc"
+      ]
+    },
+    {
+      "name": "proveedores",
+      "comment": "Proveedores internacionales de refacciones (PRV-01, PRV-02, PRV-09)",
+      "desc": "Proveedores internacionales de refacciones. El país, el tiempo de entrega y la moneda permiten cotizar compras en EUR o GBP y convertirlas a pesos.",
+      "domain": "Catálogos",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del proveedor (PRV-01)",
+          "pk": true
+        },
+        {
+          "name": "nombre",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Razón social o nombre del proveedor internacional (PRV-01)"
+        },
+        {
+          "name": "pais",
+          "type": "VARCHAR(60)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "País del proveedor: Italia, Alemania, Inglaterra, etc. (PRV-01)"
+        },
+        {
+          "name": "contacto",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre de la persona de contacto (PRV-01)"
+        },
+        {
+          "name": "telefono",
+          "type": "VARCHAR(30)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Teléfono de contacto del proveedor (PRV-01)"
+        },
+        {
+          "name": "correo",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Correo electrónico de contacto del proveedor (PRV-01)"
+        },
+        {
+          "name": "tiempo_entrega_dias",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Tiempo de entrega típico en días (de 14 a 56, equivalente a 2-8 semanas) (PRV-02)"
+        },
+        {
+          "name": "moneda",
+          "type": "ENUM('EUR','GBP','MXN','USD')",
+          "null": false,
+          "auto": false,
+          "def": "MXN",
+          "comment": "Moneda en la que cotiza el proveedor (PRV-09)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "nombre",
+        "pais",
+        "tiempo_entrega_dias",
+        "moneda"
+      ]
+    },
+    {
+      "name": "mecanicos",
+      "comment": "Catálogo de mecánicos del taller (ORD-09, REP-03, SEG-01)",
+      "desc": "Catálogo del personal técnico. Se usa para asignar responsables y participantes a las órdenes y para calcular la carga de trabajo por mecánico.",
+      "domain": "Catálogos",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del mecánico (ORD-09)",
+          "pk": true
+        },
+        {
+          "name": "nombre",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre del mecánico; se usa para asignarlo a órdenes y calcular bonos (ORD-09, REP-03)"
+        },
+        {
+          "name": "telefono",
+          "type": "VARCHAR(20)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Teléfono de contacto del mecánico (SEG-01)"
+        },
+        {
+          "name": "correo",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Correo electrónico del mecánico (SEG-01)"
+        },
+        {
+          "name": "especialidad",
+          "type": "VARCHAR(100)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Especialidad o área técnica del mecánico (REP-03)"
+        },
+        {
+          "name": "notas",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Notas internas sobre el mecánico"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "nombre",
+        "especialidad"
+      ]
+    },
+    {
+      "name": "servicios",
+      "comment": "Catálogo de servicios y mano de obra (ORD-10)",
+      "desc": "Catálogo de mano de obra. El precio base es el punto de partida del descuento VIP del 10 %, que solo aplica a este concepto.",
+      "domain": "Catálogos",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del servicio de mano de obra (ORD-10)",
+          "pk": true
+        },
+        {
+          "name": "nombre",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre del servicio de mano de obra (ORD-10)"
+        },
+        {
+          "name": "descripcion",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Descripción del servicio realizado (ORD-10)"
+        },
+        {
+          "name": "precio_mano_obra",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "Precio base de mano de obra antes de descuento VIP e IVA (ORD-10, PAG-01, PAG-02)"
+        },
+        {
+          "name": "duracion_estimada_horas",
+          "type": "DECIMAL(4,1)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Duración estimada del servicio en horas, para planear la carga de trabajo (REP-03)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "nombre",
+        "precio_mano_obra"
+      ]
+    },
+    {
+      "name": "vehiculos",
+      "comment": "Vehículos registrados de clientes (VEH-01 a VEH-08)",
+      "desc": "Autos registrados, siempre ligados a un dueño. Placas y VIN están indexados para localizar una unidad en menos de tres segundos.",
+      "domain": "Vehículos",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del vehículo (VEH-01)",
+          "pk": true
+        },
+        {
+          "name": "cliente_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Dueño del vehículo; FK a clientes.id (VEH-02)",
+          "fk": "clientes.id"
+        },
+        {
+          "name": "placas",
+          "type": "VARCHAR(20)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Placas del vehículo; índice para búsqueda en menos de 3 segundos (VEH-01, VEH-06)"
+        },
+        {
+          "name": "vin",
+          "type": "VARCHAR(50)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Número de serie / VIN del vehículo (VEH-01)"
+        },
+        {
+          "name": "marca",
+          "type": "VARCHAR(50)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Marca del vehículo (VEH-01)"
+        },
+        {
+          "name": "modelo",
+          "type": "VARCHAR(50)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Modelo del vehículo (VEH-01)"
+        },
+        {
+          "name": "anio",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Año modelo del vehículo (VEH-01)"
+        },
+        {
+          "name": "color",
+          "type": "VARCHAR(30)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Color del vehículo (VEH-01)"
+        },
+        {
+          "name": "kilometraje_entrada",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Kilometraje registrado al ingreso al taller (VEH-01)"
+        },
+        {
+          "name": "valor_aproximado",
+          "type": "DECIMAL(12,2)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Valor aproximado del auto para calcular el valor en custodia (VEH-07)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "cliente_id",
+        "placas",
+        "marca",
+        "modelo",
+        "valor_aproximado"
+      ]
+    },
+    {
+      "name": "polizas_seguro",
+      "comment": "Pólizas de seguro de los vehículos (VEH-04, VEH-05)",
+      "desc": "Pólizas de seguro de cada vehículo. Un auto acumula pólizas a lo largo del tiempo; la vigencia alimenta la alerta de vencimiento a 30 días.",
+      "domain": "Vehículos",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la póliza (VEH-04)",
+          "pk": true
+        },
+        {
+          "name": "vehiculo_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Vehículo asegurado; FK a vehiculos.id (VEH-04)",
+          "fk": "vehiculos.id"
+        },
+        {
+          "name": "aseguradora",
+          "type": "VARCHAR(100)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre de la aseguradora (VEH-04)"
+        },
+        {
+          "name": "numero_poliza",
+          "type": "VARCHAR(50)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Número de póliza de seguro (VEH-04)"
+        },
+        {
+          "name": "vigencia_inicio",
+          "type": "DATE",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Fecha de inicio de vigencia de la póliza (VEH-04)"
+        },
+        {
+          "name": "vigencia_fin",
+          "type": "DATE",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Fecha de fin de vigencia; alerta 30 días antes (VEH-04, VEH-05)"
+        },
+        {
+          "name": "cobertura",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Detalle de la cobertura contratada (VEH-04)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "vehiculo_id",
+        "aseguradora",
+        "vigencia_fin"
+      ]
+    },
+    {
+      "name": "refacciones",
+      "comment": "Catálogo de refacciones y consumibles con existencias (INV-01 a INV-05)",
+      "desc": "Catálogo de piezas y consumibles con existencias. Distingue las piezas especiales por marca, que se compran contra una orden y no se almacenan.",
+      "domain": "Inventario y compras",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la refacción o consumible (INV-01)",
+          "pk": true
+        },
+        {
+          "name": "nombre",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre o descripción de la pieza de tornillería o consumible (INV-01)"
+        },
+        {
+          "name": "marca",
+          "type": "VARCHAR(50)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Marca de la pieza, usada para distinguir piezas especiales (INV-04)"
+        },
+        {
+          "name": "es_especial",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Pieza especial por marca: se compra ligada a una orden, sin existencias en inventario (INV-04)"
+        },
+        {
+          "name": "stock_actual",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Existencias actuales en inventario; índice de alerta (INV-01, INV-03)"
+        },
+        {
+          "name": "stock_minimo",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": "2",
+          "comment": "Umbral mínimo: alertar con 2 o menos unidades (INV-03)"
+        },
+        {
+          "name": "precio_costo",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Costo de adquisición de la refacción (INV-01, SEG-02)"
+        },
+        {
+          "name": "precio_venta",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Precio de venta al cliente (INV-01, SEG-02)"
+        },
+        {
+          "name": "proveedor_id",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Proveedor habitual de la pieza; FK a proveedores.id (PRV-01)",
+          "fk": "proveedores.id"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación; también refleja ajustes de inventario (INV-05, SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "proveedor_id",
+        "nombre",
+        "stock_actual",
+        "stock_minimo"
+      ]
+    },
+    {
+      "name": "compras",
+      "comment": "Órdenes de compra a proveedores internacionales (PRV-03 a PRV-09)",
+      "desc": "Órdenes de compra a proveedores. Conserva la moneda original, el tipo de cambio del día y el total en pesos, además de quién solicitó y aprobó.",
+      "domain": "Inventario y compras",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la orden de compra (PRV-03)",
+          "pk": true
+        },
+        {
+          "name": "proveedor_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Proveedor al que se le compra; FK a proveedores.id (PRV-01, PRV-03)",
+          "fk": "proveedores.id"
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Orden de servicio que motivó la compra; FK pendiente a ordenes_servicio.id (PRV-05)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "fecha_pedido",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora en que se registra el pedido (PRV-03)"
+        },
+        {
+          "name": "fecha_estimada_llegada",
+          "type": "DATE",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Fecha estimada de llegada para la lista de pedidos pendientes (PRV-03, PRV-04)"
+        },
+        {
+          "name": "estado",
+          "type": "ENUM('Borrador','Aprobada','Enviada','Recibida','Cancelada')",
+          "null": false,
+          "auto": false,
+          "def": "Borrador",
+          "comment": "Estado del pedido; no se envía sin aprobación del admin (PRV-03, PRV-07)"
+        },
+        {
+          "name": "moneda_original",
+          "type": "ENUM('EUR','GBP','MXN','USD')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Moneda original de la compra (PRV-09)"
+        },
+        {
+          "name": "tipo_cambio",
+          "type": "DECIMAL(10,4)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Tipo de cambio del día de la compra para calcular el equivalente en MXN (PRV-09)"
+        },
+        {
+          "name": "total_moneda_original",
+          "type": "DECIMAL(12,2)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Total de la compra en su moneda original (PRV-09)"
+        },
+        {
+          "name": "total_mxn",
+          "type": "DECIMAL(12,2)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Equivalente en pesos mexicanos al tipo de cambio aplicado (PRV-09, PAG-07)"
+        },
+        {
+          "name": "solicitado_por",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Quién solicitó el pedido; evita piezas sin responsable (PRV-05)"
+        },
+        {
+          "name": "aprobado_por",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Usuario administrador que aprobó la orden de compra (PRV-07, AUT-03)"
+        },
+        {
+          "name": "fecha_aprobacion",
+          "type": "DATETIME",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Fecha y hora de la aprobación del administrador (PRV-07, SEG-06)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "proveedor_id",
+        "orden_id",
+        "estado",
+        "total_mxn"
+      ]
+    },
+    {
+      "name": "detalle_compra",
+      "comment": "Detalle de piezas por orden de compra (tabla puente compras-refacciones)",
+      "desc": "Tabla puente entre una compra y las refacciones pedidas. Congela el precio unitario en la moneda original para no perder el costo histórico.",
+      "domain": "Inventario y compras",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la línea de compra",
+          "pk": true
+        },
+        {
+          "name": "compra_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden de compra a la que pertenece la línea; FK a compras.id (PRV-03)",
+          "fk": "compras.id"
+        },
+        {
+          "name": "refaccion_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Refacción o pieza solicitada; FK a refacciones.id (INV-01, INV-04)",
+          "fk": "refacciones.id"
+        },
+        {
+          "name": "cantidad",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Cantidad de piezas pedidas en esta línea (PRV-03)"
+        },
+        {
+          "name": "precio_unitario_moneda",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Precio unitario en la moneda original de la compra (PRV-09)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "compra_id",
+        "refaccion_id",
+        "cantidad"
+      ]
+    },
+    {
+      "name": "movimientos_inventario",
+      "comment": "Trazabilidad de entradas, salidas y ajustes de inventario (INV-02, INV-05)",
+      "desc": "Libro de entradas, salidas y ajustes de inventario. Es la trazabilidad de cada pieza que entra o sale del almacén.",
+      "domain": "Inventario y compras",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del movimiento de inventario (INV-02, INV-05)",
+          "pk": true
+        },
+        {
+          "name": "refaccion_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Refacción afectada; FK a refacciones.id (INV-02)",
+          "fk": "refacciones.id"
+        },
+        {
+          "name": "tipo",
+          "type": "ENUM('Entrada','Salida','Ajuste')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Tipo de movimiento: entrada por compra, salida por uso en orden o ajuste manual (INV-02, INV-05)"
+        },
+        {
+          "name": "cantidad",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Unidades del movimiento (siempre positiva; el tipo define el sentido) (INV-02, INV-05)"
+        },
+        {
+          "name": "motivo",
+          "type": "VARCHAR(255)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Motivo obligatorio en ajustes manuales (INV-05)"
+        },
+        {
+          "name": "usuario",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Usuario que registró el movimiento, para la bitácora (INV-05, SEG-06)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora del movimiento (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "refaccion_id",
+        "tipo",
+        "cantidad"
+      ]
+    },
+    {
+      "name": "ordenes_servicio",
+      "comment": "Órdenes de servicio con sus cuatro etapas y totales (ORD-01 a ORD-13)",
+      "desc": "Núcleo transaccional del taller. Relaciona cliente, vehículo y mecánico responsable, y guarda la etapa, la falla reportada, el diagnóstico y los totales.",
+      "domain": "Órdenes de servicio",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la orden de servicio (ORD-01)",
+          "pk": true
+        },
+        {
+          "name": "cliente_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Dueño del vehículo; FK a clientes.id (ORD-01, CLI-06)",
+          "fk": "clientes.id"
+        },
+        {
+          "name": "vehiculo_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Vehículo que ingresa al taller; FK a vehiculos.id (ORD-01, VEH-02)",
+          "fk": "vehiculos.id"
+        },
+        {
+          "name": "mecanico_id",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Mecánico principal o responsable de la orden; FK a mecanicos.id. Los demás participantes viven en orden_mecanicos (ORD-09)",
+          "fk": "mecanicos.id"
+        },
+        {
+          "name": "estado",
+          "type": "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')",
+          "null": false,
+          "auto": false,
+          "def": "Recibido",
+          "comment": "Etapa de la orden: recibido, diagnóstico, reparación, listo, entregado o cancelado (ORD-02, ORD-04, ORD-05, ORD-11)"
+        },
+        {
+          "name": "falla_reportada",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Falla o motivo de ingreso reportado por el cliente (ORD-01)"
+        },
+        {
+          "name": "diagnostico",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Diagnóstico y notas del mecánico; separado de la falla reportada por el cliente (ORD-04, ORD-10)"
+        },
+        {
+          "name": "total_piezas",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "Suma de refacciones usadas en la orden (PAG-01)"
+        },
+        {
+          "name": "total_mano_obra",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "Suma de mano de obra ya con descuento VIP aplicado (PAG-01, PAG-02)"
+        },
+        {
+          "name": "subtotal",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "Piezas más mano de obra, antes de IVA (PAG-01)"
+        },
+        {
+          "name": "iva",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "IVA del 16% sobre el subtotal (PAG-01)"
+        },
+        {
+          "name": "total",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": "0.00",
+          "comment": "Total a cobrar; base para el umbral de autorización de $250,000 MXN (PAG-01, AUT-01)"
+        },
+        {
+          "name": "requiere_autorizacion",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Indica que la orden supera el umbral y requiere autorización vigente del admin (AUT-01, AUT-02, AUT-07)"
+        },
+        {
+          "name": "motivo_cancelacion",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Motivo obligatorio al cancelar la orden, con registro del usuario (ORD-11)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de apertura de la orden (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora del último cambio; las etapas no cambian solas (ORD-06, SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado; nada se borra físicamente (ORD-11, SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "cliente_id",
+        "vehiculo_id",
+        "mecanico_id",
+        "estado",
+        "total"
+      ]
+    },
+    {
+      "name": "detalle_orden",
+      "comment": "Detalle de piezas y mano de obra por orden (ORD-10, INV-02)",
+      "desc": "Piezas y mano de obra cobradas en una orden. Cada línea es exactamente una cosa: un servicio o una refacción, nunca ambas.",
+      "domain": "Órdenes de servicio",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la línea de la orden (ORD-10)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden de servicio a la que pertenece la línea; FK a ordenes_servicio.id (ORD-10)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "servicio_id",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Servicio o mano de obra aplicada; FK a servicios.id; excluyente con refaccion_id (ORD-10)",
+          "fk": "servicios.id"
+        },
+        {
+          "name": "refaccion_id",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Refacción o consumible usado; FK a refacciones.id; excluyente con servicio_id (ORD-10, INV-02)",
+          "fk": "refacciones.id"
+        },
+        {
+          "name": "cantidad",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Cantidad de servicios o piezas de la línea (ORD-10)"
+        },
+        {
+          "name": "precio_unitario",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Precio unitario al momento de la venta, para conservar historial (ORD-10, PAG-01)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del registro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "servicio_id",
+        "refaccion_id",
+        "precio_unitario"
+      ]
+    },
+    {
+      "name": "fotos_vehiculo",
+      "comment": "Fotos del estado del vehículo por orden, almacenadas fuera de la BD (VEH-03, VEH-08)",
+      "desc": "Evidencia fotográfica del estado del auto en ingreso, proceso y entrega. La base solo guarda la ruta; el archivo vive en un servidor aparte.",
+      "domain": "Órdenes de servicio",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la foto (VEH-03)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden a la que pertenece la foto; FK a ordenes_servicio.id (VEH-03)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "url_foto",
+          "type": "VARCHAR(500)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Ruta o URL del archivo; la imagen no se guarda en la BD (VEH-03, VEH-08)"
+        },
+        {
+          "name": "etapa",
+          "type": "ENUM('Ingreso','Proceso','Entrega')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Clasificación de la foto: ingreso, proceso o entrega (VEH-03)"
+        },
+        {
+          "name": "firma_conformidad",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Indica si la foto de entrega quedó firmada por el cliente (VEH-03)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora automáticas de la toma o carga de la foto (VEH-03, SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "etapa",
+        "firma_conformidad"
+      ]
+    },
+    {
+      "name": "pagos",
+      "comment": "Anticipos, parcialidades y liquidaciones por orden (PAG-03 a PAG-05, PAG-07)",
+      "desc": "Anticipos, parcialidades y liquidaciones de una orden. Todos los montos se registran en pesos mexicanos, sin importar la moneda de compra.",
+      "domain": "Finanzas",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del pago (PAG-03)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden de servicio que se está pagando; FK a ordenes_servicio.id (PAG-03, PAG-05)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "tipo",
+          "type": "ENUM('Anticipo','Parcialidad','Liquidacion')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Naturaleza del pago: anticipo del 50%, parcialidad o liquidación final (PAG-03, PAG-04)"
+        },
+        {
+          "name": "monto",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Monto entregado en pesos mexicanos; siempre se cobra en MXN (PAG-03, PAG-07)"
+        },
+        {
+          "name": "metodo_pago",
+          "type": "ENUM('Efectivo','Transferencia','Tarjeta')",
+          "null": false,
+          "auto": false,
+          "def": "Transferencia",
+          "comment": "Forma de pago utilizada por el cliente (PAG-03)"
+        },
+        {
+          "name": "referencia",
+          "type": "VARCHAR(100)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Referencia o folio de la operación, típicamente número de transferencia (PAG-03)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora en que se registró el pago; base del historial del cliente (PAG-05, CLI-06, SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "tipo",
+        "monto"
+      ]
+    },
+    {
+      "name": "facturas",
+      "comment": "Facturas CFDI 4.0 listas para timbrar por orden (FAC-01 a FAC-05)",
+      "desc": "Documentos fiscales de una orden, listos para timbrar como CFDI 4.0. Número de factura y UUID son únicos para evitar duplicados fiscales.",
+      "domain": "Finanzas",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la factura (FAC-01)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden que se factura; FK a ordenes_servicio.id (FAC-01, FAC-03)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "numero_factura",
+          "type": "VARCHAR(50)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Folio fiscal de la factura; se llena al timbrar con el PAC (FAC-03, FAC-05)"
+        },
+        {
+          "name": "subtotal",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Subtotal de la factura: piezas más mano de obra (FAC-03, PAG-01)"
+        },
+        {
+          "name": "iva",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "IVA del 16% trasladado en la factura (FAC-03, PAG-01)"
+        },
+        {
+          "name": "total",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Total facturado al cliente (FAC-03, PAG-01)"
+        },
+        {
+          "name": "estado",
+          "type": "ENUM('Borrador','Timbrada','Cancelada')",
+          "null": false,
+          "auto": false,
+          "def": "Borrador",
+          "comment": "Estado de la factura; una emitida no se edita y su cancelación requiere motivo (FAC-02, FAC-04)"
+        },
+        {
+          "name": "uuid_cfdi",
+          "type": "VARCHAR(100)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "UUID del CFDI 4.0 devuelto por el PAC al timbrar (FAC-05, FAC-06)"
+        },
+        {
+          "name": "uso_cfdi",
+          "type": "VARCHAR(10)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Uso del CFDI declarado por el cliente, catálogo SAT (FAC-05)"
+        },
+        {
+          "name": "forma_pago",
+          "type": "VARCHAR(10)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Forma de pago SAT, por ejemplo 01 efectivo o 03 transferencia (FAC-05)"
+        },
+        {
+          "name": "metodo_pago",
+          "type": "VARCHAR(10)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Método de pago SAT: PUE o PPD (FAC-05)"
+        },
+        {
+          "name": "motivo_cancelacion",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Motivo obligatorio al cancelar una factura emitida (FAC-04)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de emisión de la factura (FAC-03, SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado; una factura no se borra (FAC-04, SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "numero_factura",
+        "total",
+        "estado"
+      ]
+    },
+    {
+      "name": "autorizaciones",
+      "comment": "Autorizaciones del administrador por monto y por saldo pendiente (AUT-01 a AUT-08)",
+      "desc": "Aprobaciones del administrador por monto alto, entrega con saldo pendiente o reautorización cuando el total crece más allá de la tolerancia.",
+      "domain": "Finanzas",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la autorización (AUT-05)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden sujeta a autorización; FK a ordenes_servicio.id (AUT-01, AUT-04)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "tipo",
+          "type": "ENUM('Monto_Alto','Saldo_Pendiente','Reautorizacion')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Motivo de la autorización: monto mayor a $250,000, entrega con saldo o reautorización por aumento (AUT-01, AUT-04, AUT-07)"
+        },
+        {
+          "name": "monto_orden",
+          "type": "DECIMAL(12,2)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Total de la orden al momento de solicitar la autorización, para dejar constancia del monto (AUT-05)"
+        },
+        {
+          "name": "aprobado",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "0",
+          "comment": "Resultado: 0 pendiente o rechazada, 1 autorizada; solo el administrador puede autorizar (AUT-03, AUT-06)"
+        },
+        {
+          "name": "aprobado_por",
+          "type": "VARCHAR(150)",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Usuario administrador que resolvió la autorización (AUT-03, AUT-05)"
+        },
+        {
+          "name": "fecha_aprobacion",
+          "type": "DATETIME",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Fecha y hora de la resolución, con usuario y monto (AUT-05)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la solicitud de autorización (AUT-05, SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado; las autorizaciones no se borran (SEG-06, SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "tipo",
+        "aprobado"
+      ]
+    },
+    {
+      "name": "usuarios",
+      "comment": "Usuarios del sistema con roles Administrador, Recepcion y Mecanico (SEG-01 a SEG-04)",
+      "desc": "Cuentas de acceso al sistema. El rol define los permisos y el vínculo opcional a un mecánico permite filtrar sus órdenes asignadas.",
+      "domain": "Seguridad y auditoría",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del usuario del sistema (SEG-01)",
+          "pk": true
+        },
+        {
+          "name": "nombre",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Nombre completo del usuario: administrador, recepción o mecánico (SEG-01)"
+        },
+        {
+          "name": "correo",
+          "type": "VARCHAR(150)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Correo de acceso; identificador único de autenticación (SEG-01)"
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR(255)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Contraseña cifrada con hash; nunca en texto plano (SEG-01, SEG-15)"
+        },
+        {
+          "name": "rol",
+          "type": "ENUM('Administrador','Recepcion','Mecanico')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Rol que define permisos: acceso total, sin finanzas o solo placas y trabajo (SEG-01, SEG-02, SEG-03, SEG-04, SEG-18)"
+        },
+        {
+          "name": "mecanico_id",
+          "type": "INT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Vínculo opcional al catálogo de mecánicos cuando el usuario lo es; FK a mecanicos.id (SEG-01, ORD-09, REP-03)",
+          "fk": "mecanicos.id"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del usuario (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 dado de baja; el usuario no se elimina (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "mecanico_id",
+        "correo",
+        "rol"
+      ]
+    },
+    {
+      "name": "bitacora",
+      "comment": "Bitácora de auditoría inmutable de altas, cambios, cancelaciones y autorizaciones (SEG-06)",
+      "desc": "Registro inmutable de altas, cambios, cancelaciones, autorizaciones y consultas sensibles. No tiene updated_at ni activo: un asiento no se corrige, se agrega otro.",
+      "domain": "Seguridad y auditoría",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del asiento de bitácora (SEG-06)",
+          "pk": true
+        },
+        {
+          "name": "usuario_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Usuario que ejecutó la acción; FK a usuarios.id (SEG-06, ORD-08)",
+          "fk": "usuarios.id"
+        },
+        {
+          "name": "tabla_afectada",
+          "type": "VARCHAR(100)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Tabla sobre la que se actuó, por ejemplo ordenes_servicio o facturas (SEG-06)"
+        },
+        {
+          "name": "registro_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Identificador del registro afectado dentro de esa tabla (SEG-06)"
+        },
+        {
+          "name": "accion",
+          "type": "ENUM('Creacion','Actualizacion','Cancelacion','Autorizacion','Consulta_Confidencial')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Tipo de evento auditado: alta, cambio, cancelación, autorización o consulta a expediente confidencial (SEG-06, SEG-20)"
+        },
+        {
+          "name": "detalle",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Valores o contexto del cambio, en formato legible, para reconstruir qué pasó (SEG-06)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora exacta del evento; la bitácora es inmutable y no se edita (SEG-06, ORD-08)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "usuario_id",
+        "tabla_afectada",
+        "accion"
+      ]
+    },
+    {
+      "name": "orden_mecanicos",
+      "comment": "Asignación de uno o más mecánicos por orden (ORD-09)",
+      "desc": "Tabla puente que registra a todos los mecánicos que participan en una orden. Complementa al responsable principal que vive en ordenes_servicio.",
+      "domain": "Seguridad y auditoría",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno de la asignación (ORD-09)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden de servicio; FK a ordenes_servicio.id (ORD-09)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "mecanico_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Mecánico asignado a la orden; FK a mecanicos.id (ORD-09)",
+          "fk": "mecanicos.id"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la asignación (ORD-09, SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de la última modificación (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 asignación vigente, 0 desasignada (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "mecanico_id"
+      ]
+    },
+    {
+      "name": "historial_etapas",
+      "comment": "Historial inmutable de cambios de etapa por orden (ORD-06)",
+      "desc": "Historial inmutable de cambios de etapa. Permite calcular cuántos días lleva una orden en su etapa actual y auditar retrocesos.",
+      "domain": "Seguridad y auditoría",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del cambio de etapa (ORD-06)",
+          "pk": true
+        },
+        {
+          "name": "orden_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Orden que cambió de etapa; FK a ordenes_servicio.id (ORD-06)",
+          "fk": "ordenes_servicio.id"
+        },
+        {
+          "name": "etapa_anterior",
+          "type": "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Etapa previa; NULL cuando es la apertura de la orden (ORD-02, ORD-06)"
+        },
+        {
+          "name": "etapa_nueva",
+          "type": "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Etapa a la que pasa la orden (ORD-02, ORD-04, ORD-05)"
+        },
+        {
+          "name": "usuario_id",
+          "type": "INT",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Usuario que movió la etapa; permite validar que solo el admin retroceda (ORD-04, ORD-05, SEG-06)",
+          "fk": "usuarios.id"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora del cambio de etapa; base de la alerta de más de 5 días sin movimiento (ORD-06)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "orden_id",
+        "usuario_id",
+        "etapa_nueva"
+      ]
+    },
+    {
+      "name": "parametros",
+      "comment": "Parámetros configurables de tolerancia y umbrales (AUT-08, PAG-06)",
+      "desc": "Configuración del negocio sin recompilar: tolerancia de reautorización y umbral de piezas caras. Es la única tabla sin relaciones, por diseño.",
+      "domain": "Seguridad y auditoría",
+      "cols": [
+        {
+          "name": "id",
+          "type": "INT",
+          "null": false,
+          "auto": true,
+          "def": null,
+          "comment": "Identificador interno del parámetro (AUT-08, PAG-06)",
+          "pk": true
+        },
+        {
+          "name": "clave",
+          "type": "VARCHAR(50)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Clave única del parámetro, por ejemplo tolerancia_reautorizacion o umbral_piezas_caras (AUT-08, PAG-06)"
+        },
+        {
+          "name": "valor",
+          "type": "VARCHAR(100)",
+          "null": false,
+          "auto": false,
+          "def": null,
+          "comment": "Valor vigente del parámetro, guardado como texto y convertido por la aplicación (AUT-08, PAG-06)"
+        },
+        {
+          "name": "descripcion",
+          "type": "TEXT",
+          "null": true,
+          "auto": false,
+          "def": null,
+          "comment": "Explicación del parámetro y su efecto en el negocio (AUT-08, PAG-06)"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora de alta del parámetro (auditoría SEG-06)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "null": false,
+          "auto": false,
+          "def": "CURRENT_TIMESTAMP",
+          "comment": "Fecha y hora del último cambio de valor (auditoría SEG-06)"
+        },
+        {
+          "name": "activo",
+          "type": "TINYINT(1)",
+          "null": false,
+          "auto": false,
+          "def": "1",
+          "comment": "Borrado lógico: 1 vigente, 0 eliminado (SEG-07)"
+        }
+      ],
+      "keyAttrs": [
+        "id",
+        "clave",
+        "valor"
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "name": "Catálogos",
+      "tables": [
+        "clientes",
+        "proveedores",
+        "mecanicos",
+        "servicios"
+      ]
+    },
+    {
+      "name": "Vehículos",
+      "tables": [
+        "vehiculos",
+        "polizas_seguro"
+      ]
+    },
+    {
+      "name": "Inventario y compras",
+      "tables": [
+        "refacciones",
+        "compras",
+        "detalle_compra",
+        "movimientos_inventario"
+      ]
+    },
+    {
+      "name": "Órdenes de servicio",
+      "tables": [
+        "ordenes_servicio",
+        "detalle_orden",
+        "fotos_vehiculo"
+      ]
+    },
+    {
+      "name": "Finanzas",
+      "tables": [
+        "pagos",
+        "facturas",
+        "autorizaciones"
+      ]
+    },
+    {
+      "name": "Seguridad y auditoría",
+      "tables": [
+        "usuarios",
+        "bitacora",
+        "orden_mecanicos",
+        "historial_etapas",
+        "parametros"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "clientes",
+      "to": "vehiculos",
+      "label": "posee",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "vehiculos.cliente_id"
+    },
+    {
+      "from": "clientes",
+      "to": "ordenes_servicio",
+      "label": "solicita",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "ordenes_servicio.cliente_id"
+    },
+    {
+      "from": "vehiculos",
+      "to": "polizas_seguro",
+      "label": "tiene",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "polizas_seguro.vehiculo_id"
+    },
+    {
+      "from": "vehiculos",
+      "to": "ordenes_servicio",
+      "label": "ingresa en",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "ordenes_servicio.vehiculo_id"
+    },
+    {
+      "from": "mecanicos",
+      "to": "ordenes_servicio",
+      "label": "responsable principal",
+      "symbol": "|o--o{",
+      "card": "1 a 0..N",
+      "inverse": "0..N a 1",
+      "optional": true,
+      "fk": "ordenes_servicio.mecanico_id"
+    },
+    {
+      "from": "mecanicos",
+      "to": "orden_mecanicos",
+      "label": "participa",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "orden_mecanicos.mecanico_id"
+    },
+    {
+      "from": "mecanicos",
+      "to": "usuarios",
+      "label": "cuenta de",
+      "symbol": "|o--o|",
+      "card": "1 a 0..1",
+      "inverse": "0..1 a 1",
+      "optional": true,
+      "fk": "usuarios.mecanico_id"
+    },
+    {
+      "from": "proveedores",
+      "to": "refacciones",
+      "label": "surte",
+      "symbol": "|o--o{",
+      "card": "1 a 0..N",
+      "inverse": "0..N a 1",
+      "optional": true,
+      "fk": "refacciones.proveedor_id"
+    },
+    {
+      "from": "proveedores",
+      "to": "compras",
+      "label": "recibe pedido",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "compras.proveedor_id"
+    },
+    {
+      "from": "compras",
+      "to": "detalle_compra",
+      "label": "contiene",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "detalle_compra.compra_id"
+    },
+    {
+      "from": "refacciones",
+      "to": "detalle_compra",
+      "label": "se pide",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "detalle_compra.refaccion_id"
+    },
+    {
+      "from": "refacciones",
+      "to": "movimientos_inventario",
+      "label": "mueve",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "movimientos_inventario.refaccion_id"
+    },
+    {
+      "from": "refacciones",
+      "to": "detalle_orden",
+      "label": "se usa en",
+      "symbol": "|o--o{",
+      "card": "1 a 0..N",
+      "inverse": "0..N a 1",
+      "optional": true,
+      "fk": "detalle_orden.refaccion_id"
+    },
+    {
+      "from": "servicios",
+      "to": "detalle_orden",
+      "label": "se cobra en",
+      "symbol": "|o--o{",
+      "card": "1 a 0..N",
+      "inverse": "0..N a 1",
+      "optional": true,
+      "fk": "detalle_orden.servicio_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "detalle_orden",
+      "label": "detalla",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "detalle_orden.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "fotos_vehiculo",
+      "label": "documenta",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "fotos_vehiculo.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "pagos",
+      "label": "cobra",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "pagos.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "facturas",
+      "label": "factura",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "facturas.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "autorizaciones",
+      "label": "requiere",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "autorizaciones.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "orden_mecanicos",
+      "label": "asigna",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "orden_mecanicos.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "historial_etapas",
+      "label": "cambia etapa",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "historial_etapas.orden_id"
+    },
+    {
+      "from": "ordenes_servicio",
+      "to": "compras",
+      "label": "origina",
+      "symbol": "|o--o{",
+      "card": "1 a 0..N",
+      "inverse": "0..N a 1",
+      "optional": true,
+      "fk": "compras.orden_id"
+    },
+    {
+      "from": "usuarios",
+      "to": "bitacora",
+      "label": "audita",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "bitacora.usuario_id"
+    },
+    {
+      "from": "usuarios",
+      "to": "historial_etapas",
+      "label": "provoca",
+      "symbol": "||--o{",
+      "card": "1 a N",
+      "inverse": "N a 1",
+      "fk": "historial_etapas.usuario_id"
+    }
+  ]
+};
+
+  const tablas = new Map(DB.tables.map(function (t) { return [t.name, t]; }));
+  const dominioDe = new Map();
+  DB.domains.forEach(function (d) { d.tables.forEach(function (n) { dominioDe.set(n, d.name); }); });
+
+  const $ = function (id) { return document.getElementById(id); };
+  const esc = function (s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  };
+
+  /* ---------- Relaciones por tabla ---------- */
+  function relacionesDe(nombre) {
+    const salida = [];
+    DB.relations.forEach(function (r) {
+      if (r.from !== nombre && r.to !== nombre) return;
+      salida.push({
+        from: r.from,
+        to: r.to,
+        card: r.card,
+        inverse: r.inverse,
+        label: r.label,
+        fk: r.fk,
+        sale: r.from === nombre
+      });
+    });
+    /* Primero las relaciones que salen de la tabla y luego las que llegan. */
+    salida.sort(function (a, b) { return Number(b.sale) - Number(a.sale); });
+    return salida;
+  }
+
+  /* ---------- Índice lateral ---------- */
+  const indice = $("indice");
+  function pintarIndice(filtro) {
+    const q = (filtro || "").trim().toLowerCase();
+    indice.innerHTML = "";
+    let visibles = 0;
+    DB.domains.forEach(function (d) {
+      const nombres = d.tables.filter(function (n) {
+        if (!q) return true;
+        const t = tablas.get(n);
+        if (!t) return false;
+        if (n.toLowerCase().indexOf(q) !== -1) return true;
+        if ((t.desc || "").toLowerCase().indexOf(q) !== -1) return true;
+        return t.cols.some(function (c) { return c.name.toLowerCase().indexOf(q) !== -1; });
+      });
+      if (!nombres.length) return;
+      visibles += nombres.length;
+      const g = document.createElement("div");
+      g.className = "grupo";
+      const h = document.createElement("h3");
+      h.textContent = d.name;
+      g.appendChild(h);
+      nombres.forEach(function (n) {
+        const t = tablas.get(n);
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "tabla-btn";
+        b.dataset.tabla = n;
+        b.innerHTML = '<span class="pk-dot"></span><span class="nombre">' + esc(n) + '</span><span class="n">' + t.cols.length + '</span>';
+        b.addEventListener("click", function () { abrirTabla(n); });
+        g.appendChild(b);
+      });
+      indice.appendChild(g);
+    });
+    if (!visibles) {
+      const p = document.createElement("p");
+      p.className = "sin-resultados";
+      p.textContent = "No hay tablas que coincidan con la búsqueda.";
+      indice.appendChild(p);
+    }
+  }
+  pintarIndice("");
+
+  $("buscar").addEventListener("input", function (e) { pintarIndice(e.target.value); });
+
+  /* ---------- Panel ---------- */
+  let tablaActiva = null;
+
+  function marcarBoton(nombre) {
+    indice.querySelectorAll(".tabla-btn").forEach(function (b) {
+      b.classList.toggle("activa", b.dataset.tabla === nombre);
+    });
+  }
+
+  function marcarNodo(nombre) {
+    document.querySelectorAll("#diagrama svg g[data-tabla]").forEach(function (g) {
+      g.classList.toggle("tabla-activa", g.dataset.tabla === nombre);
+    });
+  }
+
+  function abrirTabla(nombre, opciones) {
+    const t = tablas.get(nombre);
+    if (!t) return;
+    const opc = opciones || {};
+    tablaActiva = nombre;
+
+    $("panel-grupo").textContent = (dominioDe.get(nombre) || "Tabla") + " · " + (DB.tables.indexOf(t) + 1) + " de " + DB.tables.length;
+    $("panel-titulo").textContent = nombre;
+    $("panel-desc").textContent = t.desc || t.comment || "";
+
+    const pks = t.cols.filter(function (c) { return c.pk; }).map(function (c) { return c.name; });
+    const fks = t.cols.filter(function (c) { return c.fk; }).length;
+    $("panel-meta").innerHTML =
+      '<span class="pill cyan">' + t.cols.length + ' columnas</span>' +
+      '<span class="pill amber">PK: ' + esc(pks.join(", ") || "—") + '</span>' +
+      (fks ? '<span class="pill violet">' + fks + ' FK</span>' : '<span class="pill">Sin FK</span>') +
+      '<span class="pill">InnoDB · utf8mb4</span>';
+
+    $("cuenta-columnas").textContent = t.cols.length;
+    $("lista-atributos").innerHTML =
+      '<div class="tabla-scroll"><table class="atributos">' +
+        '<thead><tr>' +
+          '<th class="col-num">#</th>' +
+          '<th>Columna</th>' +
+          '<th>Tipo de dato</th>' +
+          '<th>Llave</th>' +
+          '<th>Nulo</th>' +
+          '<th>Predeterminado</th>' +
+          '<th>Descripción y referencia</th>' +
+        '</tr></thead><tbody>' +
+        t.cols.map(function (c, i) {
+          const fila = [c.pk ? "fila-pk" : "", c.fk ? "fila-fk" : ""].filter(Boolean).join(" ");
+          const llaves =
+            (c.pk ? '<span class="tag pk">PK</span>' : "") +
+            (c.fk ? '<span class="tag fk">FK</span>' : "") +
+            (c.auto ? '<span class="tag auto">AUTO</span>' : "");
+          const ref = c.fk
+            ? ' <button type="button" class="fk-link" data-ir="' + esc(c.fk.split(".")[0]) + '" title="Abrir la tabla referenciada">→ ' + esc(c.fk) + '</button>'
+            : "";
+          const tieneDefault = c.def !== null && c.def !== undefined && c.def !== "";
+          return '<tr' + (fila ? ' class="' + fila + '"' : "") + '>' +
+            '<td class="col-num">' + (i + 1) + '</td>' +
+            '<td class="col-col"><code>' + esc(c.name) + '</code></td>' +
+            '<td class="col-tipo"><code>' + esc(c.type) + '</code></td>' +
+            '<td class="col-llave">' + (llaves || '<span class="dash">—</span>') + '</td>' +
+            '<td class="col-null">' + (c.null ? '<span class="si">Sí</span>' : '<span class="no">No</span>') + '</td>' +
+            '<td class="col-def">' + (tieneDefault ? '<code>' + esc(c.def) + '</code>' : '<span class="dash">—</span>') + '</td>' +
+            '<td class="col-desc">' + esc(c.comment || "Sin descripción adicional.") + ref + '</td>' +
+          '</tr>';
+        }).join("") +
+      '</tbody></table></div>';
+
+    const rels = relacionesDe(nombre);
+    $("cuenta-relaciones").textContent = rels.length;
+    $("lista-relaciones").innerHTML = rels.length
+      ? rels.map(function (r) {
+          const destino = r.sale ? r.to : r.from;
+          return '<button type="button" class="rel" data-ir="' + esc(destino) + '" ' +
+            'aria-label="Abrir la tabla ' + esc(destino) + '">' +
+            '<span class="nodo' + (r.from === nombre ? ' actual' : '') + '">' + esc(r.from) + '</span>' +
+            '<span class="vinculo"><span class="flecha">→</span><span class="card-badge">' + esc(r.card) + '</span><span class="flecha">→</span></span>' +
+            '<span class="nodo' + (r.to === nombre ? ' actual' : '') + '">' + esc(r.to) + '</span>' +
+            '<span class="meta-rel">' +
+              '<span class="sentido">' + (r.sale ? "sale de esta tabla" : "llega a esta tabla") + '</span>' +
+              '<span>' + esc(r.label) + '</span>' +
+              '<code>' + esc(r.fk) + '</code>' +
+            '</span>' +
+          '</button>';
+        }).join("")
+      : '<p class="vacio">Esta tabla no tiene llaves foráneas ni referencias entrantes: es configuración global del sistema.</p>';
+
+    const nota = nombre === "parametros"
+      ? "<b>Única tabla sin relaciones.</b> Guarda configuración del negocio: <code>tolerancia_reautorizacion</code> y <code>umbral_piezas_caras</code>."
+      : nombre === "bitacora" || nombre === "historial_etapas"
+        ? "<b>Log inmutable.</b> Solo tiene <code>created_at</code>; los triggers bloquean <code>UPDATE</code> y <code>DELETE</code>."
+        : nombre === "detalle_orden"
+          ? "<b>Regla XOR.</b> Exactamente uno de <code>servicio_id</code> o <code>refaccion_id</code>; lo garantizan dos triggers."
+          : "Todas las llaves foráneas usan <code>ON DELETE RESTRICT</code> y <code>ON UPDATE CASCADE</code>. El borrado es lógico con <code>activo = 0</code>.";
+    $("panel-nota").innerHTML = nota;
+
+    $("panel").classList.add("abierto");
+    $("panel").setAttribute("aria-hidden", "false");
+    $("backdrop").classList.add("abierto");
+    document.body.classList.add("con-panel");
+    marcarBoton(nombre);
+    marcarNodo(nombre);
+    const cuerpo = document.querySelector(".panel-body");
+    if (cuerpo) cuerpo.scrollTop = 0;
+    if (!opc.silencioso) {
+      try { history.replaceState(null, "", "#tabla=" + encodeURIComponent(nombre)); } catch (e) { /* file:// */ }
+      $("cerrar").focus({ preventScroll: true });
+    }
+  }
+
+  function cerrarPanel() {
+    $("panel").classList.remove("abierto");
+    $("panel").setAttribute("aria-hidden", "true");
+    $("backdrop").classList.remove("abierto");
+    document.body.classList.remove("con-panel");
+    marcarBoton(null);
+    marcarNodo(null);
+    tablaActiva = null;
+    if (location.hash.indexOf("#tabla=") === 0) {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* file:// */ }
+    }
+  }
+
+  $("cerrar").addEventListener("click", cerrarPanel);
+  $("backdrop").addEventListener("click", cerrarPanel);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && $("panel").classList.contains("abierto")) cerrarPanel();
+  });
+  $("panel").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-ir]");
+    if (b) abrirTabla(b.dataset.ir);
+  });
+
+  /* Abrir una tabla desde un enlace directo: ...html#tabla=clientes */
+  function tablaDelHash() {
+    const coincidencia = (location.hash || "").match(/^#tabla=([^&]+)/);
+    if (!coincidencia) return null;
+    try {
+      const nombre = decodeURIComponent(coincidencia[1]);
+      return tablas.has(nombre) ? nombre : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* ---------- Mermaid ---------- */
+  const mermaidType = function (tipo) {
+    return String(tipo).split(/[ (]/)[0].toLowerCase();
+  };
+
+  function construirMermaid() {
+    const lineas = ["erDiagram"];
+    DB.relations.forEach(function (r) {
+      lineas.push("    " + r.from + " " + r.symbol + " " + r.to + ' : "' + r.label + '"');
+    });
+    DB.tables.forEach(function (t) {
+      lineas.push("    " + t.name + " {");
+      t.keyAttrs.forEach(function (nombre) {
+        const c = t.cols.filter(function (x) { return x.name === nombre; })[0];
+        if (!c) return;
+        const llave = c.pk ? " PK" : c.fk ? " FK" : "";
+        lineas.push("        " + mermaidType(c.type) + " " + c.name + llave);
+      });
+      lineas.push("    }");
+    });
+    return lineas.join("\n");
+  }
+
+  let svgEl = null;
+  let naturalW = 1200;
+  let naturalH = 800;
+  let zoom = 1;
+
+  function aplicarZoom() {
+    if (!svgEl) return;
+    zoom = Math.max(0.25, Math.min(2.5, zoom));
+    svgEl.style.zoom = String(zoom);
+    $("zoom-label").textContent = Math.round(zoom * 100) + "%";
+  }
+
+  function ajustar() {
+    if (!svgEl) return;
+    const disponible = $("scroll").clientWidth - 44;
+    if (disponible <= 0) return;
+    zoom = Math.min(1, disponible / naturalW);
+    aplicarZoom();
+    $("scroll").scrollTop = 0;
+    $("scroll").scrollLeft = 0;
+  }
+
+  /* Al abrir, el diagrama completo queda demasiado pequeño para leerse.
+     Se parte de un zoom legible y el botón "Ajustar" muestra todo el modelo. */
+  function vistaInicial() {
+    if (!svgEl) return;
+    const disponible = $("scroll").clientWidth - 44;
+    if (disponible <= 0) return;
+    const encaje = Math.min(1, disponible / naturalW);
+    zoom = Math.max(encaje, 0.72);
+    aplicarZoom();
+    $("scroll").scrollTop = 0;
+    $("scroll").scrollLeft = 0;
+  }
+
+  $("acercar").addEventListener("click", function () { zoom *= 1.15; aplicarZoom(); });
+  $("alejar").addEventListener("click", function () { zoom /= 1.15; aplicarZoom(); });
+  $("ajustar").addEventListener("click", ajustar);
+
+  function enlazarNodos() {
+    if (!svgEl) return;
+    svgEl.querySelectorAll("g.node").forEach(function (g) {
+      const coincidencia = (g.id || "").match(/entity-(.+?)-\d+$/);
+      const nombre = coincidencia ? coincidencia[1] : "";
+      if (!tablas.has(nombre)) return;
+      g.dataset.tabla = nombre;
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("role", "button");
+      g.setAttribute("aria-label", "Ver tabla " + nombre);
+      const abrir = function (e) { e.preventDefault(); abrirTabla(nombre); };
+      g.addEventListener("click", abrir);
+      g.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") abrir(e);
+      });
+      g.addEventListener("mouseenter", function () { g.classList.add("hover-tabla"); });
+      g.addEventListener("mouseleave", function () { g.classList.remove("hover-tabla"); });
+    });
+    if (tablaActiva) marcarNodo(tablaActiva);
+  }
+
+  function mostrarError(mensaje) {
+    const estado = $("estado");
+    estado.classList.remove("oculto");
+    estado.innerHTML = '<div style="max-width:420px;padding:0 20px">' +
+      '<div style="color:#f87171;font-weight:600;margin-bottom:6px">No se pudo dibujar el diagrama</div>' +
+      '<div style="font-size:12px;line-height:1.6">' + esc(mensaje) + '</div>' +
+      '<div style="font-size:11.5px;color:#7189a8;margin-top:10px">El índice de la izquierda sigue disponible: cada tabla abre su ficha completa.</div>' +
+      '</div>';
+  }
+
+  async function iniciarDiagrama() {
+    if (typeof mermaid === "undefined") {
+      mostrarError("No se pudo cargar Mermaid. Verifica que exista docs/vendor/mermaid.min.js o abre el archivo con conexión a internet.");
+      return;
+    }
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "dark",
+      htmlLabels: false,
+      fontFamily: '"Segoe UI", Roboto, Arial, sans-serif',
+      themeVariables: {
+        darkMode: true,
+        background: "#0b1220",
+        primaryColor: "#101c2d",
+        primaryTextColor: "#e8eef8",
+        primaryBorderColor: "#2a4563",
+        secondaryColor: "#16243a",
+        tertiaryColor: "#0b1220",
+        lineColor: "#3f6b86",
+        textColor: "#cfe0f3",
+        nodeBorder: "#2a4563",
+        mainBkg: "#101c2d",
+        clusterBkg: "#0d1725",
+        edgeLabelBackground: "#0b1220"
+      },
+      er: {
+        useMaxWidth: false,
+        htmlLabels: false,
+        diagramPadding: 18,
+        layoutDirection: "TB",
+        minEntityWidth: 110,
+        minEntityHeight: 50,
+        entityPadding: 12,
+        stroke: "#2a4563",
+        fill: "#101c2d",
+        fontSize: 12
+      }
+    });
+
+    try {
+      const resultado = await mermaid.render("autopulse-erd", construirMermaid());
+      $("diagrama").innerHTML = resultado.svg;
+      svgEl = $("diagrama").querySelector("svg");
+      if (!svgEl) throw new Error("Mermaid no devolvió un SVG.");
+      const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+      if (vb && vb.width && vb.height) {
+        naturalW = vb.width;
+        naturalH = vb.height;
+      } else {
+        const caja = svgEl.getBoundingClientRect();
+        naturalW = caja.width || 1200;
+        naturalH = caja.height || 800;
+      }
+      svgEl.setAttribute("width", String(naturalW));
+      svgEl.setAttribute("height", String(naturalH));
+      svgEl.style.maxWidth = "none";
+      svgEl.style.height = "auto";
+      enlazarNodos();
+      $("estado").classList.add("oculto");
+      vistaInicial();
+    } catch (error) {
+      mostrarError(error && error.message ? error.message : String(error));
+    }
+  }
+
+  /* ---------- Descarga PNG ---------- */
+  function descargarPNG() {
+    if (!svgEl) {
+      aviso("El diagrama aún no está listo.");
+      return;
+    }
+    const boton = $("descargar");
+    boton.disabled = true;
+    const clon = svgEl.cloneNode(true);
+    clon.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clon.setAttribute("width", String(naturalW));
+    clon.setAttribute("height", String(naturalH));
+    clon.style.zoom = "1";
+    clon.style.maxWidth = "none";
+    clon.style.height = "auto";
+    const xml = new XMLSerializer().serializeToString(clon);
+    const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const imagen = new Image();
+    imagen.onload = function () {
+      try {
+        const margen = 48;
+        const cabecera = 96;
+        const escala = 2;
+        const ancho = naturalW + margen * 2;
+        const alto = naturalH + cabecera + margen;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(ancho * escala);
+        canvas.height = Math.round(alto * escala);
+        const ctx = canvas.getContext("2d");
+        ctx.scale(escala, escala);
+        ctx.fillStyle = "#070b12";
+        ctx.fillRect(0, 0, ancho, alto);
+        ctx.fillStyle = "#e8eef8";
+        ctx.font = '600 24px "Segoe UI", Arial, sans-serif';
+        ctx.fillText("AutoPulse Elite · Diagrama Entidad-Relación", margen, 46);
+        ctx.fillStyle = "#8ea3c0";
+        ctx.font = '13px "Segoe UI", Arial, sans-serif';
+        ctx.fillText("Pizarro Performance Garage · 21 tablas · 218 columnas · 24 relaciones · MySQL 8 / InnoDB", margen, 70);
+        ctx.drawImage(imagen, margen, cabecera, naturalW, naturalH);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (salida) {
+          if (!salida) {
+            aviso("No se pudo generar el PNG.");
+            boton.disabled = false;
+            return;
+          }
+          const enlace = document.createElement("a");
+          const urlDescarga = URL.createObjectURL(salida);
+          enlace.href = urlDescarga;
+          enlace.download = "AutoPulse-Elite-diagrama-ER.png";
+          document.body.appendChild(enlace);
+          enlace.click();
+          enlace.remove();
+          setTimeout(function () { URL.revokeObjectURL(urlDescarga); }, 4000);
+          aviso("Diagrama descargado en PNG (2x).");
+          boton.disabled = false;
+        }, "image/png");
+      } catch (error) {
+        aviso("No se pudo exportar el PNG: " + (error.message || error));
+        boton.disabled = false;
+      }
+    };
+    imagen.onerror = function () {
+      URL.revokeObjectURL(url);
+      aviso("No se pudo convertir el diagrama a imagen.");
+      boton.disabled = false;
+    };
+    imagen.src = url;
+  }
+
+  $("descargar").addEventListener("click", descargarPNG);
+
+  /* ---------- Aviso flotante ---------- */
+  let temporizadorAviso = null;
+  function aviso(texto) {
+    const el = $("toast");
+    el.textContent = texto;
+    el.classList.add("visible");
+    if (temporizadorAviso) clearTimeout(temporizadorAviso);
+    temporizadorAviso = setTimeout(function () { el.classList.remove("visible"); }, 3200);
+  }
+
+  window.addEventListener("resize", function () {
+    if (!svgEl) return;
+    // Solo reajusta si el usuario no ha hecho zoom manual.
+    if (Math.abs(zoom - 1) < 0.001) ajustar();
+  });
+
+  window.addEventListener("hashchange", function () {
+    const nombre = tablaDelHash();
+    if (nombre) abrirTabla(nombre, { silencioso: true });
+    else if ($("panel").classList.contains("abierto")) cerrarPanel();
+  });
+
+  /* Enlace directo: ...diagrama-er-interactivo.html#tabla=clientes */
+  const tablaInicial = tablaDelHash();
+  if (tablaInicial) abrirTabla(tablaInicial, { silencioso: true });
+
+  iniciarDiagrama();
+})();
+</script>
+</body>
+</html>

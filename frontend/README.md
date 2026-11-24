@@ -1,75 +1,36 @@
-# React + TypeScript + Vite
+# Frontend — AutoPulse Elite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web del taller **Pizarro Performance Garage**, construida con
+React 19, TypeScript, Vite y Tailwind CSS 4.
 
-Currently, two official plugins are available:
+La instalación completa (base de datos, API y frontend) y los usuarios de
+prueba están documentados en el [README principal](../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Comandos
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```powershell
+npm install      # instalar dependencias
+npm run dev      # servidor de desarrollo en http://localhost:5173
+npm run build    # tsc -b + vite build
+npm run lint     # ESLint
+npm run preview  # servir dist/ localmente
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+El backend debe estar corriendo en `http://127.0.0.1:8000`: Vite redirige
+las peticiones `/api` hacia ese puerto (ver `vite.config.ts`).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Organización de `src/`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+| Carpeta | Contenido |
+|---|---|
+| `components/layout/` | Layout, barra lateral y guardas de ruta |
+| `components/ui/` | Botón, panel, encabezado, badges y estilos compartidos |
+| `components/formularios/` | Campos de texto, select, checkbox y área de texto |
+| `components/clientes/` | Componentes del expediente del cliente |
+| `components/login/` | Pantalla y formulario de acceso |
+| `components/dashboard/` | Encabezado del panel principal |
+| `pages/` | Una subcarpeta por módulo (clientes, vehículos, órdenes…) |
+| `services/` | Llamadas a la API con Axios |
+| `types/` | Tipos TypeScript compartidos |
+| `lib/` | Formato, roles y reglas del taller |
+| `context/` | Sesión y autenticación |

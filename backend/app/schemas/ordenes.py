@@ -1,9 +1,9 @@
 """Schemas de ordenes de servicio (ORD-01 a ORD-13).
 
-En esta fase el POST solo crea el encabezado de la orden: el detalle de piezas
-y mano de obra, los totales, pagos y autorizaciones llegan en modulos
-posteriores. Los totales quedan en 0.00 y los calcula el backend cuando exista
-el detalle, nunca el frontend.
+El POST crea el encabezado de la orden. El detalle de piezas y mano de obra se
+captura con ``POST /ordenes/{id}/registrar-avance``; los totales los calcula el
+backend a partir de ese detalle, nunca el frontend (SEG-18). Pagos y
+autorizaciones llegan en modulos posteriores.
 """
 
 from datetime import datetime
@@ -153,6 +153,23 @@ class RefaccionUsadaIn(BaseModel):
     cantidad: int = Field(..., ge=1, le=999)
 
 
+class ServicioUsadoIn(BaseModel):
+    """Servicio de mano de obra realizado en la orden (ORD-10).
+
+    El frontend solo envia id y cantidad. El precio se resuelve en el backend
+    desde ``servicios.precio_mano_obra`` porque el rol Mecanico no puede ver
+    importes (SEG-18).
+    """
+
+    servicio_id: int = Field(..., gt=0)
+    cantidad: int = Field(
+        1,
+        ge=1,
+        le=99,
+        description="Veces que se aplico el servicio en esta visita",
+    )
+
+
 class AvanceMecanicoIn(BaseModel):
     """Cuerpo del reporte de avance del mecanico (ORD-04, ORD-10).
 
@@ -160,8 +177,11 @@ class AvanceMecanicoIn(BaseModel):
     * ``etapa_nueva``: etapa destino; si se omite, la orden conserva la actual.
     * ``refacciones``: piezas consumidas; cada una genera una linea en
       ``detalle_orden`` y una salida de inventario (INV-02, INV-05).
+    * ``servicios``: mano de obra realizada; cada una genera una linea en
+      ``detalle_orden`` con el precio del catalogo.
 
-    Al menos uno de los tres campos debe traer un cambio; el router lo valida.
+    Al menos uno de los cuatro campos debe traer un cambio; el router lo
+    valida.
     """
 
     diagnostico: Optional[str] = Field(
@@ -181,6 +201,11 @@ class AvanceMecanicoIn(BaseModel):
         max_length=50,
         description="Refacciones usadas en esta visita",
     )
+    servicios: list[ServicioUsadoIn] = Field(
+        default_factory=list,
+        max_length=50,
+        description="Mano de obra realizada en esta visita",
+    )
 
     @field_validator("diagnostico", mode="before")
     @classmethod
@@ -199,5 +224,17 @@ class AvanceMecanicoIn(BaseModel):
         if len(ids) != len(set(ids)):
             raise ValueError(
                 "Cada refaccion debe aparecer una sola vez en el avance"
+            )
+        return valor
+
+    @field_validator("servicios")
+    @classmethod
+    def _sin_servicios_repetidos(
+        cls, valor: list[ServicioUsadoIn]
+    ) -> list[ServicioUsadoIn]:
+        ids = [linea.servicio_id for linea in valor]
+        if len(ids) != len(set(ids)):
+            raise ValueError(
+                "Cada servicio debe aparecer una sola vez en el avance"
             )
         return valor

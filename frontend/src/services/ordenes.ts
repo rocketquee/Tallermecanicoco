@@ -15,11 +15,26 @@ export interface FiltrosOrdenes {
   limit?: number
 }
 
+/** Cuerpo de POST /api/v1/ordenes. El alta siempre nace en estado Recibido. */
+export interface OrdenCreadaPayload {
+  cliente_id: number
+  vehiculo_id: number
+  falla_reportada?: string | null
+}
+
 /** Lista las ordenes visibles para el usuario autenticado. */
 export async function listarOrdenes(
   filtros: FiltrosOrdenes = {},
 ): Promise<Orden[]> {
   const { data } = await api.get<Orden[]>('/ordenes', { params: filtros })
+  return data
+}
+
+/** Registra una orden nueva. Solo Administrador y Recepción. */
+export async function crearOrden(
+  payload: OrdenCreadaPayload,
+): Promise<Orden> {
+  const { data } = await api.post<Orden>('/ordenes', payload)
   return data
 }
 

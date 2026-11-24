@@ -1,8 +1,8 @@
 """Endpoints basicos de ordenes de servicio (ORD-01 a ORD-10).
 
 Cubre listar, crear, avanzar etapa y registrar el avance del mecanico
-(diagnostico, refacciones usadas y cambio de etapa). Los pagos, las
-autorizaciones y las cancelaciones llegan en modulos posteriores.
+(diagnostico, mano de obra, refacciones usadas y cambio de etapa). Los pagos,
+las autorizaciones y las cancelaciones llegan en modulos posteriores.
 
 Reglas aplicadas al crear
 -------------------------
@@ -11,8 +11,8 @@ Reglas aplicadas al crear
 * Si se asigna responsable, ``orden_mecanicos`` se llena tambien (ADR-003).
 * Se inserta el asiento de apertura en ``historial_etapas`` (ORD-06).
 * Se registra la creacion en ``bitacora`` (SEG-06).
-* Totales en 0.00 al crear; ``registrar-avance`` los recalcula cuando el
-  mecanico agrega refacciones.
+* Totales en 0.00 al crear; ``registrar-avance`` y ``avanzar-etapa`` los
+  recalculan a partir del detalle vigente (mano de obra + refacciones + IVA).
 
 Privacidad
 ----------
@@ -45,6 +45,7 @@ from app.models import (
     OrdenMecanico,
     OrdenServicio,
     Refaccion,
+    Servicio,
     Usuario,
     Vehiculo,
 )
@@ -118,7 +119,7 @@ def _recalcular_totales(db: Session, orden: OrdenServicio) -> None:
     lineas = db.scalars(
         select(DetalleOrden).where(
             DetalleOrden.orden_id == orden.id,
-            DetalleOrden.activo.is_(True),
+            DetalleOrden.activo == 1,
         )
     ).all()
 
@@ -170,7 +171,7 @@ def _solo_sus_ordenes(
 
     asignadas = select(OrdenMecanico.orden_id).where(
         OrdenMecanico.mecanico_id == usuario.mecanico_id,
-        OrdenMecanico.activo.is_(True),
+        OrdenMecanico.activo == 1,
     )
     return stmt.where(
         or_(
@@ -257,7 +258,7 @@ def listar_ordenes(
 ) -> list[OrdenOut]:
     stmt = _consulta_base()
     if not incluir_inactivos:
-        stmt = stmt.where(OrdenServicio.activo.is_(True))
+        stmt = stmt.where(OrdenServicio.activo == 1)
     if estado is not None:
         stmt = stmt.where(OrdenServicio.estado == estado)
     if cliente_id is not None:
@@ -389,9 +390,11 @@ def crear_orden(
     summary="Avanzar etapa",
     description=(
         "Mueve la orden a la siguiente etapa del flujo "
-        "(Recibido -> Diagnostico -> Reparacion -> Listo). Solo Administrador "
-        "y Mecanico; el Mecanico solo puede avanzar sus propias ordenes. "
-        "Cada cambio queda en `historial_etapas` y en `bitacora` (ORD-04, ORD-06)."
+        "(Recibido -> Diagnostico -> Reparacion -> Listo) y recalcula los "
+        "totales con el detalle vigente (piezas + mano de obra + IVA). Solo "
+        "Administrador y Mecanico; el Mecanico solo puede avanzar sus propias "
+        "ordenes. Cada cambio queda en `historial_etapas` y en `bitacora` "
+        "(ORD-04, ORD-06)."
     ),
     dependencies=[Depends(requiere_roles("Administrador", "Mecanico"))],
 )
@@ -450,6 +453,9 @@ def avanzar_etapa(
     )
 
     try:
+        # Los totales se recalculan con el detalle vigente para que el cambio
+        # de etapa nunca deje importes desfasados (ORD-10).
+        _recalcular_totales(db, orden)
         db.commit()
     except SQLAlchemyError as exc:
         db.rollback()
@@ -467,12 +473,14 @@ def avanzar_etapa(
     response_model=OrdenDetalleOut,
     summary="Registrar avance del mecanico",
     description=(
-        "Guarda el diagnostico/notas, las refacciones usadas y, si se indica, "
-        "la nueva etapa. Todo ocurre en una sola transaccion: las piezas se "
-        "insertan en `detalle_orden`, descuentan inventario (INV-02, INV-05), "
-        "se recalcula el total y se deja asiento en `historial_etapas` y "
-        "`bitacora` (ORD-04, ORD-06, ORD-10). El Mecanico solo puede avanzar "
-        "sus propias ordenes; el Administrador puede corregir hacia atras."
+        "Guarda el diagnostico/notas, la mano de obra realizada, las "
+        "refacciones usadas y, si se indica, la nueva etapa. Todo ocurre en "
+        "una sola transaccion: los servicios y las piezas se insertan en "
+        "`detalle_orden`, las piezas descuentan inventario (INV-02, INV-05), "
+        "se recalculan piezas + mano de obra + IVA y se deja asiento en "
+        "`historial_etapas` y `bitacora` (ORD-04, ORD-06, ORD-10). El "
+        "Mecanico solo puede avanzar sus propias ordenes; el Administrador "
+        "puede corregir hacia atras."
     ),
     dependencies=[Depends(requiere_roles("Administrador", "Mecanico"))],
 )
@@ -540,6 +548,7 @@ def registrar_avance(
         not cambio_diagnostico
         and etapa_nueva is None
         and not payload.refacciones
+        and not payload.servicios
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -574,6 +583,22 @@ def registrar_avance(
             )
         refacciones.append((item.cantidad, refaccion))
 
+    # La mano de obra no mueve inventario, pero el servicio debe existir y
+    # estar vigente. Se ordena por id para que la respuesta y la bitacora
+    # sean deterministas.
+    servicios: list[tuple[int, Servicio]] = []
+    for item in sorted(payload.servicios, key=lambda linea: linea.servicio_id):
+        servicio = db.get(Servicio, item.servicio_id)
+        if servicio is None or not servicio.activo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"El servicio {item.servicio_id} no existe o esta dado "
+                    "de baja"
+                ),
+            )
+        servicios.append((item.cantidad, servicio))
+
     try:
         if cambio_diagnostico:
             orden.diagnostico = payload.diagnostico
@@ -586,6 +611,18 @@ def registrar_avance(
                     etapa_anterior=etapa_anterior,
                     etapa_nueva=etapa_nueva,
                     usuario_id=usuario.id,
+                )
+            )
+
+        # Mano de obra: una linea por servicio con el precio del catalogo.
+        for cantidad, servicio in servicios:
+            db.add(
+                DetalleOrden(
+                    orden_id=orden.id,
+                    servicio_id=servicio.id,
+                    cantidad=cantidad,
+                    # El precio lo pone el backend; el mecanico nunca lo ve.
+                    precio_unitario=servicio.precio_mano_obra,
                 )
             )
 
@@ -620,6 +657,12 @@ def registrar_avance(
             cambios.append("diagnostico actualizado")
             if payload.diagnostico:
                 cambios.append(f"nuevo diagnostico: {payload.diagnostico}")
+        if servicios:
+            total_aplicaciones = sum(cantidad for cantidad, _ in servicios)
+            cambios.append(
+                f"{len(servicios)} servicio(s) de mano de obra, "
+                f"{total_aplicaciones} aplicacion(es)"
+            )
         if refacciones:
             total_unidades = sum(cantidad for cantidad, _ in refacciones)
             cambios.append(

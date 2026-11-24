@@ -3,6 +3,8 @@ import type {
   EntradaInventarioPayload,
   RefaccionDisponible,
   RefaccionInventario,
+  RefaccionPayload,
+  RefaccionUpdatePayload,
 } from '../types/inventario'
 
 export interface FiltrosRefacciones {
@@ -52,6 +54,29 @@ export async function surtirInventario(
 ): Promise<RefaccionInventario> {
   const { data } = await api.post<RefaccionInventario>(
     `/refacciones/${refaccionId}/entrada`,
+    payload,
+  )
+  return data
+}
+
+/** Alta de una refacción del catálogo. Solo Admin y Recepción. */
+export async function crearRefaccion(
+  payload: RefaccionPayload,
+): Promise<RefaccionInventario> {
+  const { data } = await api.post<RefaccionInventario>('/refacciones', payload)
+  return data
+}
+
+/**
+ * Actualiza parcialmente una refacción. `activo: false` es la baja lógica.
+ * Solo Admin y Recepción.
+ */
+export async function actualizarRefaccion(
+  refaccionId: number,
+  payload: RefaccionUpdatePayload,
+): Promise<RefaccionInventario> {
+  const { data } = await api.put<RefaccionInventario>(
+    `/refacciones/${refaccionId}`,
     payload,
   )
   return data

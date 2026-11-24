@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   AlertTriangle,
+  Hammer,
   LoaderCircle,
   Package,
   Plus,
@@ -10,22 +11,29 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { CampoAreaTexto } from '../../components/CampoAreaTexto'
-import { CampoSelect } from '../../components/CampoSelect'
-import { CampoTexto } from '../../components/CampoTexto'
-import { EtiquetaOrden } from '../../components/panel/EtiquetaOrden'
+import { Boton } from '../../components/ui/Boton'
+import { CampoAreaTexto } from '../../components/formularios/CampoAreaTexto'
+import { CampoSelect } from '../../components/formularios/CampoSelect'
+import { CampoTexto } from '../../components/formularios/CampoTexto'
+import { EtiquetaOrden } from '../../components/ui/EtiquetaOrden'
 import { etiquetaEtapa, etapasSiguientes } from '../../lib/ordenes-taller'
 import { mensajeDeError } from '../../services/errores'
 import { registrarAvance } from '../../services/ordenes'
 import { listarRefacciones } from '../../services/refacciones'
+import { listarServicios } from '../../services/servicios'
 import type { RefaccionDisponible } from '../../types/inventario'
 import type { EstadoOrden, Orden } from '../../types/ordenes'
+import type { ServicioDisponible } from '../../types/servicios'
 
 const numeroOrden = (id: number) => `ORD-${String(id).padStart(4, '0')}`
 
 interface LineaRefaccion {
   refaccion: RefaccionDisponible
+  cantidad: number
+}
+
+interface LineaServicio {
+  servicio: ServicioDisponible
   cantidad: number
 }
 
@@ -52,12 +60,23 @@ export function RegistrarAvanceModal({ orden, onCerrar, onGuardado }: Props) {
   const [cantidad, setCantidad] = useState('1')
   const [lineas, setLineas] = useState<LineaRefaccion[]>([])
 
+  const [servicios, setServicios] = useState<ServicioDisponible[]>([])
+  const [cargandoServicios, setCargandoServicios] = useState(true)
+  const [errorServicios, setErrorServicios] = useState<string | null>(null)
+  const [recargaServicios, setRecargaServicios] = useState(0)
+
+  const [servicioId, setServicioId] = useState('')
+  const [cantidadServicio, setCantidadServicio] = useState('1')
+  const [lineasServicio, setLineasServicio] = useState<LineaServicio[]>([])
+
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const siguientes = etapasSiguientes(orden.estado)
   const refaccionSeleccionada =
     catalogo.find((item) => item.id === Number(refaccionId)) ?? null
+  const servicioSeleccionado =
+    servicios.find((item) => item.id === Number(servicioId)) ?? null
 
   useEffect(() => {
     let vigente = true
@@ -88,6 +107,36 @@ export function RegistrarAvanceModal({ orden, onCerrar, onGuardado }: Props) {
       vigente = false
     }
   }, [recargaCatalogo])
+
+  useEffect(() => {
+    let vigente = true
+    setCargandoServicios(true)
+    setErrorServicios(null)
+
+    listarServicios({ limit: 200 })
+      .then((datos) => {
+        if (vigente) {
+          setServicios(datos)
+        }
+      })
+      .catch((fallo: unknown) => {
+        if (vigente) {
+          setServicios([])
+          setErrorServicios(
+            mensajeDeError(fallo, 'No se pudo cargar el catálogo de servicios.'),
+          )
+        }
+      })
+      .finally(() => {
+        if (vigente) {
+          setCargandoServicios(false)
+        }
+      })
+
+    return () => {
+      vigente = false
+    }
+  }, [recargaServicios])
 
   // Bloquea el scroll del fondo y permite cerrar con Escape.
   useEffect(() => {
@@ -144,6 +193,45 @@ export function RegistrarAvanceModal({ orden, onCerrar, onGuardado }: Props) {
     )
   }
 
+  function agregarServicio() {
+    setError(null)
+    if (!servicioSeleccionado) {
+      setError('Selecciona un servicio de mano de obra para agregarlo.')
+      return
+    }
+
+    const cantidadNumero = Number(cantidadServicio)
+    if (
+      !Number.isInteger(cantidadNumero) ||
+      cantidadNumero < 1 ||
+      cantidadNumero > 99
+    ) {
+      setError('La cantidad de mano de obra debe ser un entero entre 1 y 99.')
+      return
+    }
+    if (
+      lineasServicio.some(
+        (linea) => linea.servicio.id === servicioSeleccionado.id,
+      )
+    ) {
+      setError('Ese servicio ya está en la lista.')
+      return
+    }
+
+    setLineasServicio((actuales) => [
+      ...actuales,
+      { servicio: servicioSeleccionado, cantidad: cantidadNumero },
+    ])
+    setServicioId('')
+    setCantidadServicio('1')
+  }
+
+  function quitarServicio(servicioIdQuitar: number) {
+    setLineasServicio((actuales) =>
+      actuales.filter((linea) => linea.servicio.id !== servicioIdQuitar),
+    )
+  }
+
   async function alGuardar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     setError(null)
@@ -151,9 +239,14 @@ export function RegistrarAvanceModal({ orden, onCerrar, onGuardado }: Props) {
     const textoDiagnostico = diagnostico.trim()
     const cambioDiagnostico = textoDiagnostico !== (orden.diagnostico ?? '').trim()
 
-    if (!cambioDiagnostico && !etapaNueva && lineas.length === 0) {
+    if (
+      !cambioDiagnostico &&
+      !etapaNueva &&
+      lineas.length === 0 &&
+      lineasServicio.length === 0
+    ) {
       setError(
-        'Escribe un diagnóstico, cambia la etapa o agrega al menos una refacción.',
+        'Escribe un diagnóstico, cambia la etapa, agrega mano de obra o una refacción.',
       )
       return
     }
@@ -167,6 +260,10 @@ export function RegistrarAvanceModal({ orden, onCerrar, onGuardado }: Props) {
         ...(etapaNueva ? { etapa_nueva: etapaNueva } : {}),
         refacciones: lineas.map((linea) => ({
           refaccion_id: linea.refaccion.id,
+          cantidad: linea.cantidad,
+        })),
+        servicios: lineasServicio.map((linea) => ({
+          servicio_id: linea.servicio.id,
           cantidad: linea.cantidad,
         })),
       })
@@ -280,6 +377,112 @@ export function RegistrarAvanceModal({ orden, onCerrar, onGuardado }: Props) {
               </p>
             </div>
           </div>
+
+          <section className="rounded-panel border border-line bg-white/[0.02] p-4">
+            <div className="flex items-center gap-2">
+              <Hammer className="h-4 w-4 text-faint" strokeWidth={1.8} />
+              <h3 className="text-[12px] font-semibold text-foreground">
+                Mano de obra realizada
+              </h3>
+            </div>
+            <p className="mt-1 text-[11px] leading-5 text-faint">
+              Se carga al precio del catálogo y se suma al total de la orden.
+            </p>
+
+            {cargandoServicios ? (
+              <p className="mt-4 flex items-center gap-2 text-[12px] text-muted">
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+                Cargando catálogo de servicios…
+              </p>
+            ) : errorServicios ? (
+              <div className="mt-4 flex flex-col items-start gap-2 rounded-panel border border-negative/30 bg-negative/10 px-3 py-2.5 text-[11px] text-negative sm:flex-row sm:items-center sm:justify-between">
+                <p>{errorServicios}</p>
+                <button
+                  type="button"
+                  onClick={() => setRecargaServicios((valor) => valor + 1)}
+                  className="rounded-panel border border-negative/30 px-2.5 py-1.5 font-medium transition hover:border-negative/60"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : servicios.length === 0 ? (
+              <p className="mt-4 rounded-panel border border-line bg-panel px-3 py-2.5 text-[11px] text-faint">
+                No hay servicios activos en el catálogo. Pide a recepción que
+                registre la mano de obra.
+              </p>
+            ) : (
+              <>
+                <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_110px_auto] sm:items-end">
+                  <CampoSelect
+                    id="avance-servicio"
+                    etiqueta="Servicio"
+                    value={servicioId}
+                    onChange={(evento) => setServicioId(evento.target.value)}
+                    disabled={guardando}
+                  >
+                    <option value="">Selecciona un servicio</option>
+                    {servicios.map((servicio) => (
+                      <option key={servicio.id} value={servicio.id}>
+                        {servicio.nombre}
+                      </option>
+                    ))}
+                  </CampoSelect>
+
+                  <CampoTexto
+                    id="avance-cantidad-servicio"
+                    etiqueta="Cantidad"
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={cantidadServicio}
+                    onChange={(evento) =>
+                      setCantidadServicio(evento.target.value)
+                    }
+                    disabled={guardando}
+                  />
+
+                  <Boton
+                    variante="secundario"
+                    onClick={agregarServicio}
+                    disabled={guardando || !servicioSeleccionado}
+                    className="min-h-11"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Agregar
+                  </Boton>
+                </div>
+
+                {lineasServicio.length > 0 && (
+                  <ul className="mt-4 divide-y divide-line rounded-panel border border-line bg-panel">
+                    {lineasServicio.map((linea) => (
+                      <li
+                        key={linea.servicio.id}
+                        className="flex items-center justify-between gap-3 px-3 py-2.5"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-[12px] font-medium text-foreground">
+                            {linea.servicio.nombre}
+                          </p>
+                          <p className="text-[11px] text-faint">
+                            Mano de obra · {linea.cantidad} aplicación(es)
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => quitarServicio(linea.servicio.id)}
+                          disabled={guardando}
+                          aria-label={`Quitar ${linea.servicio.nombre}`}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-panel text-faint transition hover:bg-negative/10 hover:text-negative disabled:opacity-40"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </section>
 
           <section className="rounded-panel border border-line bg-white/[0.02] p-4">
             <div className="flex items-center gap-2">

@@ -7,9 +7,9 @@ import {
   Save,
   X,
 } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { CampoAreaTexto } from '../../components/CampoAreaTexto'
-import { CampoTexto } from '../../components/CampoTexto'
+import { Boton } from '../../components/ui/Boton'
+import { CampoAreaTexto } from '../../components/formularios/CampoAreaTexto'
+import { CampoTexto } from '../../components/formularios/CampoTexto'
 import { mensajeDeError } from '../../services/errores'
 import { surtirInventario } from '../../services/refacciones'
 import type { RefaccionInventario } from '../../types/inventario'

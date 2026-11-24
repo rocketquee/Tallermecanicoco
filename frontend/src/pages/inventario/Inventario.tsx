@@ -5,20 +5,24 @@ import {
   ArrowLeft,
   Boxes,
   PackagePlus,
+  Plus,
   RefreshCw,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { CampoSelect } from '../../components/CampoSelect'
-import { CampoTexto } from '../../components/CampoTexto'
-import { clasesBoton } from '../../components/estilosBoton'
-import { EncabezadoPagina } from '../../components/panel/EncabezadoPagina'
-import { EstadoTabla } from '../../components/panel/EstadoTabla'
-import { Panel, PanelCabecera } from '../../components/panel/Panel'
+import { Boton } from '../../components/ui/Boton'
+import { CampoSelect } from '../../components/formularios/CampoSelect'
+import { CampoTexto } from '../../components/formularios/CampoTexto'
+import { clasesBoton } from '../../components/ui/estilosBoton'
+import { EncabezadoPagina } from '../../components/ui/EncabezadoPagina'
+import { EstadoTabla } from '../../components/ui/EstadoTabla'
+import { Panel, PanelCabecera } from '../../components/ui/Panel'
 import { useAuth } from '../../context/useAuth'
 import { mensajeDeError } from '../../services/errores'
 import { listarInventario } from '../../services/refacciones'
 import type { RefaccionInventario } from '../../types/inventario'
+import { BajaRefaccionModal } from './BajaRefaccionModal'
+import { NuevaRefaccionModal } from './NuevaRefaccionModal'
 import { SurtirInventarioModal } from './SurtirInventarioModal'
 
 type FiltroEstado = 'todas' | 'bajo' | 'agotadas' | 'sanas'
@@ -91,6 +95,8 @@ export function Inventario() {
   const [mensaje, setMensaje] = useState<string | null>(null)
   const [seleccionada, setSeleccionada] =
     useState<RefaccionInventario | null>(null)
+  const [creando, setCreando] = useState(false)
+  const [baja, setBaja] = useState<RefaccionInventario | null>(null)
 
   useEffect(() => {
     if (!puedeGestionar) {
@@ -182,6 +188,10 @@ export function Inventario() {
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Actualizar
+            </Boton>
+            <Boton onClick={() => setCreando(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              Nueva refacción
             </Boton>
           </>
         }
@@ -395,16 +405,28 @@ export function Inventario() {
                       </td>
 
                       <td className="px-4 py-4 text-right sm:px-5">
-                        <Boton
-                          variante="secundario"
-                          onClick={() => setSeleccionada(refaccion)}
-                          className="min-h-9 px-3 py-1.5 text-[11px]"
-                          title="Surtir inventario"
-                          aria-label={`Surtir inventario de ${refaccion.nombre}`}
-                        >
-                          <PackagePlus className="h-3.5 w-3.5" />
-                          Surtir
-                        </Boton>
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                          <Boton
+                            variante="secundario"
+                            onClick={() => setSeleccionada(refaccion)}
+                            className="min-h-9 px-3 py-1.5 text-[11px]"
+                            title="Surtir inventario"
+                            aria-label={`Surtir inventario de ${refaccion.nombre}`}
+                          >
+                            <PackagePlus className="h-3.5 w-3.5" />
+                            Surtir
+                          </Boton>
+                          <Boton
+                            variante="peligro"
+                            onClick={() => setBaja(refaccion)}
+                            className="min-h-9 px-3 py-1.5 text-[11px]"
+                            title="Dar de baja"
+                            aria-label={`Dar de baja ${refaccion.nombre}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Dar de baja
+                          </Boton>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -429,6 +451,29 @@ export function Inventario() {
           onGuardado={(texto) => {
             setRecarga((valor) => valor + 1)
             setSeleccionada(null)
+            setMensaje(texto)
+          }}
+        />
+      )}
+
+      {creando && (
+        <NuevaRefaccionModal
+          onCerrar={() => setCreando(false)}
+          onGuardado={(texto) => {
+            setRecarga((valor) => valor + 1)
+            setCreando(false)
+            setMensaje(texto)
+          }}
+        />
+      )}
+
+      {baja && (
+        <BajaRefaccionModal
+          refaccion={baja}
+          onCerrar={() => setBaja(null)}
+          onGuardado={(texto) => {
+            setRecarga((valor) => valor + 1)
+            setBaja(null)
             setMensaje(texto)
           }}
         />

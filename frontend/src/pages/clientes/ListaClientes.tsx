@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Plus, RefreshCw } from 'lucide-react'
-import { Boton } from '../../components/Boton'
-import { CampoCheckbox } from '../../components/CampoCheckbox'
-import { CampoSelect } from '../../components/CampoSelect'
-import { CampoTexto } from '../../components/CampoTexto'
-import { clasesBoton } from '../../components/estilosBoton'
+import { Boton } from '../../components/ui/Boton'
+import { CampoCheckbox } from '../../components/formularios/CampoCheckbox'
+import { CampoSelect } from '../../components/formularios/CampoSelect'
+import { CampoTexto } from '../../components/formularios/CampoTexto'
+import { clasesBoton } from '../../components/ui/estilosBoton'
 import {
   EtiquetaCategoria,
   EtiquetaConfidencial,
   EtiquetaEstado,
 } from '../../components/clientes/EtiquetasCliente'
-import { EncabezadoPagina } from '../../components/panel/EncabezadoPagina'
-import { EstadoTabla } from '../../components/panel/EstadoTabla'
-import { Panel, PanelCabecera } from '../../components/panel/Panel'
+import { EncabezadoPagina } from '../../components/ui/EncabezadoPagina'
+import { EstadoTabla } from '../../components/ui/EstadoTabla'
+import { Panel, PanelCabecera } from '../../components/ui/Panel'
 import { listarClientes } from '../../services/clientes'
 import { mensajeDeError } from '../../services/errores'
 import { obtenerUsuario } from '../../services/sesion'
