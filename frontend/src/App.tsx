@@ -15,6 +15,8 @@ import { Inventario } from './pages/inventario/Inventario'
 import { DetalleOrden } from './pages/ordenes/DetalleOrden'
 import { NuevaOrden } from './pages/ordenes/NuevaOrden'
 import { OrdenesServicio } from './pages/ordenes/OrdenesServicio'
+import { Autorizaciones } from './pages/autorizaciones/Autorizaciones'
+import { Pagos } from './pages/pagos/Pagos'
 import { Proveedores } from './pages/proveedores/Proveedores'
 import { NuevoVehiculo } from './pages/vehiculos/NuevoVehiculo'
 import { Vehiculos } from './pages/vehiculos/Vehiculos'
@@ -33,24 +35,10 @@ const MODULOS_EN_CONSTRUCCION: ReadonlyArray<{
   roles: RolUsuario[]
 }> = [
   {
-    ruta: '/pagos',
-    titulo: 'Pagos',
-    descripcion:
-      'Cobranza, anticipos y saldos pendientes por orden de servicio.',
-    roles: ['Administrador'],
-  },
-  {
     ruta: '/facturacion',
     titulo: 'Facturación',
     descripcion: 'Comprobantes fiscales, datos del emisor y cancelaciones.',
     roles: ['Administrador'],
-  },
-  {
-    ruta: '/autorizaciones',
-    titulo: 'Autorizaciones',
-    descripcion:
-      'Órdenes que superan el monto autorizado y requieren aprobación.',
-    roles: ['Administrador', 'Recepcion'],
   },
   {
     ruta: '/reportes',
@@ -85,10 +73,12 @@ export default function App() {
                 <Route path="/inventario" element={<Inventario />} />
                 <Route path="/ordenes/nuevo" element={<NuevaOrden />} />
                 <Route path="/proveedores" element={<Proveedores />} />
+                <Route path="/autorizaciones" element={<Autorizaciones />} />
               </Route>
 
               {/* Rutas exclusivas del Administrador. */}
               <Route element={<RutaPorRol roles={['Administrador']} />}>
+                <Route path="/pagos" element={<Pagos />} />
                 <Route path="/configuracion" element={<Configuracion />} />
               </Route>
 

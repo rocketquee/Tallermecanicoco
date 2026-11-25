@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 11: Procedimientos almacenados y funciones
+-- Apex Elite Motorsport - Bloque 11: Procedimientos almacenados y funciones
 -- Requisitos: ORD-10, VEH-07, REP-01
 -- =====================================================================
 --

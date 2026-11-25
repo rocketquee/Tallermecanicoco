@@ -1,4 +1,4 @@
-"""Hash de contraseñas y tokens JWT de AutoPulse Elite (SEG-01, SEG-15).
+"""Hash de contraseñas y tokens JWT de Apex Elite Motorsport (SEG-01, SEG-15).
 
 Contraseñas
 -----------

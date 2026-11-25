@@ -1,4 +1,4 @@
-# Diagrama Entidad-Relación — AutoPulse Elite
+# Diagrama Entidad-Relación — Apex Elite Motorsport
 
 Base de datos: `autopulse_elite` · MySQL 8.x · InnoDB · `utf8mb4_unicode_ci`
 

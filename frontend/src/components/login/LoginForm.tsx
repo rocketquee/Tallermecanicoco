@@ -159,7 +159,7 @@ export function LoginForm() {
             value={correo}
             onChange={(event) => cambiarCorreo(event.target.value)}
             autoComplete="username"
-            placeholder="nombre@pizarroperformance.mx"
+            placeholder="nombre@apexelitemotorsport.mx"
             disabled={cargando || bloqueado}
             aria-label="Correo electrónico"
             aria-invalid={Boolean(errores.correo)}

@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 7: Datos de prueba (solo desarrollo)
+-- Apex Elite Motorsport - Bloque 7: Datos de prueba (solo desarrollo)
 -- Requisitos: datos mínimos para probar la aplicación
 --
 -- Contraseña de AMBOS usuarios de prueba: AutoPulse2026!

@@ -1,7 +1,7 @@
-# Reglas del Proyecto AutoPulse Elite
+# Reglas del Proyecto Apex Elite Motorsport
 
 ## Contexto
-Sistema de gestión para taller de autos de lujo (Pizarro Performance Garage). 
+Sistema de gestión para taller de autos de lujo (Apex Elite Motorsport). 
 Maneja clientes VIP, vehículos de alto valor, órdenes de servicio con 4 etapas, 
 inventario, proveedores internacionales, pagos parciales, facturación CFDI 4.0 y 
 autorizaciones por monto. La discreción es crítica (clientes figuras públicas).

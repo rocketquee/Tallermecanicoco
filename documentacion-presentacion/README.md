@@ -1,4 +1,4 @@
-# Documentación de presentación — AutoPulse Elite
+# Documentación de presentación — Apex Elite Motorsport
 
 Carpeta con los diagramas visuales del proyecto en formato **HTML independiente**.
 Están pensados para presentaciones, juntas con el cliente o para compartir la

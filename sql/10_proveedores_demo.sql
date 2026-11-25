@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 10: proveedores de refacciones (datos demo)
+-- Apex Elite Motorsport - Bloque 10: proveedores de refacciones (datos demo)
 -- Requisitos: PRV-01, PRV-02, PRV-09
 --
 -- Inserta 4 proveedores mexicanos que cotizan en MXN. Continuan al

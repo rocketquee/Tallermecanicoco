@@ -82,7 +82,7 @@ export function Layout() {
               <Activity className="h-3.5 w-3.5" />
             </span>
             <span className="text-[12px] font-semibold tracking-tight">
-              AutoPulse Elite
+              Apex Elite Motorsport
             </span>
           </div>
 

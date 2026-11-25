@@ -1,4 +1,4 @@
-# CONTEXTO TÉCNICO COMPLETO DEL PROYECTO AUTOPULSE ELITE
+# CONTEXTO TÉCNICO COMPLETO DEL PROYECTO APEX ELITE MOTORSPORT
 
 ## Tipo de aplicación
 Sitio web (aplicación web), NO app de escritorio. Accesible desde navegador.
@@ -73,7 +73,7 @@ Sitio web (aplicación web), NO app de escritorio. Accesible desde navegador.
 
 ## Estructura de carpetas del repositorio
 
-AutoPulse-Elite/
+Apex-Elite-Motorsport/
 ├── AGENTS.md                  # Reglas del proyecto para OpenCode
 ├── README.md                  # Este archivo
 ├── .gitignore

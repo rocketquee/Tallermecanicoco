@@ -1,4 +1,4 @@
-# Pendientes del sistema — AutoPulse Elite
+# Pendientes del sistema — Apex Elite Motorsport
 
 **Auditoría:** 21 de noviembre de 2026
 **Actualización:** 21 de noviembre de 2026 — se cerraron PEN-01, PEN-02, PEN-10 y PEN-12

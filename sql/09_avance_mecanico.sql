@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 9: avance del mecanico
+-- Apex Elite Motorsport - Bloque 9: avance del mecanico
 -- Requisitos: ORD-04, ORD-06, ORD-08, ORD-10, INV-02, INV-05
 -- =====================================================================
 -- El diagnostico del mecanico es distinto de `falla_reportada` (que es lo

@@ -1,17 +1,3 @@
-"""Schemas Pydantic para clientes (CLI-01 a CLI-06, SEG-17).
-
-Reglas de negocio reflejadas aqui:
-
-* ``categoria = VIP`` aplica 10% de descuento solo a mano de obra (CLI-03).
-  Si al crear un VIP no se envia ``descuento_mano_obra``, se asume 10.00.
-* ``confidencial = 1`` (SEG-17): el Mecanico solo ve placas y trabajo
-  asignado. El enmascaramiento se aplica al serializar en
-  ``app.core.privacidad``; la BD conserva los datos completos.
-* ``rfc``, ``razon_social``, ``regimen_fiscal`` y ``codigo_postal`` son los
-  datos fiscales para CFDI 4.0 (FAC-05). Son opcionales, pero si se envian se
-  validan con el formato mexicano.
-"""
-
 import re
 from datetime import datetime
 from decimal import Decimal

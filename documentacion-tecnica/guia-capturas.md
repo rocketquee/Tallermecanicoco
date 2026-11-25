@@ -1,6 +1,6 @@
 # Guía de capturas de pantalla
 
-Esta guía indica **qué pantallas capturar, en qué orden y con qué usuario** para demostrar que AutoPulse Elite funciona de punta a punta. Está pensada para entregar evidencias de la práctica sin tener que improvisar durante la presentación.
+Esta guía indica **qué pantallas capturar, en qué orden y con qué usuario** para demostrar que Apex Elite Motorsport funciona de punta a punta. Está pensada para entregar evidencias de la práctica sin tener que improvisar durante la presentación.
 
 > **Consejo:** haz las capturas con el navegador a 100 % de zoom, en una ventana de 1440 × 900 px. Así todas las imágenes conservan el mismo tamaño y se leen bien en el reporte.
 

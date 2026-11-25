@@ -1,4 +1,4 @@
-Requisitos de AutoPulse Elite
+Requisitos de Apex Elite Motorsport
 
 Prioridad: Alta = necesario desde el primer día o crítico para el negocio (P33). Media = primer mes, o necesario pero no bloquea el arranque. Baja = deseable.
 Tipo: F = funcional, NF = no funcional.

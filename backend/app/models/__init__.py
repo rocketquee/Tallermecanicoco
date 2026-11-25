@@ -1,4 +1,4 @@
-"""Modelos SQLAlchemy de AutoPulse Elite.
+"""Modelos SQLAlchemy de Apex Elite Motorsport.
 
 Importar los modelos aqui garantiza que queden registrados en ``Base.metadata``.
 Eso es necesario para que Alembic los detecte y para que las relaciones entre

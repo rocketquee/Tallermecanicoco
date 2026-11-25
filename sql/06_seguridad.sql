@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 4c: Seguridad, auditoría y órdenes (cierre)
+-- Apex Elite Motorsport - Bloque 4c: Seguridad, auditoría y órdenes (cierre)
 -- Requisitos: SEG-01 a SEG-07, SEG-20, ORD-06, ORD-09, AUT-08, PAG-06
 -- =====================================================================
 

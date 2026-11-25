@@ -7,7 +7,7 @@ function BrandMark() {
         <Activity className="h-4 w-4 text-foreground" strokeWidth={1.7} />
       </span>
       <span className="text-[13px] font-semibold tracking-tight text-foreground">
-        AutoPulse Elite
+        Apex Elite Motorsport
       </span>
     </div>
   )
@@ -71,7 +71,7 @@ export function BrandPanel() {
       <div className="relative z-10 max-w-sm rounded-panel border border-line bg-surface/80 px-4 py-3">
         <p className="text-[11px] font-semibold text-foreground">Novedades</p>
         <p className="mt-1 text-[11px] leading-4 text-muted">
-          Pizarro Performance Garage · Ciudad Juárez
+          Apex Elite Motorsport · Ciudad Juárez
         </p>
       </div>
     </aside>

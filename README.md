@@ -1,23 +1,8 @@
-# AutoPulse Elite
+# Apex Elite Motorsport
 
-Sistema web de gestión para **Pizarro Performance Garage**, un taller especializado en autos de lujo. Concentra clientes VIP, vehículos, órdenes de servicio, inventario, usuarios y bitácora en un solo lugar, con permisos por rol y trazabilidad completa. La operación actual vive en libretas y Excel; este sistema la ordena y protege la discreción de clientes que son figuras públicas.
+Sistema web de gestión para **Apex Elite Motorsport**, un taller especializado en autos de lujo. Concentra clientes VIP, vehículos, órdenes de servicio, inventario, usuarios, proveedores/compras y bitácora en un solo lugar, con permisos por rol y trazabilidad completa. La operación actual vive en libretas y Excel; este sistema la ordena y protege la discreción de clientes que son figuras públicas.
 
-> **Estado:** núcleo operativo funcional de punta a punta. La base de datos MySQL 8.x (21 tablas), la API con FastAPI + JWT y el frontend con React + TypeScript están implementados para clientes, vehículos, órdenes, inventario, usuarios y proveedores/compras. Los módulos de pagos, facturación, autorizaciones y reportes se construirán en la siguiente fase. El detalle de lo que falta está en [`docs/pendientes.md`](docs/pendientes.md).
-
-## Contenido
-
-- [Stack tecnológico](#stack-tecnológico)
-- [Funcionalidad disponible](#funcionalidad-disponible)
-- [Pendientes del sistema](#pendientes-del-sistema)
-- [Requisitos previos](#requisitos-previos)
-- [Levantar el proyecto desde cero](#levantar-el-proyecto-desde-cero)
-- [Usuarios de prueba](#usuarios-de-prueba)
-- [Rutas del frontend y permisos](#rutas-del-frontend-y-permisos)
-- [Endpoints de la API](#endpoints-de-la-api)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Solución de problemas](#solución-de-problemas)
-- [Documentación](#documentación)
-- [Equipo y licencia](#equipo-y-licencia)
+> **Estado:** Núcleo operativo funcional de punta a punta. La base de datos MySQL (21 tablas), la API con FastAPI + JWT y el frontend con React + TypeScript están implementados para clientes, vehículos, órdenes, inventario, usuarios y proveedores/compras. Los módulos de pagos, facturación, autorizaciones y reportes se construirán en la siguiente fase.
 
 ## Stack tecnológico
 
@@ -30,7 +15,7 @@ Sistema web de gestión para **Pizarro Performance Garage**, un taller especiali
 | Gráficas | Recharts (disponible para reportes) |
 | Documentación | Markdown y Mermaid |
 
-Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DECIMAL(12,2)`, estados con `ENUM`, fechas con `DATETIME` y llaves foráneas con `ON DELETE RESTRICT` para que nada se borre físicamente. Las tablas de bitácora son inmutables y están protegidas con triggers.
+Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DECIMAL(12,2)`, estados con `ENUM`, fechas con `DATETIME` y llaves foráneas con `ON DELETE RESTRICT` para que nada se borre físicamente. Las tablas de bitácora son inmutables y están protegidas con triggers. **Se utilizó Ingeniería Inversa** para mapear las 21 tablas de MySQL a los modelos de SQLAlchemy en Python.
 
 ## Funcionalidad disponible
 
@@ -39,12 +24,13 @@ Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DE
 - **Autenticación y roles.** Login con correo y contraseña, token JWT y menú distinto por rol. El backend valida cada endpoint; el frontend además protege las rutas por rol.
 - **Clientes.** Alta, edición, búsqueda, categoría VIP/Regular, clientes confidenciales, datos fiscales y condiciones comerciales. El rol Mecánico recibe los clientes confidenciales enmascarados.
 - **Vehículos.** Alta, edición y consulta por placas, VIN, marca o modelo, con kilometraje de entrada y valor aproximado. El valor se oculta al rol Mecánico.
-- **Órdenes de servicio.** Alta de orden en estado `Recibido`, tablero por bahías, detalle con conceptos y totales, avance de etapa desde el detalle y registro de avance del mecánico con mano de obra y consumo de refacciones. Los totales (piezas + mano de obra con descuento VIP + IVA) los calcula siempre el backend.
+- **Órdenes de servicio.** Alta de orden en estado `Recibido`, tablero por bahías, detalle con conceptos y totales, avance de etapa desde el detalle y registro de avance del mecánico con mano de obra y consumo de refacciones. Los totales (piezas + mano de obra con descuento VIP + IVA) los calcula siempre el backend mediante el procedimiento `sp_calcular_total_orden`.
 - **Inventario.** Catálogo con existencias, alerta de stock bajo, alta de refacciones, baja lógica, surtido con movimiento y asiento en bitácora.
 - **Usuarios.** Listado y restablecimiento de contraseña, exclusivo del Administrador.
 - **Proveedores y compras.** Directorio con país, contacto, moneda y días de entrega; alta y edición de proveedores; órdenes de compra con folio, estado, fecha estimada de llegada y totales en la moneda del proveedor y en MXN. Las compras nacen en `Borrador` y quedan auditadas.
 - **Panel principal.** Indicadores reales: autos en taller, órdenes por etapa, listas para entrega, clientes, valor en custodia (solo Administrador), refacciones por reponer, pendientes y últimas órdenes.
 - **Trazabilidad.** Bitácora de operaciones e historial de etapas por orden.
+- **Rutinas SQL.** Función `fn_valor_en_custodia()` para calcular el valor de los autos en el taller, y procedimiento `sp_calcular_total_orden()` para el desglose de importes.
 
 ### Pendiente para siguientes fases
 
@@ -55,31 +41,13 @@ Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DE
 - Fotos del vehículo y pólizas de seguro.
 - Seguridad a nivel de fila (SEG-19) y auditoría de lecturas confidenciales (SEG-20).
 
-## Pendientes del sistema
-
-El listado completo, con identificadores (PEN-01 a PEN-39), evidencia en el código, impacto,
-prioridad y criterio de aceptación, vive en **[`docs/pendientes.md`](docs/pendientes.md)**.
-
-Los cuatro módulos que hoy muestran “Próximamente” son:
-
-| Ruta | Módulo | Qué falta |
-|---|---|---|
-| `/pagos` | Pagos | Anticipos, parcialidades y saldo |
-| `/facturacion` | Facturación | CFDI 4.0 y timbrado |
-| `/autorizaciones` | Autorizaciones | Aprobación por monto |
-| `/reportes` | Reportes | Indicadores y exportación |
-
-En los módulos ya construidos falta, entre lo más importante, **asignar o cambiar mecánico**,
-**cancelar una orden con motivo**, la **administración de usuarios**, la **consulta de bitácora**
-y las **pruebas automatizadas**.
-
 ## Requisitos previos
 
 | Herramienta | Versión recomendada | Para qué |
 |---|---|---|
 | MySQL Server | 8.0 o superior | Base de datos |
 | Python | 3.10 o superior | API |
-| Node.js | 22 o superior | Frontend (Vite 8) |
+| Node.js | 22 o superior | Frontend (Vite) |
 | npm | 10 o superior | Dependencias del frontend |
 | Git | cualquiera reciente | Clonar el repositorio |
 
@@ -90,8 +58,13 @@ En Windows, agrega `mysql`, `python` y `npm` al `PATH` para poder ejecutar los c
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/<usuario>/AutoPulse-Elite.git
-cd AutoPulse-Elite
+git clone https://github.com/rocketquee/Tallermecanicoco.git
+cd Tallermecanicoco
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/<usuario>/Apex-Elite-Motorsport.git
+cd Apex-Elite-Motorsport
 ```
 
 ### 2. Crear la base de datos
@@ -296,7 +269,7 @@ La documentación interactiva con esquemas completos está en `/docs` y el contr
 ## Estructura del proyecto
 
 ```text
-AutoPulse-Elite/
+Apex-Elite-Motorsport/
 ├── AGENTS.md                       # Reglas del proyecto
 ├── README.md                       # Este archivo
 ├── docs/                           # Documentación consolidada de la práctica

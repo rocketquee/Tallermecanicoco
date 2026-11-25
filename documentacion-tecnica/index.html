@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AutoPulse Elite · Diagrama E-R interactivo</title>
+<title>Apex Elite Motorsport · Diagrama E-R interactivo</title>
 <style>
   /* =====================================================================
-     AutoPulse Elite — Documentación técnica
+     Apex Elite Motorsport — Documentación técnica
      Diagrama E-R interactivo · tema oscuro · HTML + CSS + JS puro
      ===================================================================== */
 
@@ -887,7 +887,7 @@
       </svg>
     </div>
     <div class="brand-text">
-      <strong>AutoPulse Elite</strong>
+      <strong>Apex Elite Motorsport</strong>
       <span>Documentación técnica</span>
     </div>
   </div>
@@ -918,7 +918,7 @@
     <div class="eyebrow"><span class="dot"></span>Modelo relacional · MySQL 8.x</div>
     <h1>Diagrama <span class="grad">Entidad-Relación</span></h1>
     <p class="lead">
-      Las 21 tablas de AutoPulse Elite y sus 24 relaciones. Haz clic en cualquier tabla
+      Las 21 tablas de Apex Elite Motorsport y sus 24 relaciones. Haz clic en cualquier tabla
       para ver su descripción, llaves primarias y foráneas, y el tipo de relación con el resto del modelo.
     </p>
     <div class="stats">
@@ -1081,7 +1081,7 @@
   </section>
 
   <footer>
-    <div>AutoPulse Elite · Pizarro Performance Garage — <code>documentacion-tecnica/index.html</code></div>
+    <div>Apex Elite Motorsport — <code>documentacion-tecnica/index.html</code></div>
     <div>21 tablas · 24 relaciones · MySQL 8.x · utf8mb4_unicode_ci</div>
   </footer>
 </main>
@@ -1679,7 +1679,7 @@ const MERMAID_SRC = construirMermaid();
       const svgEl = host.querySelector('svg');
       svgEl.removeAttribute('style');
       svgEl.setAttribute('role', 'img');
-      svgEl.setAttribute('aria-label', 'Diagrama entidad-relación de AutoPulse Elite');
+      svgEl.setAttribute('aria-label', 'Diagrama entidad-relación de Apex Elite Motorsport');
 
       etiquetarNodos(svgEl);
       loader.style.display = 'none';
@@ -2092,7 +2092,7 @@ const MERMAID_SRC = construirMermaid();
         if (!salida) { toast('No se pudo generar el PNG', true); return; }
         const a = document.createElement('a');
         a.href = URL.createObjectURL(salida);
-        a.download = 'autopulse-elite-diagrama-er.png';
+        a.download = 'apex-elite-motorsport-diagrama-er.png';
         document.body.appendChild(a);
         a.click();
         a.remove();

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AutoPulse Elite · Diagrama E-R interactivo</title>
+<title>Apex Elite Motorsport · Diagrama E-R interactivo</title>
 <style>
   :root {
     --bg: #070b12;
@@ -693,8 +693,8 @@
       </svg>
     </div>
     <div>
-      <h1>AutoPulse <span>Elite</span> · Diagrama E-R</h1>
-      <p>Pizarro Performance Garage · MySQL 8 / InnoDB · 21 tablas</p>
+      <h1>Apex <span>Elite Motorsport</span> · Diagrama E-R</h1>
+      <p>Apex Elite Motorsport · MySQL 8 / InnoDB · 21 tablas</p>
     </div>
   </div>
   <div class="stats" aria-label="Resumen del modelo">
@@ -3579,10 +3579,10 @@
         ctx.fillRect(0, 0, ancho, alto);
         ctx.fillStyle = "#e8eef8";
         ctx.font = '600 24px "Segoe UI", Arial, sans-serif';
-        ctx.fillText("AutoPulse Elite · Diagrama Entidad-Relación", margen, 46);
+        ctx.fillText("Apex Elite Motorsport · Diagrama Entidad-Relación", margen, 46);
         ctx.fillStyle = "#8ea3c0";
         ctx.font = '13px "Segoe UI", Arial, sans-serif';
-        ctx.fillText("Pizarro Performance Garage · 21 tablas · 218 columnas · 24 relaciones · MySQL 8 / InnoDB", margen, 70);
+        ctx.fillText("Apex Elite Motorsport · 21 tablas · 218 columnas · 24 relaciones · MySQL 8 / InnoDB", margen, 70);
         ctx.drawImage(imagen, margen, cabecera, naturalW, naturalH);
         URL.revokeObjectURL(url);
         canvas.toBlob(function (salida) {
@@ -3594,7 +3594,7 @@
           const enlace = document.createElement("a");
           const urlDescarga = URL.createObjectURL(salida);
           enlace.href = urlDescarga;
-          enlace.download = "AutoPulse-Elite-diagrama-ER.png";
+          enlace.download = "Apex-Elite-Motorsport-diagrama-ER.png";
           document.body.appendChild(enlace);
           enlace.click();
           enlace.remove();

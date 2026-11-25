@@ -329,13 +329,13 @@ function HojaImpresion({ orden }: { orden: OrdenDetalle }) {
       <header className="flex items-start justify-between gap-8 border-b-2 border-neutral-900 pb-4">
         <div>
           <p className="text-[18px] font-bold tracking-tight">
-            PIZARRO PERFORMANCE GARAGE
+            APEX ELITE MOTORSPORT
           </p>
           <p className="mt-0.5 text-[9px] tracking-[0.18em] text-neutral-600 uppercase">
             Servicio automotriz de alto desempeño
           </p>
           <p className="mt-2 text-[10px] text-neutral-600">
-            AutoPulse Elite · Gestión del taller
+            Sistema de gestión del taller
           </p>
         </div>
         <div className="text-right">
@@ -477,7 +477,7 @@ function HojaImpresion({ orden }: { orden: OrdenDetalle }) {
       </div>
 
       <p className="mt-6 text-center text-[8px] text-neutral-500">
-        Documento generado por AutoPulse Elite · {numeroOrden(orden.id)} ·{' '}
+        Documento generado por Apex Elite Motorsport · {numeroOrden(orden.id)} ·{' '}
         {fechaDe(orden.created_at)}
       </p>
     </div>,

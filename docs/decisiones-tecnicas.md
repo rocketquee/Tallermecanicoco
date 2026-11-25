@@ -1,4 +1,4 @@
-# Decisiones técnicas (ADRs) — AutoPulse Elite
+# Decisiones técnicas (ADRs) — Apex Elite Motorsport
 
 Registro de las decisiones de diseño que no son obvias a partir del código.
 Formato: contexto → decisión → consecuencias → alternativas descartadas.

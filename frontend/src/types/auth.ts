@@ -1,4 +1,4 @@
-/** Tipos que devuelve la API de AutoPulse Elite al iniciar sesion. */
+/** Tipos que devuelve la API de Apex Elite Motorsport al iniciar sesion. */
 
 export type RolUsuario = 'Administrador' | 'Recepcion' | 'Mecanico'
 

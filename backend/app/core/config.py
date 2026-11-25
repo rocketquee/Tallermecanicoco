@@ -1,10 +1,11 @@
-"""Configuracion central del backend de AutoPulse Elite.
+"""Configuracion central del backend de Apex Elite Motorsport.
 
 Lee las variables del archivo .env y las expone como un objeto tipado.
 Si una variable obligatoria falta o tiene un tipo invalido, la aplicacion
 falla al arrancar en lugar de fallar a mitad de una peticion.
 """
 
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     )
 
     # --- Aplicacion ---
-    APP_NAME: str = "AutoPulse Elite"
+    APP_NAME: str = "Apex Elite Motorsport"
     APP_ENV: str = "development"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
@@ -44,6 +45,12 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: SecretStr = SecretStr("cambiar-en-produccion")
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
+
+    # --- Finanzas (AUT-01) ---
+    # Toda orden que supere este monto requiere autorizacion del Administrador
+    # antes de continuar. Vive en la configuracion (no en el codigo del router)
+    # para poder ajustarla por ambiente sin redesplegar.
+    MONTO_AUTORIZACION: Decimal = Decimal("250000.00")
 
     # --- Fotos de vehiculos (VEH-03, VEH-08) ---
     UPLOAD_DIR: Path = Path("storage/fotos")

@@ -1,4 +1,4 @@
-"""Punto de entrada de la API de AutoPulse Elite."""
+"""Punto de entrada de la API de Apex Elite Motorsport."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -11,10 +11,12 @@ from app.core.config import settings
 from app.core.database import engine, get_db
 from app.routers import (
     auth,
+    autorizaciones,
     clientes,
     compras,
     dashboard,
     ordenes,
+    pagos,
     proveedores,
     refacciones,
     servicios,
@@ -38,7 +40,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title=settings.APP_NAME,
     version="0.1.0",
-    description="API de gestion para Pizarro Performance Garage.",
+    description="API de gestion para Apex Elite Motorsport.",
     lifespan=lifespan,
 )
 
@@ -54,6 +56,8 @@ app.include_router(servicios.router, prefix=settings.API_V1_PREFIX)
 app.include_router(usuarios.router, prefix=settings.API_V1_PREFIX)
 app.include_router(proveedores.router, prefix=settings.API_V1_PREFIX)
 app.include_router(compras.router, prefix=settings.API_V1_PREFIX)
+app.include_router(pagos.router, prefix=settings.API_V1_PREFIX)
+app.include_router(autorizaciones.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", tags=["inicio"])

@@ -55,8 +55,8 @@ export function Sidebar({
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-panel border border-line bg-white/[0.03]">
             <Activity className="h-3 w-3 text-foreground" />
           </span>
-          <span className="truncate text-[10.5px] font-semibold tracking-tight text-foreground">
-            AutoPulse Elite
+          <span className="min-w-0 text-[10.5px] leading-[1.15] font-semibold tracking-tight text-foreground">
+            Apex Elite Motorsport
           </span>
         </div>
 
@@ -87,7 +87,7 @@ export function Sidebar({
         }`}
       >
         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-sky-500 text-[8px] font-bold text-slate-950">
-          PP
+          AE
         </span>
         <span
           className={`min-w-0 flex-1 text-[8.5px] leading-[1.15] font-medium text-foreground ${

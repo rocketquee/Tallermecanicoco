@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 8: datos de prueba adicionales
+-- Apex Elite Motorsport - Bloque 8: datos de prueba adicionales
 -- Requisitos: CLI-01, VEH-01, ORD-01, ORD-06, ORD-09, ORD-10
 --
 -- Inserta 5 clientes, 5 vehículos, 2 mecánicos, 3 servicios de mano de

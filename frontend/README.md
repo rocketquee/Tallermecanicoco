@@ -1,6 +1,6 @@
-# Frontend — AutoPulse Elite
+# Frontend — Apex Elite Motorsport
 
-Aplicación web del taller **Pizarro Performance Garage**, construida con
+Aplicación web del taller **Apex Elite Motorsport**, construida con
 React 19, TypeScript, Vite y Tailwind CSS 4.
 
 La instalación completa (base de datos, API y frontend) y los usuarios de

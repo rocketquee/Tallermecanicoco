@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 1: Catálogos base
+-- Apex Elite Motorsport - Bloque 1: Catálogos base
 -- Requisitos: CLI-01 a CLI-06, PRV-01, PRV-02, PRV-09, ORD-09, ORD-10, SEG-17
 -- =====================================================================
 

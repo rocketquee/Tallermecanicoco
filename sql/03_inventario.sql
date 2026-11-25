@@ -1,5 +1,5 @@
 -- =====================================================================
--- AutoPulse Elite - Bloque 3: Inventario y compras
+-- Apex Elite Motorsport - Bloque 3: Inventario y compras
 -- Requisitos: INV-01 a INV-05, PRV-03 a PRV-09
 -- =====================================================================
 
