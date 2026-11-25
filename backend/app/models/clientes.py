@@ -1,8 +1,3 @@
-"""Modelo de la tabla clientes (CLI-01 a CLI-06, SEG-17).
-
-Refleja exactamente el DDL de sql/01_catalogos.sql.
-"""
-
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING

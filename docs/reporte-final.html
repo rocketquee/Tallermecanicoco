@@ -423,10 +423,10 @@ pre code{ background:none; padding:0; font-size:1em; }
 <body>
 
 <section class="portada">
-<h1 id="autopulse-elite">AutoPulse Elite</h1>
+<h1 id="autopulse-elite">Apex Elite Motorsport</h1>
 <p align="center">
   <strong>Sistema de gestión integral para taller de autos de lujo</strong><br>
-  Reporte final de práctica · Diseño, implementación y verificación de la base de datos
+  Reporte de práctica : Diseño, implementación y verificación de la base de datos
 </p>
 
 <h2 id="portada">Portada</h2>
@@ -448,11 +448,11 @@ pre code{ background:none; padding:0; font-size:1em; }
 </tr>
 <tr>
 <td><strong>Autor</strong></td>
-<td>Jonnatan Martinez Aquino</td>
+<td>Juan Pablo García Padilla, Jonnatan Martinez Aquino, Mario Alberto Rivas Escobar, Jorge Luis Monsivais Rodriguez</td>
 </tr>
 <tr>
 <td><strong>Fecha</strong></td>
-<td>22 de noviembre de 2026</td>
+<td>24 de noviembre de 2026</td>
 </tr>
 <tr>
 <td><strong>Versión del documento</strong></td>
@@ -460,7 +460,7 @@ pre code{ background:none; padding:0; font-size:1em; }
 </tr>
 <tr>
 <td><strong>Repositorio</strong></td>
-<td><code>E:\Tallermecanico</code> · rama <code>master</code> · commit base <code>d27074f</code></td>
+<td><code>https://github.com/rocketquee/Tallermecanicoco.git</code> · rama <code>master</code> · commit base <code>d27074f</code></td>
 </tr>
 <tr>
 <td><strong>Base de datos</strong></td>
@@ -468,7 +468,7 @@ pre code{ background:none; padding:0; font-size:1em; }
 </tr>
 <tr>
 <td><strong>Entregables</strong></td>
-<td>Este reporte, su versión en PDF, <code>docs/diagrama-er-interactivo.html</code>, <code>docs/guia-capturas-ingenieria.md</code> y los scripts <code>sql/01</code> a <code>sql/11</code></td>
+<td>Este reporte, su versión en PDF</td>
 </tr>
 </tbody>
 </table>
@@ -3730,25 +3730,35 @@ además la etapa anterior y la nueva.</p>
 <p>Los logs son inmutables: no tienen <code>updated_at</code> ni <code>activo</code>, y los triggers bloquean <code>UPDATE</code> y
 <code>DELETE</code>. Un asiento no se corrige: se agrega otro.</p>
 <hr />
-<h2 id="6-capturas-de-pantalla-paso-a-paso">6. Capturas de pantalla paso a paso</h2>
-<p>Esta sección es el guion para producir las <strong>47 evidencias</strong> del sistema. Las capturas deben
-hacerse con el navegador al 100 % de zoom, en una ventana de <strong>1440 × 900 px</strong>, y guardarse en
-<code>documentacion-tecnica/capturas/</code>. Las evidencias adicionales de ingeniería inversa, 3FN y
-rutinas SQL se detallan en <strong><code>docs/guia-capturas-ingenieria.md</code></strong>.</p>
+<h2 id="6-evidencias-y-capturas">6. Evidencias y capturas</h2>
+<p>Esta sección documenta las <strong>20 evidencias</strong> del sistema, alineadas con los criterios de evaluación: base de datos, ingeniería inversa, normalización, procedimientos, funciones y disparadores, además de la operación con los tres roles (Gabriel, Ana y Luis). Las capturas se realizan con el navegador al 100 % de zoom, en una ventana de <strong>1440 × 900 px</strong>, y se guardan en <code>documentacion-tecnica/capturas/</code>.</p>
 <h3 id="61-preparacion">6.1 Preparación</h3>
 <ol>
-<li>Levantar MySQL, el backend y el frontend siguiendo el <code>README.md</code>.</li>
-<li>Confirmar que <code>http://127.0.0.1:8000/api/v1/salud</code> responde con <code>"estado": "ok"</code> y
-   <code>"tablas": 21</code>.</li>
 <li>
-<p>Cargar los datos de ejemplo si aún no están:</p>
-<pre><code>Get-Content sql\07_datos_prueba.sql | mysql -u root -p --default-character-set=utf8mb4 autopulse_elite
-Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character-set=utf8mb4 autopulse_elite
+<p>Iniciar MySQL desde el Símbolo del sistema (CMD) con permisos de administrador:</p>
+<pre><code class="language-bat">net start MySQL267
 </code></pre>
 </li>
 <li>
-<p>Abrir <code>http://localhost:5173</code> en una ventana de incógnito.</p>
+<p>Iniciar el backend en una segunda ventana de CMD:</p>
+<pre><code class="language-bat">cd /d E:\Tallermecanico\backend
+.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+</code></pre>
 </li>
+<li>
+<p>Iniciar el frontend en una tercera ventana de CMD:</p>
+<pre><code class="language-bat">cd /d E:\Tallermecanico\frontend
+npm run dev
+</code></pre>
+</li>
+<li>Confirmar que <code>http://127.0.0.1:8000/api/v1/salud</code> responde con <code>"estado": "ok"</code> y <code>"tablas": 21</code>.</li>
+<li>
+<p>Cargar los datos de ejemplo si aún no están (PowerShell, desde la raíz del repositorio):</p>
+<pre><code class="language-powershell">Get-Content sql\07_datos_prueba.sql | mysql -u root -p --default-character-set=utf8mb4 autopulse_elite
+Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character-set=utf8mb4 autopulse_elite
+</code></pre>
+</li>
+<li>Abrir <code>http://localhost:5173</code> en una ventana de incógnito.</li>
 <li>Usar la contraseña <code>AutoPulse2026!</code> para los tres usuarios.</li>
 </ol>
 <p><strong>Datos de ejemplo esperados:</strong></p>
@@ -3800,8 +3810,7 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 </tr>
 </tbody>
 </table>
-<p>Mariana Cortés (<code>PPG-002-B</code>, Mercedes-Benz E 300) es confidencial y no tiene orden: aparece
-enmascarada para el mecánico en la lista de clientes.</p>
+<p><strong>Nota de seguridad.</strong> Mariana Cortés (<code>PPG-002-B</code>, Mercedes-Benz E 300) es cliente confidencial y no tiene orden: aparece enmascarada como “Cliente confidencial” para el rol Mecánico en la lista de clientes (SEG-17, SEG-18).</p>
 <h3 id="62-lista-de-capturas">6.2 Lista de capturas</h3>
 <table class="tabla-ids tabla-densa">
 <thead>
@@ -3817,454 +3826,367 @@ enmascarada para el mecánico en la lista de clientes.</p>
 <tbody>
 <tr>
 <td style="text-align: center;">1</td>
-<td>Login</td>
+<td>Ingeniería inversa</td>
 <td>—</td>
-<td><code>/login</code> vacío</td>
-<td><code>01-login.png</code></td>
-<td>Pantalla de acceso y diseño general.</td>
+<td><code>clientes.py</code> frente a <code>01_catalogos.sql</code></td>
+<td><code>01-ingenieria-inversa.png</code></td>
+<td>Ingeniería inversa: DDL ↔ modelo Python.</td>
 </tr>
 <tr>
 <td style="text-align: center;">2</td>
-<td>Login</td>
+<td>Diagrama E-R</td>
 <td>—</td>
-<td>Campos llenos sin enviar</td>
-<td><code>02-login-credenciales.png</code></td>
-<td>Correo, contraseña y botón de visibilidad.</td>
+<td><code>diagrama-er-interactivo.html</code></td>
+<td><code>02-diagrama-er-3fn.png</code></td>
+<td>Diagrama E-R en 3FN: PK, FK y cardinalidades.</td>
 </tr>
 <tr>
 <td style="text-align: center;">3</td>
-<td>Login</td>
+<td>Procedimiento</td>
 <td>—</td>
-<td>Contraseña incorrecta</td>
-<td><code>03-login-error.png</code></td>
-<td>Error sin revelar si el correo existe.</td>
+<td><code>CALL sp_calcular_total_orden(4);</code></td>
+<td><code>03-procedimiento-almacenado.png</code></td>
+<td>Procedimientos: total de 2 536.92 persistido.</td>
 </tr>
 <tr>
 <td style="text-align: center;">4</td>
-<td>Panel</td>
-<td>Gabriel</td>
-<td><code>/dashboard</code></td>
-<td><code>04-dashboard-admin.png</code></td>
-<td>Indicadores reales, valor en custodia y stock bajo.</td>
+<td>Función</td>
+<td>—</td>
+<td><code>SELECT fn_valor_en_custodia();</code></td>
+<td><code>04-funcion-almacenada.png</code></td>
+<td>Funciones: valor en custodia de 5 860 000.00.</td>
 </tr>
 <tr>
 <td style="text-align: center;">5</td>
-<td>Panel</td>
-<td>Gabriel</td>
-<td>Menú de cuenta</td>
-<td><code>05-dashboard-menu-cuenta.png</code></td>
-<td>Acceso a Configuración solo para Admin.</td>
+<td>Triggers</td>
+<td>—</td>
+<td><code>SHOW TRIGGERS FROM autopulse_elite;</code></td>
+<td><code>05-triggers-workbench.png</code></td>
+<td>Disparadores: seis triggers de integridad.</td>
 </tr>
 <tr>
 <td style="text-align: center;">6</td>
-<td>Clientes</td>
-<td>Gabriel</td>
-<td><code>/clientes</code></td>
-<td><code>06-clientes-lista.png</code></td>
-<td>Directorio con etiquetas VIP/Regular.</td>
+<td>Login</td>
+<td>—</td>
+<td><code>/login</code> vacío</td>
+<td><code>06-login.png</code></td>
+<td>Roles: acceso individual con JWT.</td>
 </tr>
 <tr>
 <td style="text-align: center;">7</td>
-<td>Clientes</td>
-<td>Gabriel</td>
-<td>Buscar "Alejandra"</td>
-<td><code>07-clientes-busqueda.png</code></td>
-<td>Búsqueda por nombre en tiempo real.</td>
+<td>Login</td>
+<td>—</td>
+<td>Contraseña incorrecta</td>
+<td><code>07-login-error.png</code></td>
+<td>Roles: error sin revelar si el correo existe.</td>
 </tr>
 <tr>
 <td style="text-align: center;">8</td>
-<td>Clientes</td>
+<td>Panel</td>
 <td>Gabriel</td>
-<td>Filtro VIP</td>
-<td><code>08-clientes-filtro-vip.png</code></td>
-<td>Filtro por categoría.</td>
+<td><code>/dashboard</code></td>
+<td><code>08-dashboard-gabriel.png</code></td>
+<td>Objetivo: indicadores y valor en custodia.</td>
 </tr>
 <tr>
 <td style="text-align: center;">9</td>
 <td>Clientes</td>
 <td>Gabriel</td>
-<td>Expediente de Alejandra</td>
-<td><code>09-cliente-detalle.png</code></td>
-<td>Contacto, VIP, descuento y Audi Q5.</td>
+<td><code>/clientes</code></td>
+<td><code>09-clientes-vip.png</code></td>
+<td>Requerimientos: directorio con etiquetas VIP.</td>
 </tr>
 <tr>
 <td style="text-align: center;">10</td>
-<td>Clientes</td>
+<td>Orden</td>
 <td>Gabriel</td>
-<td><code>/clientes/nuevo</code></td>
-<td><code>10-nuevo-cliente.png</code></td>
-<td>Formulario con validaciones y descuento VIP.</td>
+<td>Detalle de ORD-0004</td>
+<td><code>10-orden-detalle-totales.png</code></td>
+<td>Requerimientos: subtotal, IVA 16 % y total.</td>
 </tr>
 <tr>
 <td style="text-align: center;">11</td>
-<td>Clientes</td>
+<td>Inventario</td>
 <td>Gabriel</td>
-<td>Guardar cliente</td>
-<td><code>11-cliente-creado.png</code></td>
-<td>Alta exitosa y navegación al expediente.</td>
+<td><code>/inventario</code></td>
+<td><code>11-inventario-alertas.png</code></td>
+<td>Requerimientos: existencias y alertas de stock.</td>
 </tr>
 <tr>
 <td style="text-align: center;">12</td>
-<td>Vehículos</td>
+<td>Configuración</td>
 <td>Gabriel</td>
-<td><code>/vehiculos</code></td>
-<td><code>12-vehiculos-lista.png</code></td>
-<td>Placas, marca, modelo, dueño y año.</td>
+<td><code>/configuracion</code></td>
+<td><code>12-configuracion-usuarios.png</code></td>
+<td>Roles: gestión de usuarios exclusiva del Admin.</td>
 </tr>
 <tr>
 <td style="text-align: center;">13</td>
-<td>Vehículos</td>
-<td>Gabriel</td>
-<td>Buscar <code>PPG-004</code></td>
-<td><code>13-vehiculos-busqueda.png</code></td>
-<td>Búsqueda por placas.</td>
+<td>Menú</td>
+<td>Ana</td>
+<td>Menú lateral</td>
+<td><code>13-menu-ana.png</code></td>
+<td>Roles: sin Configuración ni finanzas.</td>
 </tr>
 <tr>
 <td style="text-align: center;">14</td>
-<td>Vehículos</td>
-<td>Gabriel</td>
-<td><code>/vehiculos/nuevo</code></td>
-<td><code>14-nuevo-vehiculo.png</code></td>
-<td>Alta asociada a un cliente.</td>
+<td>Panel</td>
+<td>Ana</td>
+<td><code>/dashboard</code></td>
+<td><code>14-dashboard-ana.png</code></td>
+<td>Roles: sin valor en custodia.</td>
 </tr>
 <tr>
 <td style="text-align: center;">15</td>
 <td>Órdenes</td>
-<td>Gabriel</td>
-<td><code>/ordenes</code></td>
-<td><code>15-ordenes-lista.png</code></td>
-<td>Seis órdenes con etapas y totales.</td>
+<td>Ana</td>
+<td><code>/ordenes/nuevo</code></td>
+<td><code>15-nueva-orden-ana.png</code></td>
+<td>Requerimientos: alta de orden en <code>Recibido</code>.</td>
 </tr>
 <tr>
 <td style="text-align: center;">16</td>
-<td>Órdenes</td>
-<td>Gabriel</td>
-<td>Filtro <code>Listo</code></td>
-<td><code>16-ordenes-filtro-etapa.png</code></td>
-<td>Filtro por etapa (ORD-0005).</td>
+<td>Mecánico</td>
+<td>Luis</td>
+<td><code>/ordenes</code></td>
+<td><code>16-tablero-luis.png</code></td>
+<td>Objetivo: tablero con <strong>Registrar Avance</strong>.</td>
 </tr>
 <tr>
 <td style="text-align: center;">17</td>
-<td>Órdenes</td>
-<td>Gabriel</td>
-<td><code>/ordenes/nuevo</code></td>
-<td><code>17-nueva-orden.png</code></td>
-<td>Cliente y vehículo dependientes.</td>
+<td>Mecánico</td>
+<td>Luis</td>
+<td>Modal de avance</td>
+<td><code>17-registrar-avance-luis.png</code></td>
+<td>Requerimientos: diagnóstico y refacciones.</td>
 </tr>
 <tr>
 <td style="text-align: center;">18</td>
-<td>Órdenes</td>
-<td>Gabriel</td>
-<td>Registrar orden</td>
-<td><code>18-orden-creada.png</code></td>
-<td>Orden nueva en <code>Recibido</code>.</td>
+<td>Mecánico</td>
+<td>Luis</td>
+<td><code>/clientes</code></td>
+<td><code>18-clientes-confidenciales-luis.png</code></td>
+<td>Roles: Mariana Cortés enmascarada.</td>
 </tr>
 <tr>
 <td style="text-align: center;">19</td>
-<td>Orden</td>
-<td>Gabriel</td>
-<td>ORD-0004, parte superior</td>
-<td><code>19-orden-detalle.png</code></td>
-<td>Etapa, fechas, cliente, vehículo y conceptos.</td>
+<td>Mecánico</td>
+<td>Luis</td>
+<td>Detalle de ORD-0001</td>
+<td><code>19-orden-luis-sin-precios.png</code></td>
+<td>Roles: refacciones sin precios ni totales.</td>
 </tr>
 <tr>
 <td style="text-align: center;">20</td>
 <td>Orden</td>
-<td>Gabriel</td>
-<td>Totales de ORD-0004</td>
-<td><code>20-orden-totales.png</code></td>
-<td>Subtotal, IVA 16 % y total.</td>
-</tr>
-<tr>
-<td style="text-align: center;">21</td>
-<td>Orden</td>
-<td>Gabriel</td>
+<td>Luis</td>
 <td><strong>Imprimir Orden</strong></td>
-<td><code>21-orden-impresion.png</code></td>
-<td>Vista previa imprimible.</td>
-</tr>
-<tr>
-<td style="text-align: center;">22</td>
-<td>Inventario</td>
-<td>Gabriel</td>
-<td><code>/inventario</code></td>
-<td><code>22-inventario.png</code></td>
-<td>Existencias, mínimo y alerta visual.</td>
-</tr>
-<tr>
-<td style="text-align: center;">23</td>
-<td>Inventario</td>
-<td>Gabriel</td>
-<td><strong>Surtir</strong></td>
-<td><code>23-inventario-surtir.png</code></td>
-<td>Modal de entrada de inventario.</td>
-</tr>
-<tr>
-<td style="text-align: center;">24</td>
-<td>Inventario</td>
-<td>Gabriel</td>
-<td>Registrar 5 piezas</td>
-<td><code>24-inventario-actualizado.png</code></td>
-<td>Existencia actualizada y movimiento.</td>
-</tr>
-<tr>
-<td style="text-align: center;">25</td>
-<td>Configuración</td>
-<td>Gabriel</td>
-<td><code>/configuracion</code></td>
-<td><code>25-configuracion-usuarios.png</code></td>
-<td>Usuarios con rol y estado.</td>
-</tr>
-<tr>
-<td style="text-align: center;">26</td>
-<td>Configuración</td>
-<td>Gabriel</td>
-<td>Restablecer contraseña</td>
-<td><code>26-restablecer-password.png</code></td>
-<td>Modal exclusivo del Admin.</td>
-</tr>
-<tr>
-<td style="text-align: center;">27</td>
-<td>Panel</td>
-<td>Ana</td>
-<td><code>/dashboard</code></td>
-<td><code>27-dashboard-recepcion.png</code></td>
-<td>Mismos indicadores sin valor en custodia.</td>
-</tr>
-<tr>
-<td style="text-align: center;">28</td>
-<td>Menú</td>
-<td>Ana</td>
-<td>Menú lateral</td>
-<td><code>28-menu-recepcion.png</code></td>
-<td>Sin Configuración; con Inventario.</td>
-</tr>
-<tr>
-<td style="text-align: center;">29</td>
-<td>Órdenes</td>
-<td>Ana</td>
-<td><code>/ordenes/nuevo</code></td>
-<td><code>29-recepcion-nueva-orden.png</code></td>
-<td>Recepción sí puede crear órdenes.</td>
-</tr>
-<tr>
-<td style="text-align: center;">30</td>
-<td>Ruta protegida</td>
-<td>Ana</td>
-<td>URL <code>/configuracion</code></td>
-<td><code>30-ruta-protegida.png</code></td>
-<td>Redirección al panel; la URL se ve en la barra.</td>
-</tr>
-<tr>
-<td style="text-align: center;">31</td>
-<td>Mecánico</td>
-<td>Luis</td>
-<td><code>/ordenes</code></td>
-<td><code>31-tablero-mecanico.png</code></td>
-<td>Tablero de bahías con <strong>Registrar Avance</strong>.</td>
-</tr>
-<tr>
-<td style="text-align: center;">32</td>
-<td>Mecánico</td>
-<td>Luis</td>
-<td>Modal de avance</td>
-<td><code>32-registrar-avance.png</code></td>
-<td>Diagnóstico, etapa y refacciones.</td>
-</tr>
-<tr>
-<td style="text-align: center;">33</td>
-<td>Mecánico</td>
-<td>Luis</td>
-<td>Detalle ORD-0001</td>
-<td><code>33-orden-mecanico-sin-precios.png</code></td>
-<td>Sin importes ni totales.</td>
-</tr>
-<tr>
-<td style="text-align: center;">34</td>
-<td>Mecánico</td>
-<td>Luis</td>
-<td><code>/clientes</code></td>
-<td><code>34-clientes-confidenciales.png</code></td>
-<td>Mariana Cortés enmascarada.</td>
-</tr>
-<tr>
-<td style="text-align: center;">35</td>
-<td>404</td>
-<td>Cualquiera</td>
-<td><code>/no-existe</code></td>
-<td><code>35-404.png</code></td>
-<td>Pantalla 404 con <strong>Volver a Principal</strong>.</td>
-</tr>
-<tr>
-<td style="text-align: center;">36</td>
-<td>Logout</td>
-<td>Cualquiera</td>
-<td><strong>Cerrar sesión</strong></td>
-<td><code>36-logout.png</code></td>
-<td>Regreso al Login.</td>
-</tr>
-<tr>
-<td style="text-align: center;">37</td>
-<td>API</td>
-<td>—</td>
-<td><code>/api/v1/salud</code></td>
-<td><code>37-api-salud.png</code></td>
-<td><code>"estado": "ok"</code> y <code>"tablas": 21</code>.</td>
-</tr>
-<tr>
-<td style="text-align: center;">38</td>
-<td>Swagger</td>
-<td>—</td>
-<td><code>/docs</code></td>
-<td><code>38-swagger-modulos.png</code></td>
-<td>Módulos de la API.</td>
-</tr>
-<tr>
-<td style="text-align: center;">39</td>
-<td>Swagger</td>
-<td>Gabriel</td>
-<td><strong>Authorize</strong></td>
-<td><code>39-swagger-autorizado.png</code></td>
-<td>Candado activo con JWT.</td>
-</tr>
-<tr>
-<td style="text-align: center;">40</td>
-<td>Swagger</td>
-<td>Gabriel</td>
-<td><code>GET /clientes</code></td>
-<td><code>40-swagger-clientes.png</code></td>
-<td>Respuesta 200 con datos.</td>
-</tr>
-<tr>
-<td style="text-align: center;">41</td>
-<td>Swagger</td>
-<td>Luis</td>
-<td><code>GET /usuarios</code></td>
-<td><code>41-swagger-403.png</code></td>
-<td><code>403</code> del backend por rol.</td>
-</tr>
-<tr>
-<td style="text-align: center;">42</td>
-<td>Base de datos</td>
-<td>—</td>
-<td><code>SHOW TABLES;</code></td>
-<td><code>42-bd-tablas.png</code></td>
-<td>Las 21 tablas.</td>
-</tr>
-<tr>
-<td style="text-align: center;">43</td>
-<td>Base de datos</td>
-<td>—</td>
-<td><code>SELECT ... FROM ordenes_servicio;</code></td>
-<td><code>43-bd-ordenes.png</code></td>
-<td>Órdenes y totales.</td>
-</tr>
-<tr>
-<td style="text-align: center;">44</td>
-<td>Base de datos</td>
-<td>—</td>
-<td><code>SELECT * FROM bitacora ... LIMIT 10;</code></td>
-<td><code>44-bd-bitacora.png</code></td>
-<td>Movimientos recientes.</td>
-</tr>
-<tr>
-<td style="text-align: center;">45</td>
-<td>Móvil</td>
-<td>Gabriel</td>
-<td>390 × 844 px</td>
-<td><code>45-movil-dashboard.png</code></td>
-<td>Panel adaptable.</td>
-</tr>
-<tr>
-<td style="text-align: center;">46</td>
-<td>Móvil</td>
-<td>Gabriel</td>
-<td>Menú desplegado</td>
-<td><code>46-movil-menu.png</code></td>
-<td>Menú funcional en móvil.</td>
-</tr>
-<tr>
-<td style="text-align: center;">47</td>
-<td>Móvil</td>
-<td>Gabriel</td>
-<td>Tabla de órdenes</td>
-<td><code>47-movil-ordenes.png</code></td>
-<td>Tabla usable con scroll horizontal.</td>
+<td><code>20-orden-impresion.png</code></td>
+<td>Requerimientos: vista previa imprimible.</td>
 </tr>
 </tbody>
-</table>
-<h3 id="63-checklist-final-de-evidencias">6.3 Checklist final de evidencias</h3>
+</table><style>
+    /* Tus estilos originales */
+    .contenedor-captura {
+        text-align: center;
+        margin: 20px 0;
+    }
+    .contenedor-captura img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        cursor: zoom-in; /* Cursor de lupa */
+        transition: transform 0.2s;
+    }
+    .contenedor-captura img:hover {
+        transform: scale(1.01);
+    }
+
+    /* Estilos del Lightbox */
+    #lightbox-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        align-items: center;
+        justify-content: center;
+        cursor: zoom-out;
+    }
+    #lightbox-modal img {
+        max-width: 95%;
+        max-height: 95%;
+        border: 2px solid white;
+        border-radius: 4px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    @media print {
+        #lightbox-modal { display: none !important; }
+    }
+</style>
+<h3 id="63-bloque-1-ingenieria-inversa-y-base-de-datos">6.3 Bloque 1: Ingeniería inversa y base de datos</h3>
+<h4 id="captura-1-ingenieria-inversa">Captura 1: Ingeniería inversa</h4>
+<div class="contenedor-captura"><img alt="Captura 1: Ingeniería inversa" src="capturas/ingenieria-inversa.png" /></div>
+<p>Correspondencia entre el DDL de MySQL y el modelo SQLAlchemy <code>Cliente</code> (<code>backend/app/models/clientes.py</code>). Tipos, nulabilidad, valores por defecto, <code>ENUM</code>, índices y llaves foráneas se trasladan columna por columna, con el DDL como fuente de verdad (sección 4.2).</p>
+
+<h4 id="captura-2-diagrama-e-r-en-3fn">Captura 2: Diagrama E-R en 3FN</h4>
+<div class="contenedor-captura"><img alt="Captura 2: Diagrama E-R en 3FN" src="capturas/Diagrama-E-R-en-3FN.png" /></div>
+<p>Diagrama entidad-relación interactivo de las 21 tablas en tercera forma normal. Se distinguen las llaves primarias, las llaves foráneas y la cardinalidad de cada relación (secciones 4.4 y 4.6).</p>
+
+<h4 id="captura-3-procedimiento-almacenado">Captura 3: Procedimiento almacenado</h4>
+<div class="contenedor-captura"><img alt="Captura 3: Procedimiento almacenado" src="capturas/Procedimiento-almacenado.png" /></div>
+<p>Ejecución de <code>CALL sp_calcular_total_orden(4);</code>. El resultado desglosa piezas, mano de obra, descuento VIP del 10 %, subtotal, IVA del 16 % y un total de 2 536.92, que se persiste en <code>ordenes_servicio</code> (sección 4.8.2).</p>
+
+<h4 id="captura-4-funcion-almacenada">Captura 4: Función almacenada</h4>
+<div class="contenedor-captura"><img alt="Captura 4: Función almacenada" src="capturas/Funcion-almacenada.png" /></div>
+<p>Ejecución de <code>SELECT fn_valor_en_custodia();</code>. La función devuelve 5 860 000.00 MXN, suma del valor de los vehículos con orden vigente no entregada, contando cada vehículo una sola vez (sección 4.8.3).</p>
+
+<h4 id="captura-5-disparadores-triggers">Captura 5: Disparadores (triggers)</h4>
+<div class="contenedor-captura"><img alt="Captura 5: Disparadores (triggers)" src="capturas/Disparadores (triggers).png" /></div>
+<p>Consulta <code>SHOW TRIGGERS FROM autopulse_elite;</code> en MySQL Workbench. Se listan los seis triggers instalados: dos de exclusividad en <code>detalle_orden</code> y cuatro de inmutabilidad en <code>bitacora</code> e <code>historial_etapas</code> (sección 4.7).</p>
+
+<h3 id="64-bloque-2-acceso-y-seguridad">6.4 Bloque 2: Acceso y seguridad</h3>
+<h4 id="captura-6-login-vacio">Captura 6: Login vacío</h4>
+<div class="contenedor-captura"><img alt="Captura 6: Login vacío" src="capturas/Login-vacio.png" /></div>
+<p>Pantalla de acceso con autenticación individual por correo y contraseña, basada en JWT (sección 5.4).</p>
+
+<h4 id="captura-7-error-de-login">Captura 7: Error de login</h4>
+<div class="contenedor-captura"><img alt="Captura 7: Error de login" src="capturas/Error-de-login.png" /></div>
+<p>Intento de acceso con contraseña incorrecta. El mensaje es genérico y no revela si el correo existe, lo que evita la enumeración de cuentas (sección 5.4).</p>
+
+<h3 id="65-bloque-3-rol-administrador-gabriel">6.5 Bloque 3: Rol Administrador (Gabriel)</h3>
+<h4 id="captura-8-dashboard-de-gabriel">Captura 8: Dashboard de Gabriel</h4>
+<div class="contenedor-captura"><img alt="Captura 8: Dashboard de Gabriel" src="capturas/Dashboard-deGabriel.png" /></div>
+<p>Panel del Administrador con los indicadores operativos y la tarjeta “Valor en custodia”, calculada por <code>fn_valor_en_custodia()</code> mediante un endpoint restringido a este rol.</p>
+
+<h4 id="captura-9-tabla-de-clientes">Captura 9: Tabla de clientes</h4>
+<div class="contenedor-captura">
+    <img alt="Captura 9: Tabla de clientes" src="capturas/Tabla-de-clientes.png" style="margin-bottom: 15px;" />
+    <img alt="Captura 9.1: Detalle del cliente VIP" src="capturas/CLientes-vip.png" style="margin-bottom: 15px;" />
+    <img alt="Captura 9.2: Detalle del cliente Regular" src="capturas/Clientes-Regular.png" style="margin-bottom: 15px;" />
+    <img alt="Captura 9.3: Detalle del cliente Filtro" src="capturas/CLiente-filtro.png" />
+</div><p>Directorio de clientes con etiquetas VIP y Regular, búsqueda por nombre y filtro por categoría. El Administrador visualiza los datos completos, incluidos los de clientes confidenciales (CLI-02, CLI-05).</p>
+
+<h4 id="captura-10-detalle-de-orden">Captura 10: Detalle de orden</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 10: Detalle de orden" src="capturas/Tabla-Orden.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 10.1: Detalle de orden 0004" src="capturas/Orden-0004.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 10.2: Detalle de orden 0004" src="capturas/0004.png" />
+</div>
+<p>Orden ORD-0004 con sus conceptos y el desglose de importes: subtotal de 2 187.00, IVA del 16 % de 349.92 y total de 2 536.92, con el descuento VIP aplicado solo a la mano de obra (PAG-01, PAG-02).</p>
+
+<h4 id="captura-11-inventario">Captura 11: Inventario</h4>
+<div class="contenedor-captura"><img alt="Captura 11: Inventario" src="capturas/Tabla-Inventario.png" /></div>
+<p>Catálogo de refacciones con existencia actual, nivel mínimo y alerta visual para las piezas con stock bajo, además del registro de entradas (INV-01, INV-03).</p>
+
+<h4 id="captura-12-configuracion">Captura 12: Configuración</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 12: Configuración" src="capturas/Configuracion.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 12: Configuración" src="capturas/config.png" />
+</div>
+<p>Gestión de usuarios con rol y estado, y restablecimiento de contraseña. Función exclusiva del Administrador; el endpoint responde <code>403</code> a los demás roles (sección 5.3).</p>
+
+<h3 id="66-bloque-4-rol-recepcion-ana">6.6 Bloque 4: Rol Recepción (Ana)</h3>
+<h4 id="captura-13-menu-lateral-de-ana">Captura 13: Menú lateral de Ana</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 13: Login de Ana" src="capturas/Login-ana.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 13.1: Menú lateral de Ana" src="capturas/lateral-ana.png" />
+</div>
+<p>Menú del rol Recepción: incluye clientes, vehículos, órdenes e inventario, y omite Configuración y los módulos de finanzas (SEG-03).</p>
+
+<h4 id="captura-14-dashboard-de-ana">Captura 14: Dashboard de Ana</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 14: Dashboard de Ana" src="capturas/Dashboard-deAna.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 14.1: Dashboard de Ana" src="capturas/dash-ana.png" />
+</div>
+<p>Panel de Recepción con los indicadores operativos y sin la tarjeta “Valor en custodia”, restringida al Administrador.</p>
+
+<h4 id="captura-15-alta-de-orden-de-servicio">Captura 15: Alta de orden de servicio</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 15: Alta de orden de servicio" src="capturas/Tabla-orde-ana.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 15: Alta de orden de servicio" src="capturas/Nueva-orden.png" />
+</div>
+<p>Formulario de nueva orden con cliente y vehículo dependientes. La orden se crea en la etapa <code>Recibido</code> y queda registrada en <code>bitacora</code> e <code>historial_etapas</code> (ORD-01, ORD-02).</p>
+
+<h3 id="67-bloque-5-rol-mecanico-luis">6.7 Bloque 5: Rol Mecánico (Luis)</h3>
+<h4 id="captura-16-tablero-de-bahias">Captura 16: Tablero de bahías</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 16: Tablero de bahías" src="capturas/Login-Luis.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 16: Tablero de bahías" src="capturas/Ordenes-luis.png" />
+</div>
+<p>Tablero del Mecánico en formato de tableta, limitado a las órdenes asignadas y con el botón <strong>Registrar Avance</strong> (ORD-03, SEG-11).</p>
+
+<h4 id="captura-17-modal-de-registrar-avance">Captura 17: Modal de Registrar Avance</h4>
+<div class="contenedor-captura"><img alt="Captura 17: Modal de Registrar Avance" src="capturas/Registrar-avance.png" /></div>
+<p>Panel de trabajo del Mecánico (Luis) donde se listan sus órdenes asignadas. Incluye el estado del vehículo, el reporte del cliente, el último diagnóstico y el botón <strong>Registrar Avance</strong>, con una interfaz adaptada para uso en tableta (ORD-03, SEG-11).</p>
+
+<h4 id="captura-18-lista-de-clientes-con-enmascaramiento">Captura 18: Lista de clientes con enmascaramiento</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 18: Lista de clientes con enmascaramiento" src="capturas/Tabla-clientes.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 18: Lista de clientes con enmascaramiento" src="capturas/cliente-confidencial-mariacortez.png" />
+</div>
+<p>Directorio de clientes visto por el Mecánico. El registro de Mariana Cortés aparece como “Cliente confidencial”, con contacto oculto; el enmascaramiento se aplica en el backend (SEG-17, SEG-18).</p>
+
+<h4 id="captura-20-impresion-de-orden">Captura 19: Impresión de orden</h4>
+<div class="contenedor-captura">
+  <img alt="Captura 19: Impresión de orden" src="capturas/impresion-orden.png" style="margin-bottom: 15px;" />
+  <img alt="Captura 19: Impresión de orden" src="capturas/doc-impresion.png" />
+</div>
+<p>Vista previa de impresión de la orden de servicio, con los datos del vehículo y los conceptos de trabajo, lista para su emisión en papel.</p>
+
+<!-- EL LIGHTBOX Y EL SCRIPT AL FINAL -->
+<div id="lightbox-modal">
+    <img id="lightbox-img" src="" alt="Imagen ampliada" />
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('lightbox-modal');
+        const modalImg = document.getElementById('lightbox-img');
+        const imagenes = document.querySelectorAll('.contenedor-captura img');
+
+        imagenes.forEach(img => {
+            img.addEventListener('click', function() {
+                modal.style.display = 'flex';
+                modalImg.src = this.src;
+            });
+        });
+
+        modal.addEventListener('click', function(e) {
+            if (e.target !== modalImg) {
+                modal.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                modal.style.display = 'none';
+            }
+        });
+    });
+</script>
+<h3 id="68-checklist-final-de-evidencias">6.8 Checklist final de evidencias</h3>
 <ul>
-<li>[ ] Login correcto y error de credenciales.</li>
-<li>[ ] Panel de Administrador con datos reales y valor en custodia.</li>
-<li>[ ] Clientes: lista, búsqueda, filtro VIP, detalle y alta.</li>
-<li>[ ] Vehículos: lista, búsqueda y alta.</li>
-<li>[ ] Órdenes: lista, filtro por etapa, alta y detalle con totales.</li>
-<li>[ ] Impresión de una orden.</li>
-<li>[ ] Inventario: lista, surtido y existencia actualizada.</li>
-<li>[ ] Configuración y restablecimiento de contraseña.</li>
-<li>[ ] Panel y menú de Recepción sin finanzas.</li>
-<li>[ ] Ruta <code>/configuracion</code> bloqueada para Recepción.</li>
-<li>[ ] Tablero de bahías del Mecánico.</li>
-<li>[ ] Modal de registrar avance.</li>
-<li>[ ] Orden del mecánico sin precios.</li>
-<li>[ ] Cliente confidencial enmascarado.</li>
-<li>[ ] Pantalla 404 y cierre de sesión.</li>
-<li>[ ] API de salud, Swagger autorizado y 403 del backend.</li>
-<li>[ ] Tablas, órdenes y bitácora en MySQL.</li>
-<li>[ ] Modelos SQLAlchemy y diagrama E-R en 3FN (guía de ingeniería).</li>
+<li>[ ] Ingeniería inversa: modelo SQLAlchemy frente al DDL.</li>
+<li>[ ] Diagrama E-R en 3FN con llaves primarias y foráneas.</li>
 <li>[ ] <code>CALL sp_calcular_total_orden(4)</code> y <code>SELECT fn_valor_en_custodia()</code>.</li>
-<li>[ ] Dashboard con “Valor en custodia” calculado por la función SQL.</li>
+<li>[ ] Triggers instalados en MySQL Workbench.</li>
+<li>[ ] Login vacío y error de credenciales.</li>
+<li>[ ] Panel de Administrador con valor en custodia.</li>
+<li>[ ] Clientes con etiquetas VIP y detalle de orden con subtotal, IVA y total.</li>
+<li>[ ] Inventario con alertas de stock y configuración de usuarios.</li>
+<li>[ ] Menú y panel de Recepción sin finanzas ni valor en custodia.</li>
+<li>[ ] Alta de una orden de servicio.</li>
+<li>[ ] Tablero de bahías y modal de registrar avance del Mecánico.</li>
+<li>[ ] Cliente confidencial enmascarado.</li>
+<li>[ ] Vista previa de impresión de la orden.</li>
 </ul>
-<p>Con estas evidencias queda demostrado el ciclo completo: <strong>autenticación → clientes → vehículos →
-orden → avance → inventario → auditoría</strong>, además de las restricciones por rol en frontend y
-backend.</p>
-<h3 id="64-evidencias-de-ingenieria-inversa-3fn-y-rutinas-sql">6.4 Evidencias de ingeniería inversa, 3FN y rutinas SQL</h3>
-<p>Además de las 47 capturas del sistema, el cierre de los criterios de evaluación requiere cinco
-evisiones técnicas. El guion detallado —con nombres de archivo, consultas exactas y qué debe
-verse en pantalla— está en <strong><code>docs/guia-capturas-ingenieria.md</code></strong>:</p>
-<table class="tabla-ids">
-<thead>
-<tr>
-<th style="text-align: center;">#</th>
-<th>Evidencia</th>
-<th>Dónde se captura</th>
-<th>Qué demuestra</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: center;">48</td>
-<td>Modelo SQLAlchemy derivado del DDL</td>
-<td>VS Code, <code>backend/app/models/clientes.py</code> u <code>ordenes_servicio.py</code></td>
-<td>Ingeniería inversa: <code>Mapped</code>, <code>mapped_column</code>, <code>ForeignKey</code> y <code>relationship</code>.</td>
-</tr>
-<tr>
-<td style="text-align: center;">49</td>
-<td>Diagrama E-R en 3FN</td>
-<td><code>docs/diagrama-er-interactivo.html</code> o <code>docs/erd.md</code></td>
-<td>Las 21 tablas normalizadas y sus relaciones.</td>
-</tr>
-<tr>
-<td style="text-align: center;">50</td>
-<td>Procedimiento almacenado</td>
-<td>MySQL Workbench, <code>CALL sp_calcular_total_orden(4);</code></td>
-<td>Cálculo de piezas + mano de obra + IVA y persistencia de los totales.</td>
-</tr>
-<tr>
-<td style="text-align: center;">51</td>
-<td>Función almacenada</td>
-<td>MySQL Workbench, <code>SELECT fn_valor_en_custodia();</code></td>
-<td>Suma del valor de los vehículos que siguen en custodia.</td>
-</tr>
-<tr>
-<td style="text-align: center;">52</td>
-<td>Dashboard con el valor real</td>
-<td>Panel del Administrador</td>
-<td>La tarjeta “Valor en custodia” muestra la cifra de la función SQL, no una suma del navegador.</td>
-</tr>
-</tbody>
-</table>
+<p>Con estas evidencias queda demostrado el ciclo completo: <strong>base de datos → ingeniería inversa → rutinas y disparadores → autenticación → operación por rol → auditoría</strong>, además de las restricciones por rol en frontend y backend.</p>
 <hr />
 <h2 id="7-limitaciones-y-trabajo-futuro">7. Limitaciones y trabajo futuro</h2>
 <h3 id="71-limitaciones-declaradas">7.1 Limitaciones declaradas</h3>
