@@ -726,7 +726,7 @@ def construir(destino: Path, markdown_texto: str, total=None, sin_capturas=False
         title="AutoPulse Elite — Reporte final",
         author=", ".join(AUTORES),
         subject="Diseño, implementación y verificación de la base de datos de AutoPulse Elite",
-        keywords="MySQL, SQLAlchemy, FastAPI, React, base de datos, normalización, ingeniería inversa",
+        keywords="PostgreSQL, SQLAlchemy, FastAPI, React, base de datos, normalización, ingeniería inversa",
         creator="AutoPulse Elite",
         producer="ReportLab",
     )

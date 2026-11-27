@@ -2,20 +2,20 @@
 
 Sistema web de gestión para **Apex Elite Motorsport**, un taller especializado en autos de lujo. Concentra clientes VIP, vehículos, órdenes de servicio, inventario, usuarios, proveedores/compras y bitácora en un solo lugar, con permisos por rol y trazabilidad completa. La operación actual vive en libretas y Excel; este sistema la ordena y protege la discreción de clientes que son figuras públicas.
 
-> **Estado:** Núcleo operativo funcional de punta a punta. La base de datos MySQL (21 tablas), la API con FastAPI + JWT y el frontend con React + TypeScript están implementados para clientes, vehículos, órdenes, inventario, usuarios y proveedores/compras. Los módulos de pagos, facturación, autorizaciones y reportes se construirán en la siguiente fase.
+> **Estado:** Núcleo operativo funcional de punta a punta. La base de datos PostgreSQL (21 tablas), la API con FastAPI + JWT y el frontend con React + TypeScript están implementados para clientes, vehículos, órdenes, inventario, usuarios y proveedores/compras. Los módulos de pagos, facturación, autorizaciones y reportes se construirán en la siguiente fase.
 
 ## Stack tecnológico
 
 | Capa | Tecnología |
 |---|---|
-| Base de datos | MySQL 8.x, InnoDB, `utf8mb4` |
+| Base de datos | PostgreSQL 16 |
 | Backend | Python 3.10+ · FastAPI · SQLAlchemy 2.x · Pydantic v2 · Uvicorn |
 | Autenticación | JWT (HS256) con roles: Administrador, Recepción y Mecánico |
 | Frontend | React 19 · TypeScript · Vite · Tailwind CSS 4 |
 | Gráficas | Recharts (disponible para reportes) |
 | Documentación | Markdown y Mermaid |
 
-Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DECIMAL(12,2)`, estados con `ENUM`, fechas con `DATETIME` y llaves foráneas con `ON DELETE RESTRICT` para que nada se borre físicamente. Las tablas de bitácora son inmutables y están protegidas con triggers. **Se utilizó Ingeniería Inversa** para mapear las 21 tablas de MySQL a los modelos de SQLAlchemy en Python.
+Convenciones de base de datos: nombres en español y `snake_case`, dinero en `NUMERIC(12,2)`, estados con tipos `ENUM` nativos, fechas con `TIMESTAMP` y llaves foráneas con `ON DELETE RESTRICT` para que nada se borre físicamente. Las tablas de bitácora son inmutables y están protegidas con triggers. **Se utilizó Ingeniería Inversa** para mapear las 21 tablas de PostgreSQL a los modelos de SQLAlchemy en Python.
 
 ## Funcionalidad disponible
 
@@ -24,13 +24,13 @@ Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DE
 - **Autenticación y roles.** Login con correo y contraseña, token JWT y menú distinto por rol. El backend valida cada endpoint; el frontend además protege las rutas por rol.
 - **Clientes.** Alta, edición, búsqueda, categoría VIP/Regular, clientes confidenciales, datos fiscales y condiciones comerciales. El rol Mecánico recibe los clientes confidenciales enmascarados.
 - **Vehículos.** Alta, edición y consulta por placas, VIN, marca o modelo, con kilometraje de entrada y valor aproximado. El valor se oculta al rol Mecánico.
-- **Órdenes de servicio.** Alta de orden en estado `Recibido`, tablero por bahías, detalle con conceptos y totales, avance de etapa desde el detalle y registro de avance del mecánico con mano de obra y consumo de refacciones. Los totales (piezas + mano de obra con descuento VIP + IVA) los calcula siempre el backend mediante el procedimiento `sp_calcular_total_orden`.
+- **Órdenes de servicio.** Alta de orden en estado `Recibido`, tablero por bahías, detalle con conceptos y totales, avance de etapa desde el detalle y registro de avance del mecánico con mano de obra y consumo de refacciones. Los totales (piezas + mano de obra con descuento VIP + IVA) los calcula siempre el backend mediante la función `sp_calcular_total_orden`.
 - **Inventario.** Catálogo con existencias, alerta de stock bajo, alta de refacciones, baja lógica, surtido con movimiento y asiento en bitácora.
 - **Usuarios.** Listado y restablecimiento de contraseña, exclusivo del Administrador.
 - **Proveedores y compras.** Directorio con país, contacto, moneda y días de entrega; alta y edición de proveedores; órdenes de compra con folio, estado, fecha estimada de llegada y totales en la moneda del proveedor y en MXN. Las compras nacen en `Borrador` y quedan auditadas.
 - **Panel principal.** Indicadores reales: autos en taller, órdenes por etapa, listas para entrega, clientes, valor en custodia (solo Administrador), refacciones por reponer, pendientes y últimas órdenes.
 - **Trazabilidad.** Bitácora de operaciones e historial de etapas por orden.
-- **Rutinas SQL.** Función `fn_valor_en_custodia()` para calcular el valor de los autos en el taller, y procedimiento `sp_calcular_total_orden()` para el desglose de importes.
+- **Rutinas SQL.** Función `fn_valor_en_custodia()` para calcular el valor de los autos en el taller, y función `sp_calcular_total_orden()` para el desglose de importes.
 
 ### Pendiente para siguientes fases
 
@@ -45,13 +45,13 @@ Convenciones de base de datos: nombres en español y `snake_case`, dinero en `DE
 
 | Herramienta | Versión recomendada | Para qué |
 |---|---|---|
-| MySQL Server | 8.0 o superior | Base de datos |
+| PostgreSQL | 16 o superior | Base de datos |
 | Python | 3.10 o superior | API |
 | Node.js | 22 o superior | Frontend (Vite) |
 | npm | 10 o superior | Dependencias del frontend |
 | Git | cualquiera reciente | Clonar el repositorio |
 
-En Windows, agrega `mysql`, `python` y `npm` al `PATH` para poder ejecutar los comandos desde la terminal.
+En Windows, agrega `psql`, `python` y `npm` al `PATH` para poder ejecutar los comandos desde la terminal.
 
 ## Levantar el proyecto desde cero
 
@@ -60,68 +60,56 @@ En Windows, agrega `mysql`, `python` y `npm` al `PATH` para poder ejecutar los c
 ```bash
 git clone https://github.com/rocketquee/Tallermecanicoco.git
 cd Tallermecanicoco
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/<usuario>/Apex-Elite-Motorsport.git
-cd Apex-Elite-Motorsport
 ```
 
 ### 2. Crear la base de datos
 
-```bash
-mysql -u root -p -e "CREATE DATABASE autopulse_elite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+Crea la base una sola vez. Ajusta el usuario si no eres `postgres`:
+
+```powershell
+psql -U postgres -c "CREATE DATABASE autopulse_elite;"
 ```
 
 ### 3. Ejecutar los scripts SQL en orden
 
-Los scripts están en `sql/` y son idempotentes en el orden indicado. Se importan con `utf8mb4` para conservar los acentos.
-
-**PowerShell (Windows).** El operador `<` no existe en PowerShell, así que se usa el comando `source` del cliente `mysql`:
+Los scripts están en `sql/` y son idempotentes en el orden indicado. Se ejecutan con
+`psql` y `ON_ERROR_STOP=1` para que cualquier error detenga la carga.
 
 ```powershell
-# Ejecutar desde la raíz del repositorio (E:\Tallermecanico)
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/01_catalogos.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/02_vehiculos.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/03_inventario.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/04_ordenes.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/05_finanzas.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/06_seguridad.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/09_avance_mecanico.sql"
-
-# Datos de ejemplo (solo desarrollo)
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/07_datos_prueba.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/08_datos_prueba_extra.sql"
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/10_proveedores_demo.sql"
-
-# Procedimiento y función almacenados
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite -e "source sql/11_procedimientos_funciones.sql"
+# Ejecutar desde la raíz del repositorio
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/01_catalogos.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/02_vehiculos.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/03_inventario.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/04_ordenes.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/05_finanzas.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/06_seguridad.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/07_datos_prueba.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/08_datos_prueba_extra.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/09_avance_mecanico.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/10_proveedores_demo.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/11_procedimientos_funciones.sql
 ```
 
-**CMD.** La redirección clásica también funciona (una línea por script):
+> Los bloques `07` y `08` son datos de ejemplo y solo deben ejecutarse en desarrollo.
 
-```bat
-mysql -u root -p --default-character-set=utf8mb4 autopulse_elite < sql\01_catalogos.sql
-```
+> Si `psql` no está en el `PATH`, usa la ruta completa, por ejemplo
+> `"C:\Program Files\PostgreSQL\16\bin\psql.exe"`. Si el servicio no está corriendo,
+> inícialo con `Get-Service *postgres*` y `Start-Service <nombre-del-servicio>`.
 
-> Si el cliente `mysql` no está en el `PATH`, usa la ruta completa, por ejemplo
-> `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"`. Si el servicio no está corriendo,
-> inícialo con `Get-Service *mysql*` y `Start-Service <nombre-del-servicio>`.
+Verifica que se hayan creado las 21 tablas y las dos rutinas del bloque 11:
 
-Verifica que se hayan creado las 21 tablas y las rutinas del bloque 11:
-
-```bash
-mysql -u root -p -e "USE autopulse_elite; SHOW TABLES;"
-mysql -u root -p -e "USE autopulse_elite; SHOW PROCEDURE STATUS WHERE Db = 'autopulse_elite';"
-mysql -u root -p -e "USE autopulse_elite; SHOW FUNCTION STATUS WHERE Db = 'autopulse_elite';"
-mysql -u root -p -e "USE autopulse_elite; CALL sp_calcular_total_orden(4);"
-mysql -u root -p -e "USE autopulse_elite; SELECT fn_valor_en_custodia();"
+```powershell
+psql -U postgres -d autopulse_elite -c "\dt"
+psql -U postgres -d autopulse_elite -c "\df sp_calcular_total_orden"
+psql -U postgres -d autopulse_elite -c "\df fn_valor_en_custodia"
+psql -U postgres -d autopulse_elite -c "SELECT * FROM sp_calcular_total_orden(4);"
+psql -U postgres -d autopulse_elite -c "SELECT fn_valor_en_custodia();"
 ```
 
 ### 4. Configurar y arrancar el backend
 
 ```powershell
-cd E:\Tallermecanico\backend
+cd backend
 
 # Crear el entorno virtual (solo la primera vez)
 python -m venv .venv
@@ -149,10 +137,11 @@ Edita `backend/.env` con tus datos reales:
 
 ```env
 DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
+DB_PORT=5432
+DB_USER=postgres
 DB_PASSWORD=TU_CONTRASENA
 DB_NAME=autopulse_elite
+DB_SSLMODE=
 JWT_SECRET_KEY=una_clave_larga_y_aleatoria
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=480
@@ -174,14 +163,14 @@ Invoke-RestMethod http://127.0.0.1:8000/api/v1/salud
 - Salud: <http://127.0.0.1:8000/api/v1/salud>
 - Swagger: <http://127.0.0.1:8000/docs>
 
-La respuesta de `/api/v1/salud` debe incluir `"estado": "ok"` y `"tablas": 21`.
+La respuesta de `/api/v1/salud` debe incluir `"estado": "ok"`, la versión de PostgreSQL y `"tablas": 21`.
 
 ### 5. Arrancar el frontend
 
 En **otra terminal** (deja la API corriendo), desde la raíz del proyecto:
 
 ```powershell
-cd E:\Tallermecanico\frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -242,7 +231,7 @@ Las rutas inexistentes muestran una pantalla **404** en lugar de redirigir en si
 | `POST` | `/api/v1/login` | Login con JSON `{correo, password}` |
 | `POST` | `/api/v1/login/token` | Login OAuth2 para el botón *Authorize* de Swagger |
 | `GET` | `/api/v1/login/me` | Usuario de la sesión actual |
-| `GET` | `/api/v1/salud` | Estado de la API y de MySQL |
+| `GET` | `/api/v1/salud` | Estado de la API y de PostgreSQL |
 | `GET` | `/api/v1/dashboard/valor-custodia` | Valor en custodia calculado por `fn_valor_en_custodia()` (Administrador) |
 | `GET/POST` | `/api/v1/clientes` | Listar y crear clientes |
 | `GET/PUT` | `/api/v1/clientes/{id}` | Consultar y editar cliente |
@@ -347,11 +336,11 @@ Apex-Elite-Motorsport/
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| `Access denied for user ...` | Credenciales incorrectas en `.env` | Revisa `DB_USER` y `DB_PASSWORD`; prueba el mismo usuario con `mysql -u ... -p` |
-| La API arranca pero `/salud` falla | MySQL detenido o base inexistente | Inicia el servicio de MySQL y confirma que `autopulse_elite` existe |
+| `password authentication failed` | Credenciales incorrectas en `.env` | Revisa `DB_USER` y `DB_PASSWORD`; prueba el mismo usuario con `psql -U ... -d autopulse_elite` |
+| La API arranca pero `/salud` falla | PostgreSQL detenido o base inexistente | Inicia el servicio de PostgreSQL y confirma que `autopulse_elite` existe |
 | La pantalla queda en `Verificando sesión…` | Backend caído o token vencido | Levanta `uvicorn`, cierra sesión y vuelve a entrar |
 | `502` o `ECONNREFUSED` en el navegador | Vite no encuentra la API en el puerto 8000 | Arranca el backend antes que el frontend |
-| Acentos rotos al importar SQL | Cliente MySQL con otra codificación | Usa `--default-character-set=utf8mb4` |
+| Acentos rotos al importar SQL | Codificación del cliente distinta de UTF-8 | Ejecuta `SET client_encoding = 'UTF8';` o usa una terminal UTF-8 |
 | `npm run build` falla por variables sin usar | `noUnusedLocals` está activo | Elimina imports o variables que no se usen |
 | Contraseña olvidada | No hay recuperación por correo | Un Administrador la restablece desde Configuración |
 

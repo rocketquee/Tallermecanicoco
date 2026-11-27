@@ -17,13 +17,13 @@ Un borrado físico rompe el historial de órdenes, facturas y pagos, y además d
 huérfanas las referencias de una auditoría que debe ser confiable.
 
 ### Decisión
-Ninguna fila se elimina físicamente. Cada tabla lleva `activo TINYINT(1) DEFAULT 1`
-y todas las llaves foráneas usan `ON DELETE RESTRICT`. La baja se hace con
-`UPDATE ... SET activo = 0`.
+Ninguna fila se elimina físicamente. Cada tabla lleva `activo BOOLEAN NOT NULL
+DEFAULT TRUE` y todas las llaves foráneas usan `ON DELETE RESTRICT`. La baja se
+hace con `UPDATE ... SET activo = FALSE`.
 
 ### Consecuencias
 - Ventajas: historial íntegro, auditoría reconstruible, sin registros huérfanos.
-- Costos: **toda consulta debe filtrar `activo = 1`**, incluidos reportes y búsquedas
+- Costos: **toda consulta debe filtrar `activo = TRUE`**, incluidos reportes y búsquedas
   por placas o nombre. Si se olvida, aparecen clientes y órdenes "fantasma".
 - Los índices únicos deben convivir con registros inactivos: por eso `vehiculos.placas`
   tiene índice **no único**, para permitir reactivar un auto sin violar la restricción.
@@ -45,7 +45,7 @@ y todas las llaves foráneas usan `ON DELETE RESTRICT`. La baja se hace con
 ### Contexto
 Se guardan hasta 30 fotos por auto, de 10 MB máximo cada una, en tres etapas
 (ingreso, proceso y entrega). Con unos 8 autos por semana, esto ronda 2.4 GB
-semanales. Meterlas en MySQL haría la base lenta y los respaldos inmanejables.
+semanales. Meterlas en PostgreSQL haría la base lenta y los respaldos inmanejables.
 
 ### Decisión
 La base de datos solo guarda metadatos en `fotos_vehiculo`: `url_foto` (ruta o URL),
@@ -62,7 +62,7 @@ en producción.
 - `url_foto` es `VARCHAR(500)`: suficiente para rutas y URLs firmadas.
 
 ### Alternativas descartadas
-- **`LONGBLOB` en MySQL:** respaldos gigantes y consultas degradadas.
+- **`BYTEA` en PostgreSQL:** respaldos gigantes y consultas degradadas.
 - **Guardar solo el nombre del archivo:** impide mover el almacenamiento sin migrar datos.
 
 ---
@@ -154,18 +154,14 @@ forma transparente. Los hashes de prueba no se reutilizan en producción.
 
 ### Contexto
 Cada línea de `detalle_orden` debe ser **o** mano de obra **o** refacción, nunca ambas
-ni ninguna. Lo natural era un `CHECK`. MySQL lo rechazó:
-
-```
-Column 'servicio_id' cannot be used in a check constraint ... needed in a foreign key
-constraint ... referential action.
-```
-
-MySQL prohíbe `CHECK` sobre columnas que participan en una FK con `ON UPDATE CASCADE`.
+ni ninguna. La regla surgió al diseñar el esquema original en MySQL, donde un `CHECK`
+sobre columnas que participan en una FK con `ON UPDATE CASCADE` no era viable.
 
 ### Decisión
-Dos triggers `BEFORE INSERT` y `BEFORE UPDATE` (`trg_detalle_orden_bi`,
-`trg_detalle_orden_bu`) que lanzan `SQLSTATE 45000` si se viola la regla.
+Al migrar a PostgreSQL se conservaron dos triggers `BEFORE INSERT` y `BEFORE UPDATE`
+(`trg_detalle_orden_bi`, `trg_detalle_orden_bu`) que lanzan `ERRCODE = 'P0001'` si se
+viola la regla. PostgreSQL sí admite `CHECK`, pero los triggers permiten devolver un
+mensaje de negocio legible y mantienen el mismo contrato que ya consume el backend.
 
 ### Consecuencias
 - Ventajas: la regla se cumple **aunque alguien escriba directo en la base**, no solo
@@ -194,7 +190,8 @@ La auditoría solo sirve si nadie puede alterarla. Estas dos tablas registran he
 - Solo llevan `created_at`: **no tienen `updated_at` ni `activo`**, a propósito.
 - Triggers bloquean `UPDATE` y `DELETE` (`trg_bitacora_bu/bd`,
   `trg_historial_etapas_bu/bd`).
-- `TRUNCATE` **no** está bloqueado, para poder limpiar datos de desarrollo.
+- `TRUNCATE` **no** está bloqueado, para poder limpiar datos de desarrollo; en
+  PostgreSQL no dispara los triggers `BEFORE DELETE`.
 
 ### Consecuencias
 - Ventajas: cumplen SEG-06 de forma verificable, no solo por convención.

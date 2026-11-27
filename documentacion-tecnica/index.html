@@ -915,7 +915,7 @@
 <main>
   <!-- ===================== HERO ===================== -->
   <section class="hero">
-    <div class="eyebrow"><span class="dot"></span>Modelo relacional · MySQL 8.x</div>
+    <div class="eyebrow"><span class="dot"></span>Modelo relacional · PostgreSQL 16</div>
     <h1>Diagrama <span class="grad">Entidad-Relación</span></h1>
     <p class="lead">
       Las 21 tablas de Apex Elite Motorsport y sus 24 relaciones. Haz clic en cualquier tabla
@@ -1082,7 +1082,7 @@
 
   <footer>
     <div>Apex Elite Motorsport — <code>documentacion-tecnica/index.html</code></div>
-    <div>21 tablas · 24 relaciones · MySQL 8.x · utf8mb4_unicode_ci</div>
+    <div>21 tablas · 24 relaciones · PostgreSQL 16 · UTF-8</div>
   </footer>
 </main>
 
@@ -1137,16 +1137,16 @@ const TABLAS = {
       ['nombre_asistente', 'VARCHAR(150)', '', 'Asistente o chofer'],
       ['categoria', "ENUM('Regular','VIP')", '', 'VIP recibe prioridad en la fila de órdenes'],
       ['descuento_mano_obra', 'DECIMAL(5,2)', '', 'Porcentaje de descuento solo en mano de obra'],
-      ['permite_pagos_parciales', 'TINYINT(1)', '', 'Autoriza pagos en partes'],
-      ['confidencial', 'TINYINT(1)', '', 'Oculta la identidad al mecánico'],
+      ['permite_pagos_parciales', 'BOOLEAN', '', 'Autoriza pagos en partes'],
+      ['confidencial', 'BOOLEAN', '', 'Oculta la identidad al mecánico'],
       ['notas', 'TEXT', '', 'Notas internas de atención'],
       ['rfc', 'VARCHAR(20)', '', 'RFC para CFDI 4.0'],
       ['razon_social', 'VARCHAR(200)', '', 'Nombre fiscal'],
       ['regimen_fiscal', 'VARCHAR(100)', '', 'Régimen fiscal SAT'],
       ['codigo_postal', 'VARCHAR(10)', '', 'CP del domicilio fiscal'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico: 1 vigente, 0 baja']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico: TRUE vigente, FALSE baja']
     ]
   },
 
@@ -1162,9 +1162,9 @@ const TABLAS = {
       ['correo', 'VARCHAR(150)', '', 'Correo de contacto'],
       ['tiempo_entrega_dias', 'INT UNSIGNED', '', 'Entrega típica: 14 a 56 días'],
       ['moneda', "ENUM('EUR','GBP','MXN','USD')", '', 'Moneda de cotización'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1178,9 +1178,9 @@ const TABLAS = {
       ['correo', 'VARCHAR(150)', '', 'Correo electrónico'],
       ['especialidad', 'VARCHAR(100)', '', 'Área técnica'],
       ['notas', 'TEXT', '', 'Notas internas'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1193,9 +1193,9 @@ const TABLAS = {
       ['descripcion', 'TEXT', '', 'Detalle del trabajo'],
       ['precio_mano_obra', 'DECIMAL(12,2)', '', 'Precio base antes de descuento VIP e IVA'],
       ['duracion_estimada_horas', 'DECIMAL(4,1)', '', 'Para planear la carga de trabajo'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1214,9 +1214,9 @@ const TABLAS = {
       ['color', 'VARCHAR(30)', '', 'Color'],
       ['kilometraje_entrada', 'INT UNSIGNED', '', 'Kilometraje al ingresar'],
       ['valor_aproximado', 'DECIMAL(12,2)', '', 'Base para el valor en custodia'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1231,9 +1231,9 @@ const TABLAS = {
       ['vigencia_inicio', 'DATE', '', 'Inicio de vigencia'],
       ['vigencia_fin', 'DATE', '', 'Fin de vigencia; alerta 30 días antes'],
       ['cobertura', 'TEXT', '', 'Detalle de la cobertura'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1245,15 +1245,15 @@ const TABLAS = {
       ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
       ['nombre', 'VARCHAR(150)', '', 'Nombre de la pieza'],
       ['marca', 'VARCHAR(50)', '', 'Marca de la pieza'],
-      ['es_especial', 'TINYINT(1)', '', 'Compra ligada a orden, sin stock'],
+      ['es_especial', 'BOOLEAN', '', 'Compra ligada a orden, sin stock'],
       ['stock_actual', 'INT', '', 'Existencias actuales'],
       ['stock_minimo', 'INT', '', 'Umbral de alerta (por omisión 2)'],
       ['precio_costo', 'DECIMAL(12,2)', '', 'Costo de adquisición'],
       ['precio_venta', 'DECIMAL(12,2)', '', 'Precio al cliente'],
       ['proveedor_id', 'INT UNSIGNED', 'FK', 'Proveedor habitual → proveedores.id'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación / ajuste'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación / ajuste'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1264,7 +1264,7 @@ const TABLAS = {
       ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
       ['proveedor_id', 'INT UNSIGNED', 'FK', 'Proveedor → proveedores.id'],
       ['orden_id', 'INT UNSIGNED', 'FK', 'Orden que motivó la compra → ordenes_servicio.id (opcional)'],
-      ['fecha_pedido', 'DATETIME', '', 'Fecha de registro del pedido'],
+      ['fecha_pedido', 'TIMESTAMP', '', 'Fecha de registro del pedido'],
       ['fecha_estimada_llegada', 'DATE', '', 'Para la lista de pedidos pendientes'],
       ['estado', "ENUM('Borrador','Aprobada','Enviada','Recibida','Cancelada')", '', 'Estado del pedido'],
       ['moneda_original', "ENUM('EUR','GBP','MXN','USD')", '', 'Moneda de la compra'],
@@ -1273,10 +1273,10 @@ const TABLAS = {
       ['total_mxn', 'DECIMAL(12,2)', '', 'Equivalente en pesos'],
       ['solicitado_por', 'VARCHAR(150)', '', 'Quién solicitó el pedido'],
       ['aprobado_por', 'VARCHAR(150)', '', 'Administrador que aprobó'],
-      ['fecha_aprobacion', 'DATETIME', '', 'Fecha de aprobación'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['fecha_aprobacion', 'TIMESTAMP', '', 'Fecha de aprobación'],
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1289,9 +1289,9 @@ const TABLAS = {
       ['refaccion_id', 'INT UNSIGNED', 'FK', 'Refacción solicitada → refacciones.id'],
       ['cantidad', 'INT', '', 'Piezas pedidas en la línea'],
       ['precio_unitario_moneda', 'DECIMAL(12,2)', '', 'Precio unitario en moneda original'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1305,9 +1305,9 @@ const TABLAS = {
       ['cantidad', 'INT', '', 'Unidades (siempre positiva)'],
       ['motivo', 'VARCHAR(255)', '', 'Obligatorio en ajustes manuales'],
       ['usuario', 'VARCHAR(150)', '', 'Quién registró el movimiento'],
-      ['created_at', 'DATETIME', '', 'Fecha del movimiento'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Fecha del movimiento'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1328,17 +1328,17 @@ const TABLAS = {
       ['subtotal', 'DECIMAL(12,2)', '', 'Piezas + mano de obra, antes de IVA'],
       ['iva', 'DECIMAL(12,2)', '', 'IVA del 16%'],
       ['total', 'DECIMAL(12,2)', '', 'Total a cobrar; base del umbral de autorización'],
-      ['requiere_autorizacion', 'TINYINT(1)', '', 'La orden supera el umbral y necesita autorización'],
+      ['requiere_autorizacion', 'BOOLEAN', '', 'La orden supera el umbral y necesita autorización'],
       ['motivo_cancelacion', 'TEXT', '', 'Obligatorio al cancelar'],
-      ['created_at', 'DATETIME', '', 'Apertura de la orden'],
-      ['updated_at', 'DATETIME', '', 'Último cambio de etapa'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Apertura de la orden'],
+      ['updated_at', 'TIMESTAMP', '', 'Último cambio de etapa'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
   detalle_orden: {
     dominio: 'ordenes',
-    desc: 'Líneas de la orden: cada renglón es un servicio de mano de obra o una refacción, nunca ambos. La exclusividad se valida con triggers porque MySQL no permite CHECK sobre columnas con FK en cascada.',
+    desc: 'Líneas de la orden: cada renglón es un servicio de mano de obra o una refacción, nunca ambos. La exclusividad se valida con triggers y un mensaje de negocio legible.',
     cols: [
       ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
       ['orden_id', 'INT UNSIGNED', 'FK', 'Orden a la que pertenece → ordenes_servicio.id'],
@@ -1346,9 +1346,9 @@ const TABLAS = {
       ['refaccion_id', 'INT UNSIGNED', 'FK', 'Refacción usada → refacciones.id (excluyente con servicio_id)'],
       ['cantidad', 'INT', '', 'Cantidad de servicios o piezas'],
       ['precio_unitario', 'DECIMAL(12,2)', '', 'Precio congelado al momento de la venta'],
-      ['created_at', 'DATETIME', '', 'Alta del registro'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del registro'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1360,10 +1360,10 @@ const TABLAS = {
       ['orden_id', 'INT UNSIGNED', 'FK', 'Orden a la que pertenece → ordenes_servicio.id'],
       ['url_foto', 'VARCHAR(500)', '', 'Ruta o URL del archivo'],
       ['etapa', "ENUM('Ingreso','Proceso','Entrega')", '', 'Clasificación de la foto'],
-      ['firma_conformidad', 'TINYINT(1)', '', 'Foto de entrega firmada por el cliente'],
-      ['created_at', 'DATETIME', '', 'Fecha de carga'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['firma_conformidad', 'BOOLEAN', '', 'Foto de entrega firmada por el cliente'],
+      ['created_at', 'TIMESTAMP', '', 'Fecha de carga'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1374,9 +1374,9 @@ const TABLAS = {
       ['id', 'INT UNSIGNED', 'PK', 'Identificador interno'],
       ['orden_id', 'INT UNSIGNED', 'FK', 'Orden → ordenes_servicio.id'],
       ['mecanico_id', 'INT UNSIGNED', 'FK', 'Mecánico asignado → mecanicos.id'],
-      ['created_at', 'DATETIME', '', 'Fecha de asignación'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Desasignación lógica']
+      ['created_at', 'TIMESTAMP', '', 'Fecha de asignación'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Desasignación lógica']
     ]
   },
 
@@ -1389,7 +1389,7 @@ const TABLAS = {
       ['etapa_anterior', "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')", '', 'Etapa previa; NULL al abrir la orden'],
       ['etapa_nueva', "ENUM('Recibido','Diagnostico','Reparacion','Listo','Entregado','Cancelado')", '', 'Etapa a la que pasa'],
       ['usuario_id', 'INT UNSIGNED', 'FK', 'Quién movió la etapa → usuarios.id'],
-      ['created_at', 'DATETIME', '', 'Momento exacto del cambio']
+      ['created_at', 'TIMESTAMP', '', 'Momento exacto del cambio']
     ]
   },
 
@@ -1404,9 +1404,9 @@ const TABLAS = {
       ['monto', 'DECIMAL(12,2)', '', 'Monto en MXN'],
       ['metodo_pago', "ENUM('Efectivo','Transferencia','Tarjeta')", '', 'Forma de pago'],
       ['referencia', 'VARCHAR(100)', '', 'Folio o número de transferencia'],
-      ['created_at', 'DATETIME', '', 'Fecha de registro del pago'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Fecha de registro del pago'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   },
 
@@ -1426,9 +1426,9 @@ const TABLAS = {
       ['forma_pago', 'VARCHAR(10)', '', 'Forma de pago SAT: 01, 03…'],
       ['metodo_pago', 'VARCHAR(10)', '', 'Método SAT: PUE o PPD'],
       ['motivo_cancelacion', 'TEXT', '', 'Obligatorio al cancelar'],
-      ['created_at', 'DATETIME', '', 'Fecha de emisión'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico; una factura no se borra']
+      ['created_at', 'TIMESTAMP', '', 'Fecha de emisión'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico; una factura no se borra']
     ]
   },
 
@@ -1440,12 +1440,12 @@ const TABLAS = {
       ['orden_id', 'INT UNSIGNED', 'FK', 'Orden sujeta a autorización → ordenes_servicio.id'],
       ['tipo', "ENUM('Monto_Alto','Saldo_Pendiente','Reautorizacion')", '', 'Motivo de la autorización'],
       ['monto_orden', 'DECIMAL(12,2)', '', 'Total de la orden al solicitar'],
-      ['aprobado', 'TINYINT(1)', '', '0 pendiente o rechazada, 1 autorizada'],
+      ['aprobado', 'BOOLEAN', '', 'FALSE pendiente o rechazada, TRUE autorizada'],
       ['aprobado_por', 'VARCHAR(150)', '', 'Administrador que resolvió'],
-      ['fecha_aprobacion', 'DATETIME', '', 'Fecha de la resolución'],
-      ['created_at', 'DATETIME', '', 'Fecha de la solicitud'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico; no se borran']
+      ['fecha_aprobacion', 'TIMESTAMP', '', 'Fecha de la resolución'],
+      ['created_at', 'TIMESTAMP', '', 'Fecha de la solicitud'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico; no se borran']
     ]
   },
 
@@ -1460,9 +1460,9 @@ const TABLAS = {
       ['password_hash', 'VARCHAR(255)', '', 'Contraseña cifrada; nunca en texto plano'],
       ['rol', "ENUM('Administrador','Recepcion','Mecanico')", '', 'Define los permisos'],
       ['mecanico_id', 'INT UNSIGNED', 'FK', 'Vínculo al catálogo de mecánicos → mecanicos.id'],
-      ['created_at', 'DATETIME', '', 'Alta del usuario'],
-      ['updated_at', 'DATETIME', '', 'Última modificación'],
-      ['activo', 'TINYINT(1)', '', 'Baja lógica']
+      ['created_at', 'TIMESTAMP', '', 'Alta del usuario'],
+      ['updated_at', 'TIMESTAMP', '', 'Última modificación'],
+      ['activo', 'BOOLEAN', '', 'Baja lógica']
     ]
   },
 
@@ -1476,7 +1476,7 @@ const TABLAS = {
       ['registro_id', 'INT UNSIGNED', '', 'Registro afectado'],
       ['accion', "ENUM('Creacion','Actualizacion','Cancelacion','Autorizacion','Consulta_Confidencial')", '', 'Tipo de evento auditado'],
       ['detalle', 'TEXT', '', 'Contexto del cambio para reconstruirlo'],
-      ['created_at', 'DATETIME', '', 'Momento exacto; el asiento es inmutable']
+      ['created_at', 'TIMESTAMP', '', 'Momento exacto; el asiento es inmutable']
     ]
   },
 
@@ -1488,9 +1488,9 @@ const TABLAS = {
       ['clave', 'VARCHAR(50)', 'UK', 'Clave única del parámetro'],
       ['valor', 'VARCHAR(100)', '', 'Valor vigente, convertido por la aplicación'],
       ['descripcion', 'TEXT', '', 'Explicación y efecto en el negocio'],
-      ['created_at', 'DATETIME', '', 'Alta del parámetro'],
-      ['updated_at', 'DATETIME', '', 'Último cambio de valor'],
-      ['activo', 'TINYINT(1)', '', 'Borrado lógico']
+      ['created_at', 'TIMESTAMP', '', 'Alta del parámetro'],
+      ['updated_at', 'TIMESTAMP', '', 'Último cambio de valor'],
+      ['activo', 'BOOLEAN', '', 'Borrado lógico']
     ]
   }
 };

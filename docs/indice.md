@@ -9,7 +9,7 @@
 | [decisiones-tecnicas.md](decisiones-tecnicas.md) | ADRs: registro de las decisiones de diseño y sus consecuencias. |
 | [reporte-practica.md](reporte-practica.md) | Reporte consolidado de la práctica: portada, objetivos, 92 requerimientos, stack, 3FN, ingeniería inversa, procedimientos y funciones, roles, triggers, transacciones y guion de capturas. |
 | [reporte-practica.pdf](reporte-practica.pdf) | Versión imprimible del reporte, con portada, índice y numeración de páginas. Lista para entregar. |
-| [guia-capturas-ingenieria.md](guia-capturas-ingenieria.md) | Guion de las capturas de ingeniería inversa, diagrama E-R en 3FN, ejecución de rutinas en MySQL Workbench y valor en custodia en el Dashboard. |
+| [guia-capturas-ingenieria.md](guia-capturas-ingenieria.md) | Guion de las capturas de ingeniería inversa, diagrama E-R en 3FN, ejecución de rutinas en psql o pgAdmin y valor en custodia en el Dashboard. |
 | [pendientes.md](pendientes.md) | Auditoría del sistema: módulos incompletos, deuda técnica y criterio para declararlo 100 % funcional (PEN-01 a PEN-39). |
 | [diagrama-er-interactivo.html](diagrama-er-interactivo.html) | Diagrama E-R navegable: 21 tablas, 218 columnas, panel de atributos y relaciones, y descarga en PNG. |
 | [guia-capturas.md](../documentacion-tecnica/guia-capturas.md) | Guion detallado de las 47 capturas que demuestran el sistema en funcionamiento. |

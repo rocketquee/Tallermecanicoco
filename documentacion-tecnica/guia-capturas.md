@@ -8,13 +8,13 @@ Esta guía indica **qué pantallas capturar, en qué orden y con qué usuario** 
 
 ## 0. Preparación (antes de capturar)
 
-1. Levanta MySQL, el backend y el frontend siguiendo el [`README.md`](../README.md).
+1. Levanta PostgreSQL, el backend y el frontend siguiendo el [`README.md`](../README.md).
 2. Confirma que la API responde en <http://127.0.0.1:8000/api/v1/salud> y que reporta **21 tablas**.
 3. Carga los datos de ejemplo (si aún no lo hiciste):
 
-   ```bash
-   mysql -u root -p --default-character-set=utf8mb4 autopulse_elite < sql/07_datos_prueba.sql
-   mysql -u root -p --default-character-set=utf8mb4 autopulse_elite < sql/08_datos_prueba_extra.sql
+   ```powershell
+   psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/07_datos_prueba.sql
+   psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/08_datos_prueba_extra.sql
    ```
 
 4. Abre <http://localhost:5173> en una ventana de incógnito para empezar sin sesión.
@@ -108,7 +108,7 @@ Esta guía indica **qué pantallas capturar, en qué orden y con qué usuario** 
 | `10-nuevo-cliente.png` | Formulario de alta con validaciones y propuesta de descuento VIP |
 | `11-cliente-creado.png` | Alta exitosa y navegación al expediente |
 
-> Si no quieres dejar datos de prueba, elimina el cliente después con `DELETE` lógico desde MySQL; el sistema no borra físicamente.
+> Si no quieres dejar datos de prueba, elimina el cliente después con `DELETE` lógico desde PostgreSQL; el sistema no borra físicamente.
 
 ---
 
@@ -264,7 +264,7 @@ Esta guía indica **qué pantallas capturar, en qué orden y con qué usuario** 
 ### 12.1. Salud de la API
 
 1. Abre <http://127.0.0.1:8000/api/v1/salud>.
-2. Captura la respuesta JSON con `"estado": "ok"`, la versión de MySQL y `"tablas": 21`.
+2. Captura la respuesta JSON con `"estado": "ok"`, la versión de PostgreSQL y `"tablas": 21`.
 
 **Archivo:** `37-api-salud.png`.
 
@@ -289,8 +289,8 @@ Esta guía indica **qué pantallas capturar, en qué orden y con qué usuario** 
 
 ### 12.4. Base de datos
 
-1. Abre MySQL Workbench (o tu cliente favorito).
-2. Ejecuta `SHOW TABLES;` y captura las 21 tablas.
+1. Abre `psql` o pgAdmin (o tu cliente favorito).
+2. Ejecuta `\dt` y captura las 21 tablas.
 3. Ejecuta `SELECT id, estado, cliente_id, vehiculo_id, total FROM ordenes_servicio;` y captura las órdenes.
 4. Ejecuta `SELECT * FROM bitacora ORDER BY id DESC LIMIT 10;` y captura los movimientos recientes.
 
@@ -335,6 +335,6 @@ Antes de cerrar la entrega, confirma que tienes capturas de:
 - [ ] Cliente confidencial enmascarado.
 - [ ] Pantalla 404 y cierre de sesión.
 - [ ] API de salud, Swagger autorizado y 403 del backend.
-- [ ] Tablas, órdenes y bitácora en MySQL.
+- [ ] Tablas, órdenes y bitácora en PostgreSQL.
 
 Con estas evidencias queda demostrado el ciclo completo: **autenticación → clientes → vehículos → orden → avance → inventario → auditoría**, además de las restricciones por rol en frontend y backend.

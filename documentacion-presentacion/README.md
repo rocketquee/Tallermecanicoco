@@ -8,7 +8,7 @@ carpeta por correo/USB sin depender de la aplicación React.
 
 | Archivo | Qué muestra |
 |---|---|
-| `arquitectura.html` | Flujo Usuario → Frontend (React) → Backend (FastAPI) → Base de Datos (MySQL), con los protocolos HTTPS, REST/JSON y SQL. Incluye el recorrido de una petición y las reglas de comunicación. |
+| `arquitectura.html` | Flujo Usuario → Frontend (React) → Backend (FastAPI) → Base de Datos (PostgreSQL), con los protocolos HTTPS, REST/JSON y SQL. Incluye el recorrido de una petición y las reglas de comunicación. |
 | `diagrama-er.html` | Diagrama Entidad-Relación de las 21 tablas, dibujado con **Mermaid** desde un CDN. Muestra PK, FK y las 24 relaciones. |
 | `README.md` | Este documento. |
 

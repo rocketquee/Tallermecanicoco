@@ -1,6 +1,6 @@
 # Diagrama Entidad-Relación — Apex Elite Motorsport
 
-Base de datos: `autopulse_elite` · MySQL 8.x · InnoDB · `utf8mb4_unicode_ci`
+Base de datos: `autopulse_elite` · PostgreSQL 16 · UTF-8
 
 21 tablas. Cada tabla incluye `created_at`, `updated_at` y `activo` (borrado lógico), salvo los
 logs inmutables `bitacora` e `historial_etapas`, que solo llevan `created_at` por diseño.
@@ -42,16 +42,16 @@ erDiagram
         varchar nombre_asistente
         enum categoria
         decimal descuento_mano_obra
-        tinyint permite_pagos_parciales
-        tinyint confidencial
+        boolean permite_pagos_parciales
+        boolean confidencial
         text notas
         varchar rfc
         varchar razon_social
         varchar regimen_fiscal
         varchar codigo_postal
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     proveedores {
@@ -63,9 +63,9 @@ erDiagram
         varchar correo
         int tiempo_entrega_dias
         enum moneda
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     mecanicos {
@@ -75,9 +75,9 @@ erDiagram
         varchar correo
         varchar especialidad
         text notas
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     servicios {
@@ -86,9 +86,9 @@ erDiagram
         text descripcion
         decimal precio_mano_obra
         decimal duracion_estimada_horas
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     vehiculos {
@@ -102,9 +102,9 @@ erDiagram
         varchar color
         int kilometraje_entrada
         decimal valor_aproximado
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     polizas_seguro {
@@ -115,31 +115,31 @@ erDiagram
         date vigencia_inicio
         date vigencia_fin
         text cobertura
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     refacciones {
         int id PK
         varchar nombre
         varchar marca
-        tinyint es_especial
+        boolean es_especial
         int stock_actual
         int stock_minimo
         decimal precio_costo
         decimal precio_venta
         int proveedor_id FK
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     compras {
         int id PK
         int proveedor_id FK
         int orden_id FK
-        datetime fecha_pedido
+        timestamp fecha_pedido
         date fecha_estimada_llegada
         enum estado
         enum moneda_original
@@ -148,10 +148,10 @@ erDiagram
         decimal total_mxn
         varchar solicitado_por
         varchar aprobado_por
-        datetime fecha_aprobacion
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp fecha_aprobacion
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     detalle_compra {
@@ -160,9 +160,9 @@ erDiagram
         int refaccion_id FK
         int cantidad
         decimal precio_unitario_moneda
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     movimientos_inventario {
@@ -172,9 +172,9 @@ erDiagram
         int cantidad
         varchar motivo
         varchar usuario
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     ordenes_servicio {
@@ -190,11 +190,11 @@ erDiagram
         decimal subtotal
         decimal iva
         decimal total
-        tinyint requiere_autorizacion
+        boolean requiere_autorizacion
         text motivo_cancelacion
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     detalle_orden {
@@ -204,9 +204,9 @@ erDiagram
         int refaccion_id FK
         int cantidad
         decimal precio_unitario
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     fotos_vehiculo {
@@ -214,10 +214,10 @@ erDiagram
         int orden_id FK
         varchar url_foto
         enum etapa
-        tinyint firma_conformidad
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        boolean firma_conformidad
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     pagos {
@@ -227,9 +227,9 @@ erDiagram
         decimal monto
         enum metodo_pago
         varchar referencia
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     facturas {
@@ -245,9 +245,9 @@ erDiagram
         varchar forma_pago
         varchar metodo_pago
         text motivo_cancelacion
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     autorizaciones {
@@ -255,12 +255,12 @@ erDiagram
         int orden_id FK
         enum tipo
         decimal monto_orden
-        tinyint aprobado
+        boolean aprobado
         varchar aprobado_por
-        datetime fecha_aprobacion
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp fecha_aprobacion
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     usuarios {
@@ -270,9 +270,9 @@ erDiagram
         varchar password_hash
         enum rol
         int mecanico_id FK
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     bitacora {
@@ -282,16 +282,16 @@ erDiagram
         int registro_id
         enum accion
         text detalle
-        datetime created_at
+        timestamp created_at
     }
 
     orden_mecanicos {
         int id PK
         int orden_id FK
         int mecanico_id FK
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 
     historial_etapas {
@@ -300,7 +300,7 @@ erDiagram
         enum etapa_anterior
         enum etapa_nueva
         int usuario_id FK
-        datetime created_at
+        timestamp created_at
     }
 
     parametros {
@@ -308,9 +308,9 @@ erDiagram
         varchar clave
         varchar valor
         text descripcion
-        datetime created_at
-        datetime updated_at
-        tinyint activo
+        timestamp created_at
+        timestamp updated_at
+        boolean activo
     }
 ```
 
@@ -330,7 +330,7 @@ erDiagram
 
 | Regla | Implementación |
 |---|---|
-| Detalle de orden: servicio **o** refacción, nunca ambos ni ninguno | Triggers `trg_detalle_orden_bi` / `trg_detalle_orden_bu` (MySQL no permite `CHECK` sobre columnas con FK y `ON UPDATE CASCADE`) |
+| Detalle de orden: servicio **o** refacción, nunca ambos ni ninguno | Triggers `trg_detalle_orden_bi` / `trg_detalle_orden_bu` (regla validada en la base con mensaje de negocio) |
 | Bitácora inmutable (SEG-06) | Triggers `trg_bitacora_bu` / `trg_bitacora_bd` bloquean `UPDATE` y `DELETE` |
 | Historial de etapas inmutable (ORD-06) | Triggers `trg_historial_etapas_bu` / `trg_historial_etapas_bd` |
 | Un mecánico no se asigna dos veces a la misma orden | `UNIQUE (orden_id, mecanico_id)` en `orden_mecanicos` |

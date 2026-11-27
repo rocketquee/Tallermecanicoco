@@ -36,7 +36,7 @@ información en una base de datos relacional normalizada, la expone mediante una
 protegida con JWT y la presenta en una interfaz web que se adapta al rol de cada usuario.
 
 El resultado de la práctica es un sistema funcional de extremo a extremo: **21 tablas** en
-MySQL 8.x con **24 relaciones** declaradas, **6 triggers** que protegen reglas de negocio que
+PostgreSQL 16 con **24 relaciones** declaradas, **6 triggers** que protegen reglas de negocio que
 no pueden expresarse con una restricción `CHECK`, **92 requisitos** trazados a tablas y
 endpoints, y **tres roles** (Administrador, Recepción y Mecánico) con permisos distintos y
 enmascaramiento de datos sensibles en la capa de serialización.
@@ -120,8 +120,8 @@ por rol, sustituyendo la libreta y las hojas de cálculo.
 
 | # | Objetivo específico | Evidencia en el entregable |
 |---|---|---|
-| OE-1 | Modelar el dominio completo en un esquema normalizado de 21 tablas con integridad referencial estricta. | `sql/01`–`sql/09`, 24 `FOREIGN KEY` con `ON DELETE RESTRICT` |
-| OE-2 | Garantizar trazabilidad total: ninguna fila se elimina y toda operación crítica deja asiento. | `activo TINYINT(1)`, tablas `bitacora` e `historial_etapas` inmutables por trigger |
+| OE-1 | Modelar el dominio completo en un esquema normalizado de 21 tablas con integridad referencial estricta. | `sql/01`–`sql/11`, 24 `FOREIGN KEY` con `ON DELETE RESTRICT` |
+| OE-2 | Garantizar trazabilidad total: ninguna fila se elimina y toda operación crítica deja asiento. | `activo BOOLEAN`, tablas `bitacora` e `historial_etapas` inmutables por trigger |
 | OE-3 | Hacer cumplir las reglas de negocio que el modelo relacional no puede expresar por sí solo. | 6 triggers (`detalle_orden` XOR, inmutabilidad de logs) |
 | OE-4 | Implementar autenticación y autorización por rol con expiración y revocación efectiva. | JWT HS256 + recarga del usuario en cada petición (`core/deps.py`) |
 | OE-5 | Proteger la discreción de los clientes confidenciales y ocultar precios al mecánico. | `core/privacidad.py` (SEG-17, SEG-18) |
@@ -133,7 +133,7 @@ por rol, sustituyendo la libreta y las hojas de cálculo.
 
 **Incluido en esta etapa**
 
-- Esquema completo en MySQL 8.x con datos semilla de catálogos y parámetros del negocio.
+- Esquema completo en PostgreSQL 16 con datos semilla de catálogos y parámetros del negocio.
 - API REST con autenticación, clientes, vehículos, órdenes de servicio, refacciones y usuarios.
 - Registro transaccional del avance del mecánico (diagnóstico, refacciones y etapa).
 - Interfaz web con login, tablero por rol, alta de clientes, alta de vehículos, listado y detalle
@@ -424,12 +424,12 @@ declara el repositorio, no versiones genéricas.
 
 | Capa | Tecnología | Versión | Función en AutoPulse Elite | Por qué se eligió |
 |---|---|---|---|---|
-| Datos | **MySQL** | 8.x (InnoDB) | Motor relacional de las 21 tablas, triggers, transacciones y claves foráneas. | Es el motor relacional más difundido, gratuito en su edición Community, con transacciones ACID reales en InnoDB, `ENUM` nativo y soporte de `utf8mb4`. El taller ya tenía experiencia con él y MySQL Workbench permite revisar el esquema sin escribir consultas. |
-| Datos | **MySQL Workbench** | 8.x | Cliente visual para ejecutar los scripts, inspeccionar tablas y ver relaciones. | Permite ejecutar los bloques SQL en orden, revisar el diseño y exportar el diagrama E-R sin instalar nada adicional. Es la herramienta con la que se validó cada script. |
+| Datos | **PostgreSQL** | 16 | Motor relacional de las 21 tablas, triggers, transacciones y claves foráneas. | Motor maduro, gratuito y con ACID completo, `ENUM` nativo, `CHECK` real y un ecosistema administrado sólido (Aiven, Neon, Supabase). Se migró desde MySQL para aprovechar esas ventajas y simplificar el despliegue. |
+| Datos | **pgAdmin 4** | Última estable | Cliente visual para ejecutar los scripts, inspeccionar tablas y ver relaciones. | Permite ejecutar los bloques SQL en orden, revisar el diseño y exportar el diagrama E-R sin instalar nada adicional. |
 | Backend | **Python** | 3.13.17 | Lenguaje del servidor. | Sintaxis legible, biblioteca estándar suficiente (`hashlib.scrypt`, `hmac`) y un ecosistema de validación de datos que reduce el código repetitivo. Para un equipo de una persona, la velocidad de lectura del código importa más que el rendimiento bruto. |
 | Backend | **FastAPI** | 0.163.1 | Framework HTTP de la API REST. | Genera documentación OpenAPI automática en `/docs` (útil para probar sin frontend), valida con Pydantic y permite declarar permisos por endpoint con dependencias, que es exactamente el patrón que exige el control por rol. |
 | Backend | **SQLAlchemy** | 2.1.8 | ORM y capa de acceso a datos. | Modelos tipados con `Mapped[...]`, control explícito de transacciones (`flush`, `commit`, `rollback`) y `with_for_update()` para bloquear filas. Se necesitaba control fino del SQL, no un ORM que lo escondiera. |
-| Backend | **PyMySQL** | 1.2.4 (declarado) | Driver de conexión a MySQL. | Implementación pura en Python, sin compilar extensiones; suficiente para la concurrencia del taller y más simple de instalar en Windows. |
+| Backend | **psycopg2** | 2.9 | Driver de conexión a PostgreSQL. | Driver de referencia para PostgreSQL en Python; se instala con `psycopg2-binary` y SQLAlchemy lo usa mediante `postgresql+psycopg2`. |
 | Backend | **Pydantic / pydantic-settings** | 2.14.3 / 2.16.3 | Validación de payloads y configuración por entorno. | Los esquemas de entrada rechazan datos inválidos antes de tocar la base de datos y la configuración falla al arrancar si falta una variable, en lugar de fallar a mitad de una operación. |
 | Backend | **PyJWT** | 2.15.1 | Firma y verificación de tokens JWT (HS256). | Biblioteca pequeña y sin dependencias pesadas; cubre exactamente lo necesario para emitir y validar el token de sesión. |
 | Backend | **Uvicorn** | 0.54.0 | Servidor ASGI. | Servidor de referencia para FastAPI, con recarga automática en desarrollo. |
@@ -445,11 +445,11 @@ declara el repositorio, no versiones genéricas.
 | Desarrollo | **OpenCode** | Agente CLI | Asistente de desarrollo. | Se usó como apoyo para revisar el esquema, generar documentación y detectar inconsistencias entre el DDL y los modelos. Las decisiones de diseño y la validación final quedaron del lado humano. |
 | Desarrollo | **Git** | 2.55.0 | Control de versiones. | Permite reconstruir la evolución del esquema y de los scripts. El repositorio tiene un commit inicial (`2853000`) que concentra la primera entrega funcional. |
 
-> **Nota de honestidad técnica:** el proyecto declara MySQL 8.x, pero el servicio local
-> (`MySQL267`) apunta a un archivo de configuración en una unidad externa que no siempre está
-> conectada. Durante la elaboración de este reporte la base no estaba levantada, por lo que las
-> validaciones descritas se hicieron contra los scripts y el diccionario de datos del
-> repositorio, no contra una instancia en ejecución. Esa limitación se retoma en la sección 8.
+> **Nota de honestidad técnica:** el esquema se migró de MySQL a PostgreSQL 16. La validación de
+> esta etapa fue estática: los scripts se revisaron con `pglast` y se contrastaron contra los
+> modelos de SQLAlchemy, pero no se ejecutaron contra una instancia PostgreSQL viva. Las
+> funciones PL/pgSQL se revisaron a mano porque `pglast` no analiza sus cuerpos. Esa limitación
+> se retoma en la sección 8.
 
 ### 4.3 Arquitectura general
 
@@ -467,9 +467,9 @@ declara el repositorio, no versiones genéricas.
 │  Seguridad: JWT HS256 + dependencia requiere_roles()          │
 │  Privacidad: enmascaramiento por rol (SEG-17, SEG-18)         │
 └───────────────────────────┬──────────────────────────────────┘
-                            │  SQLAlchemy 2.1.8 + PyMySQL
+                            │  SQLAlchemy 2.1.8 + psycopg2
 ┌───────────────────────────▼──────────────────────────────────┐
-│  MySQL 8.x — base autopulse_elite · InnoDB · utf8mb4          │
+│  PostgreSQL 16 — base autopulse_elite · UTF-8                 │
 │  21 tablas · 24 relaciones · 6 triggers · bitácora inmutable  │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -484,11 +484,11 @@ resuelve con un trigger o con una transacción del backend, y en ambos casos que
 | Alternativa | Motivo del descarte |
 |---|---|
 | Django | Trae administrador y ORM con más capa de abstracción; el proyecto necesitaba control explícito de transacciones y bloqueos de fila, y no requería el admin autogenerado. |
-| PostgreSQL | Técnicamente superior en tipos y `CHECK`, pero el taller y el material del curso están orientados a MySQL; migrar no aportaba valor al alcance. |
+| MySQL | Fue el motor del diseño original; se migró a PostgreSQL para aprovechar tipos estrictos, `CHECK` real y un despliegue administrado más simple. |
 | MongoDB | El dominio es fuertemente relacional (orden → detalle → refacción → movimiento) y la auditoría exige integridad referencial que un documento no garantiza igual. |
 | Next.js | El sistema no necesita renderizado en servidor ni SEO; una SPA con Vite es más simple de desplegar en el taller. |
 | `passlib` / `bcrypt` | `hashlib.scrypt` viene en la biblioteca estándar y evita una dependencia nativa que complica la instalación en Windows (ADR-004). |
-| Docker | El despliegue es un solo servidor con MySQL local; añadir contenedores habría sumado complejidad operativa sin beneficio medible para cinco usuarios. |
+| Docker | El despliegue es un solo servidor con PostgreSQL local; añadir contenedores habría sumado complejidad operativa sin beneficio medible para cinco usuarios. |
 
 ---
 
@@ -511,29 +511,31 @@ llaves foráneas. Cada archivo es ejecutable de forma independiente sobre una ba
 | `sql/07_datos_prueba.sql` | Datos de prueba | Semillas de catálogos, parámetros y usuarios | Apoyo a desarrollo |
 | `sql/08_datos_prueba_extra.sql` | Datos de prueba ampliados | 5 clientes, 5 vehículos, 2 mecánicos, 3 servicios y 5 órdenes | Apoyo a desarrollo |
 | `sql/09_avance_mecanico.sql` | Evolución | Agrega `ordenes_servicio.diagnostico` de forma idempotente | ORD-04, ORD-10 |
+| `sql/10_proveedores_demo.sql` | Proveedores de ejemplo | Cuatro proveedores mexicanos en MXN | PRV-01, PRV-02, PRV-09 |
+| `sql/11_procedimientos_funciones.sql` | Rutinas | `sp_calcular_total_orden` y `fn_valor_en_custodia` en PL/pgSQL | ORD-10, VEH-07, REP-01 |
 
 El bloque 9 merece una aclaración: el diagnóstico del mecánico **no** es la falla reportada por
 el cliente. La primera es lo que el cliente cuenta al dejar el auto; el segundo es lo que el
 técnico encuentra al revisarlo. Mezclarlos habría borrado una parte de la historia, así que se
-guardan en columnas distintas y el script verifica en `information_schema` si la columna ya
-existe antes de crearla.
+guardan en columnas distintas y el script usa `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` para
+no fallar si la columna ya existe.
 
 ### 5.2 Convenciones de diseño aplicadas
 
 | Convención | Regla | Ejemplo |
 |---|---|---|
 | Idioma | Tablas, columnas y comentarios en español, `snake_case`. | `ordenes_servicio`, `fecha_estimada_llegada` |
-| Identificadores | `id INT UNSIGNED AUTO_INCREMENT` como llave primaria en todas las tablas. | `id` |
-| Dinero | `DECIMAL(12,2)`; nunca `FLOAT`, para no arrastrar errores de redondeo en pagos e IVA. | `precio_unitario`, `total_mxn` |
-| Estados | `ENUM` con los valores del negocio, en español y con mayúscula inicial. | `estado ENUM('Recibido','Diagnostico','Reparacion','Listo')` |
-| Fechas | `DATETIME` para marcas de tiempo; `DATE` solo cuando el dato es un día sin hora (vigencias). | `created_at`, `vigencia_fin` |
-| Booleanos | `TINYINT(1)` con `DEFAULT 1` para `activo` y `DEFAULT 0` para banderas. | `es_vip`, `confidencial`, `firma_conformidad` |
-| Borrado | Lógico: `activo = 0`. Ninguna tabla de negocio admite `DELETE`. | `UPDATE clientes SET activo = 0` |
+| Identificadores | `id INTEGER GENERATED BY DEFAULT AS IDENTITY` como llave primaria en todas las tablas. | `id` |
+| Dinero | `NUMERIC(12,2)`; nunca `FLOAT`, para no arrastrar errores de redondeo en pagos e IVA. | `precio_unitario`, `total_mxn` |
+| Estados | Tipo `ENUM` nativo (`CREATE TYPE ... AS ENUM`) con los valores del negocio. | `estado_orden` con `Recibido`, `Diagnostico`, `Reparacion`, `Listo` |
+| Fechas | `TIMESTAMP` para marcas de tiempo; `DATE` solo cuando el dato es un día sin hora (vigencias). | `created_at`, `vigencia_fin` |
+| Booleanos | `BOOLEAN` con `DEFAULT TRUE` para `activo` y `DEFAULT FALSE` para banderas. | `es_vip`, `confidencial`, `firma_conformidad` |
+| Borrado | Lógico: `activo = FALSE`. Ninguna tabla de negocio admite `DELETE`. | `UPDATE clientes SET activo = FALSE` |
 | Llaves foráneas | `ON DELETE RESTRICT` y `ON UPDATE CASCADE`; nombradas `fk_<tabla>_<referencia>`. | `fk_vehiculos_cliente` |
 | Índices | `idx_<tabla>_<columna>`; los únicos, `uq_<tabla>_<columna>`. | `idx_vehiculos_placas`, `uq_usuarios_correo` |
-| Auditoría | `created_at` y `updated_at` con `CURRENT_TIMESTAMP` en toda tabla; `activo` para vigencia. | `updated_at ... ON UPDATE CURRENT_TIMESTAMP` |
-| Codificación | `utf8mb4` / `utf8mb4_unicode_ci` en todas las tablas. | Acentos y búsquedas sin distinguir mayúsculas |
-| Comentarios | Cada tabla y cada columna llevan `COMMENT` con su propósito y el requisito que la origina. | `COMMENT 'Clientes del taller, incluidos VIP y confidenciales (CLI-01 a CLI-06)'` |
+| Auditoría | `created_at` y `updated_at` con `CURRENT_TIMESTAMP`; `updated_at` lo refresca `fn_set_updated_at()`. | `updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP` |
+| Codificación | `UTF8` en la base y en el cliente. | Acentos y búsquedas sin distinguir mayúsculas |
+| Comentarios | Cada tabla y cada columna llevan `COMMENT ON` con su propósito y el requisito que la origina. | `COMMENT ON TABLE clientes IS 'Clientes del taller...'` |
 | Integridad condicional | Donde un `CHECK` no es viable, se usa un trigger. | Exclusividad `servicio_id` / `refaccion_id` |
 
 Dos decisiones de esta tabla necesitan justificación porque van contra la intuición:
@@ -541,11 +543,10 @@ Dos decisiones de esta tabla necesitan justificación porque van contra la intui
 1. **`ON DELETE RESTRICT` en todo.** Si un cliente se eliminara, sus órdenes quedarían sin
    dueño y la facturación histórica perdería sentido. Con `RESTRICT`, la base impide el borrado
    incluso si alguien ejecuta SQL a mano. La baja se hace apagando `activo`.
-2. **`CHECK` no se usa para la exclusividad del detalle.** MySQL 8 acepta `CHECK`, pero la tabla
-   `detalle_orden` tiene dos llaves foráneas con `ON UPDATE CASCADE`; combinar esa cláusula con
-   una restricción `CHECK` sobre las mismas columnas produce fallos al actualizar en cascada.
-   Se resolvió con triggers `BEFORE INSERT` y `BEFORE UPDATE`, que además devuelven un mensaje
-   de error legible en lugar de un código genérico.
+2. **La exclusividad del detalle se resolvió con triggers.** El diseño original en MySQL no
+   podía usar `CHECK` sobre columnas con llaves foráneas en cascada. PostgreSQL sí lo admite,
+   pero al migrar se conservaron los triggers `BEFORE INSERT` y `BEFORE UPDATE` porque devuelven
+   un mensaje de negocio legible y mantienen el contrato que la API ya traduce a `422`.
 
 ### 5.3 Ingeniería inversa: del DDL a los modelos SQLAlchemy
 
@@ -558,7 +559,7 @@ derivaron de él, verificando después que coincidieran con la base real. El ord
 1. **Diseño del DDL por bloques**, con comentarios por columna y requisito asociado.
 2. **Creación de los modelos** en `backend/app/models/`, una clase por tabla, con
    `Mapped[...]`, `mapped_column(...)` y `relationship(...)`.
-3. **Verificación contra MySQL** con el inspector de SQLAlchemy: se compararon nombres de
+3. **Verificación contra PostgreSQL** con el inspector de SQLAlchemy: se compararon nombres de
    tablas, columnas, tipos, nulabilidad, llaves y valores de `ENUM`.
 4. **Ajuste de discrepancias** en el DDL o en el modelo, siempre dejando el DDL como árbitro.
 
@@ -568,7 +569,7 @@ La verificación se apoya en el inspector, que es la API de introspección de SQ
 from sqlalchemy import create_engine, inspect
 
 engine = create_engine(
-    "mysql+pymysql://usuario:password@localhost:3306/autopulse_elite?charset=utf8mb4"
+    "postgresql+psycopg2://usuario:password@localhost:5432/autopulse_elite"
 )
 inspector = inspect(engine)
 
@@ -620,15 +621,15 @@ Cada modelo declara explícitamente lo que el DDL implica. Un ejemplo real, el d
 class OrdenServicio(Base):
     __tablename__ = "ordenes_servicio"
 
-    id: Mapped[int] = mapped_column(INTEGER(unsigned=True), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     cliente_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), ForeignKey("clientes.id"), nullable=False
+        Integer, ForeignKey("clientes.id"), nullable=False
     )
     vehiculo_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), ForeignKey("vehiculos.id"), nullable=False
+        Integer, ForeignKey("vehiculos.id"), nullable=False
     )
     mecanico_id: Mapped[int | None] = mapped_column(
-        INTEGER(unsigned=True), ForeignKey("mecanicos.id"), nullable=True
+        Integer, ForeignKey("mecanicos.id"), nullable=True
     )
     estado: Mapped[str] = mapped_column(
         Enum(
@@ -648,7 +649,8 @@ class OrdenServicio(Base):
 
 Los detalles que se cuidaron en la traducción:
 
-- **`unsigned=True`** en los identificadores, porque el DDL usa `INT UNSIGNED`.
+- **`Integer` con `GENERATED BY DEFAULT AS IDENTITY`** en los identificadores, porque así lo
+  declara el DDL de PostgreSQL.
 - **`Numeric(12, 2)`** en lugar de `Float`, para conservar la precisión del dinero.
 - **`ON UPDATE CASCADE`** declarado en la llave foránea, no solo en la base, para que el
   `metadata` refleje el comportamiento real.
@@ -794,7 +796,7 @@ erDiagram
         int id PK
         varchar nombre
         enum categoria
-        tinyint confidencial
+        boolean confidencial
         varchar rfc
     }
     vehiculos {
@@ -802,7 +804,7 @@ erDiagram
         int cliente_id FK
         varchar placas
         varchar vin
-        decimal valor_aproximado
+        numeric valor_aproximado
     }
     ordenes_servicio {
         int id PK
@@ -810,15 +812,15 @@ erDiagram
         int vehiculo_id FK
         int mecanico_id FK
         enum estado
-        decimal total
-        tinyint requiere_autorizacion
+        numeric total
+        boolean requiere_autorizacion
     }
     detalle_orden {
         int id PK
         int orden_id FK
         int servicio_id FK
         int refaccion_id FK
-        decimal precio_unitario
+        numeric precio_unitario
     }
     usuarios {
         int id PK
@@ -836,68 +838,76 @@ inmutables, lo que en términos prácticos significa que solo se insertan.
 
 ### 5.7 Triggers
 
-MySQL 8 no permite expresar con `CHECK` la exclusividad de `detalle_orden` cuando las columnas
-participan en llaves foráneas con `ON UPDATE CASCADE`, y ninguna restricción declarativa impide
-un `UPDATE` sobre la bitácora. Los seis triggers cubren exactamente esos dos huecos: **dos de
-integridad condicional y cuatro de inmutabilidad**.
+PostgreSQL permite `CHECK`, pero la exclusividad de `detalle_orden` se mantiene con triggers
+para devolver un mensaje de negocio legible. Además, ninguna restricción declarativa impide un
+`UPDATE` o un `DELETE` sobre la bitácora. Los seis triggers cubren exactamente esos dos huecos:
+**dos de integridad condicional y cuatro de inmutabilidad**.
 
 #### 5.7.1 Exclusividad en `detalle_orden`
 
 ```sql
-DELIMITER $$
-CREATE TRIGGER trg_detalle_orden_bi BEFORE INSERT ON detalle_orden
-FOR EACH ROW
+CREATE OR REPLACE FUNCTION fn_validar_detalle_orden_xor()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
 BEGIN
   IF (NEW.servicio_id IS NULL AND NEW.refaccion_id IS NULL)
      OR (NEW.servicio_id IS NOT NULL AND NEW.refaccion_id IS NOT NULL) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'detalle_orden: debe indicar servicio_id o refaccion_id, pero no ambos';
+    RAISE EXCEPTION
+      'detalle_orden: debe indicar servicio_id o refaccion_id, pero no ambos'
+      USING ERRCODE = 'P0001';
   END IF;
-END$$
+  RETURN NEW;
+END;
+$$;
 
-CREATE TRIGGER trg_detalle_orden_bu BEFORE UPDATE ON detalle_orden
-FOR EACH ROW
-BEGIN
-  IF (NEW.servicio_id IS NULL AND NEW.refaccion_id IS NULL)
-     OR (NEW.servicio_id IS NOT NULL AND NEW.refaccion_id IS NOT NULL) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'detalle_orden: debe indicar servicio_id o refaccion_id, pero no ambos';
-  END IF;
-END$$
-DELIMITER ;
+CREATE TRIGGER trg_detalle_orden_bi
+BEFORE INSERT ON detalle_orden
+FOR EACH ROW EXECUTE FUNCTION fn_validar_detalle_orden_xor();
+
+CREATE TRIGGER trg_detalle_orden_bu
+BEFORE UPDATE ON detalle_orden
+FOR EACH ROW EXECUTE FUNCTION fn_validar_detalle_orden_xor();
 ```
 
 **Qué impide.** Una línea sin concepto (ni pieza ni mano de obra) sería una fila que suma cero
 pero ocupa lugar y confunde los reportes; una línea con ambos conceptos cobraría dos veces la
 misma intervención. El trigger obliga a que exista **exactamente uno**.
 
-**Por qué `SIGNAL SQLSTATE '45000'`.** Es el código reservado para errores de negocio definidos
-por el usuario. Al llegar al driver, MySQL lo entrega como error 1644 con el texto del mensaje.
-El backend lo intercepta y responde `422 Unprocessable Entity` con ese texto, en lugar de un
-`500` genérico (ver 5.8.3).
+**Por qué `ERRCODE = 'P0001'`.** Es el código que PostgreSQL usa para excepciones lanzadas por
+el usuario con `RAISE EXCEPTION`. El backend lo intercepta y responde `422 Unprocessable
+Entity` con ese texto, en lugar de un `500` genérico (ver 5.8.3).
 
 **Por qué dos triggers y no uno.** `BEFORE UPDATE` es obligatorio: sin él, una línea válida
-podría "corregirse" a un estado inválido. Un `CHECK` habría cubierto ambos casos, pero la
-combinación con `ON UPDATE CASCADE` lo vuelve inviable en este esquema.
+podría "corregirse" a un estado inválido. En PostgreSQL un `CHECK` cubriría ambos casos, pero
+los triggers se conservaron para devolver el mismo mensaje de negocio que ya consume la API.
 
 #### 5.7.2 Inmutabilidad de los logs
 
 ```sql
-DELIMITER $$
-CREATE TRIGGER trg_bitacora_bu BEFORE UPDATE ON bitacora
-FOR EACH ROW
+CREATE OR REPLACE FUNCTION fn_bitacora_inmutable()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
 BEGIN
-  SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'bitacora: es inmutable, no se permite modificar asientos';
-END$$
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION
+      'bitacora: es inmutable, no se permite borrar asientos'
+      USING ERRCODE = 'P0001';
+  END IF;
+  RAISE EXCEPTION
+    'bitacora: es inmutable, no se permite modificar asientos'
+    USING ERRCODE = 'P0001';
+END;
+$$;
 
-CREATE TRIGGER trg_bitacora_bd BEFORE DELETE ON bitacora
-FOR EACH ROW
-BEGIN
-  SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'bitacora: es inmutable, no se permite borrar asientos';
-END$$
-DELIMITER ;
+CREATE TRIGGER trg_bitacora_bu
+BEFORE UPDATE ON bitacora
+FOR EACH ROW EXECUTE FUNCTION fn_bitacora_inmutable();
+
+CREATE TRIGGER trg_bitacora_bd
+BEFORE DELETE ON bitacora
+FOR EACH ROW EXECUTE FUNCTION fn_bitacora_inmutable();
 ```
 
 Los equivalentes para `historial_etapas` (`trg_historial_etapas_bu` y `_bd`) siguen el mismo
@@ -905,8 +915,8 @@ patrón. **Qué impide.** Que alguien "arregle" un asiento de auditoría o borre
 cambio de etapa. Si un dato se capturó mal, la respuesta correcta es insertar un asiento nuevo
 que lo corrija, no editar el anterior; así la historia sigue siendo reconstruible.
 
-**Límite conocido y deliberado.** `TRUNCATE` no dispara triggers `BEFORE DELETE` en MySQL. Los
-scripts de datos de prueba lo aprovechan para reiniciar el ambiente de desarrollo, y está
+**Límite conocido y deliberado.** `TRUNCATE` no dispara triggers `BEFORE DELETE` en PostgreSQL.
+Los scripts de datos de prueba lo aprovechan para reiniciar el ambiente de desarrollo, y está
 documentado en el comentario del `sql/06_seguridad.sql`. En producción, el usuario de la
 aplicación no tiene privilegio de `TRUNCATE` ni de `DROP`, con lo que el hueco queda cerrado por
 permisos y no por el trigger. Es una decisión consciente: se prefirió un entorno de desarrollo
@@ -925,18 +935,26 @@ que se pueda reiniciar a una protección que en la práctica se acabaría desact
 
 ### 5.8 Procedimientos almacenados, vistas y transacciones
 
-#### 5.8.1 Lo que no existe, y por qué
+#### 5.8.1 Rutinas, vistas y eventos
 
-Una revisión del repositorio confirma que **no hay `CREATE VIEW`, `CREATE PROCEDURE`,
-`CREATE FUNCTION` ni `CREATE EVENT`**. Solo existen los seis triggers de la sección anterior.
-Esa ausencia es una decisión, no un olvido:
+El repositorio incluye dos rutinas en `sql/11_procedimientos_funciones.sql`:
 
-| Elemento ausente | Razón |
-|---|---|
-| Vistas | La lógica de qué columnas ve cada rol no es fija: depende del rol y de si el cliente es confidencial. Una vista tendría que duplicarse por rol y aun así no resolvería el enmascaramiento de campos, que se hace en serialización. |
-| Procedimientos | La lógica transaccional (bloquear refacciones, recalcular totales, escribir bitácora) necesita validaciones y mensajes en español que son más fáciles de probar y versionar en Python. Un procedimiento habría movido esa lógica a un lugar donde el depurador no llega. |
-| Funciones | No hay cálculos que se repitan en varias consultas y que justifiquen una función; el IVA y el descuento VIP se calculan en un solo lugar del backend. |
-| Eventos | No hay tareas programadas. Los respaldos (SEG-08) son responsabilidad del sistema operativo o del proveedor de infraestructura, no del motor. |
+- **`sp_calcular_total_orden(p_orden_id INTEGER)`**: función que devuelve una tabla con el
+  desglose de piezas, mano de obra, descuento VIP, subtotal, IVA y total, y que además persiste
+  esos importes en `ordenes_servicio`. Se invoca con `SELECT * FROM sp_calcular_total_orden(4);`.
+- **`fn_valor_en_custodia()`**: función `STABLE` que suma el valor aproximado de los vehículos
+  con al menos una orden vigente no entregada. Se invoca con `SELECT fn_valor_en_custodia();`.
+
+Ambas están escritas en PL/pgSQL, usan `RAISE EXCEPTION ... USING ERRCODE = 'P0001'` para los
+errores de negocio y son idempotentes porque el script las elimina con `DROP FUNCTION IF EXISTS`
+antes de recrearlas. El nombre `sp_` se conserva por compatibilidad con la documentación previa.
+
+| Elemento | Estado | Razón |
+|---|---|---|
+| Vistas | No implementadas | La lógica de qué columnas ve cada rol no es fija: depende del rol y de si el cliente es confidencial. Una vista tendría que duplicarse por rol y aun así no resolvería el enmascaramiento de campos, que se hace en serialización. |
+| Funciones | Implementadas (bloque 11) | El cálculo de totales y el valor en custodia se necesitan también fuera de la API (psql, scripts de mantenimiento, futuras integraciones). |
+| Procedimientos `CALL` | No usados | PostgreSQL los admite, pero el resultado de estas rutinas se consume como tabla y encaja mejor con `SELECT` y SQLAlchemy. |
+| Eventos | No implementados | No hay tareas programadas. Los respaldos (SEG-08) son responsabilidad del sistema operativo o del proveedor de infraestructura, no del motor. |
 
 #### 5.8.2 Cómo se manejan las transacciones desde el backend
 
@@ -988,28 +1006,27 @@ except OperationalError as exc:
 ```
 
 **Por qué `flush()` y no `commit()` intermedio.** `flush()` envía los `INSERT`/`UPDATE` a la
-transacción y asigna los `AUTO_INCREMENT`, pero no confirma. Eso permite obtener el `id` de la
-orden para las tablas hijas sin abrir la puerta a un estado a medias. Un `commit()` intermedio
-dejaría una orden creada sin historial si el siguiente `INSERT` fallara.
+transacción y resuelve los valores `IDENTITY`, pero no confirma. Eso permite obtener el `id` de
+la orden para las tablas hijas sin abrir la puerta a un estado a medias. Un `commit()`
+intermedio dejaría una orden creada sin historial si el siguiente `INSERT` fallara.
 
 #### 5.8.3 Traducción de errores de la base a errores HTTP
 
-| Situación | Error MySQL | Respuesta de la API |
+| Situación | Error PostgreSQL | Respuesta de la API |
 |---|---|---|
-| Viola el XOR de `detalle_orden` | 1644 (`SQLSTATE 45000`) | `422` con el mensaje del trigger |
-| Falla una llave foránea | 1452 / 1451 | `409` o `400` según el router |
-| Correo de usuario duplicado | 1062 | `409 Conflict` |
+| Viola el XOR de `detalle_orden` | `P0001` (`RAISE EXCEPTION`) | `422` con el mensaje del trigger |
+| Falla una llave foránea | `23503` | `409` o `400` según el router |
+| Correo de usuario duplicado | `23505` | `409 Conflict` |
 | Stock insuficiente (validado antes) | — | `400` con disponible y solicitado |
 | Falla inesperada | Cualquiera | `500` con mensaje genérico y `rollback` |
 
-La traducción del 1644 es explícita en el router de órdenes:
+La traducción del `P0001` es explícita en el router de órdenes:
 
 ```python
 original = getattr(exc, "orig", None)
-if original is not None and getattr(original, "args", None):
-    if original.args[0] == 1644 and len(original.args) > 1:
-        # Regla de negocio lanzada por un trigger (p. ej. XOR del detalle_orden)
-        raise HTTPException(status_code=422, detail=str(original.args[1]))
+if original is not None and getattr(original, "pgcode", None) == "P0001":
+    # Regla de negocio lanzada por un trigger (p. ej. XOR del detalle_orden)
+    raise HTTPException(status_code=422, detail=str(original))
 ```
 
 Esto importa para la experiencia de uso: el mecánico ve "debe indicar servicio o refacción,
@@ -1018,8 +1035,8 @@ filtra el SQL ni el nombre de la tabla.
 
 #### 5.8.4 Concurrencia y aislamiento
 
-El motor trabaja con InnoDB y nivel de aislamiento `REPEATABLE READ` (el predeterminado de
-MySQL 8). Para el volumen del taller (10 autos simultáneos, 5 usuarios) no hace falta ajustarlo.
+El motor trabaja con el nivel de aislamiento `READ COMMITTED` (el predeterminado de PostgreSQL).
+Para el volumen del taller (10 autos simultáneos, 5 usuarios) no hace falta ajustarlo.
 Los dos puntos donde la concurrencia podría causar daño se resolvieron así:
 
 - **Stock negativo:** bloqueo pesimista con `FOR UPDATE` y validación dentro del lock.
@@ -1127,7 +1144,7 @@ Los parámetros semilla son dos y son los que el negocio pidió poder ajustar si
 
 | Cambio | Script | Técnica |
 |---|---|---|
-| Agregar `ordenes_servicio.diagnostico` | `09_avance_mecanico.sql` | Verifica `information_schema.COLUMNS` y solo ejecuta el `ALTER TABLE` si la columna no existe. |
+| Agregar `ordenes_servicio.diagnostico` | `09_avance_mecanico.sql` | Usa `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` y `COMMENT ON COLUMN`. |
 | Ligar `compras.orden_id` a órdenes | `04_ordenes.sql` | `ALTER TABLE ... ADD CONSTRAINT` para cerrar el requisito PRV-05 sin recrear la tabla. |
 | Reproducir triggers faltantes | `06_seguridad.sql` | Los triggers de `historial_etapas` ya existían en la base; se agregaron al script para que una instalación desde cero quede idéntica. |
 
@@ -1139,7 +1156,7 @@ reconstruir en otra máquina sin depender de la memoria de quien lo instaló.
 
 ### 6.1 Modelo de roles
 
-El sistema define tres roles en un `ENUM` de MySQL y en un tipo de TypeScript. No hay roles
+El sistema define tres roles en un tipo `ENUM` nativo de PostgreSQL y en un tipo de TypeScript. No hay roles
 personalizados ni permisos granulares por usuario: el rol es una propiedad de la cuenta y cambia
 solo por intervención del administrador.
 
@@ -1209,7 +1226,7 @@ sequenceDiagram
     participant U as Usuario
     participant F as Frontend (React)
     participant A as API (FastAPI)
-    participant D as MySQL
+    participant D as PostgreSQL
 
     U->>F: correo + contraseña
     F->>A: POST /api/v1/login
@@ -1357,8 +1374,8 @@ devuelve modificado ni se muta el estado de la sesión.
 
 #### 6.5.3 La brecha de SEG-19
 
-SEG-19 pide aplicar la restricción **a nivel de base de datos**, no solo en la interfaz. MySQL 8
-no tiene *row-level security* nativa (a diferencia de PostgreSQL). Lo que existe hoy es:
+SEG-19 pide aplicar la restricción **a nivel de base de datos**, no solo en la interfaz.
+PostgreSQL ofrece *row-level security* (RLS), pero todavía no se configuró. Lo que existe hoy es:
 
 - Restricción en la capa de aplicación, que es la que atiende el 100 % del tráfico normal.
 - Credenciales de base de datos distintas por entorno, con un usuario de aplicación que no es
@@ -1366,10 +1383,10 @@ no tiene *row-level security* nativa (a diferencia de PostgreSQL). Lo que existe
 - Ausencia de endpoints que permitan consultar clientes confidenciales sin pasar por el
   serializador.
 
-Eso **no equivale** a seguridad por fila en el motor. Un usuario con acceso directo a MySQL
-podría leer todo. Cerrar la brecha requiere una de tres opciones: vistas por rol con `DEFINER`,
-una capa de proxy que reescriba consultas, o migrar a un motor con RLS. Se documenta como deuda
-técnica con impacto Alto, porque el requisito es explícito y la solución actual es parcial.
+Eso **no equivale** a seguridad por fila en el motor. Un usuario con acceso directo a PostgreSQL
+podría leer todo. Cerrar la brecha ya no exige cambiar de motor: basta con definir políticas RLS
+por rol y una política de `row_security`. Se documenta como deuda técnica con impacto Alto
+porque el requisito es explícito y la solución actual es parcial.
 
 #### 6.5.4 SEG-20: auditoría de consultas a expedientes
 
@@ -1403,7 +1420,7 @@ un asiento es agregar otro. Eso es intencional: la auditoría no debe poder rees
 |---|---|---|---|
 | Sin rate limiting en el login | Medio | Bloqueo de 15 min en el cliente | Límite por IP y por cuenta en el proxy |
 | Token en `localStorage` | Medio | React escapa por defecto; sin HTML crudo | Cookie `HttpOnly` + `SameSite` + CSRF |
-| Sin RLS en MySQL (SEG-19) | Alto | Filtrado y enmascaramiento en la app | Vistas por rol o proxy de consultas |
+| RLS no implementada en PostgreSQL (SEG-19) | Alto | Filtrado y enmascaramiento en la app | Políticas RLS por rol sobre clientes, vehículos y órdenes |
 | SEG-20 sin implementar | Medio | El `ENUM` está listo | Auditar lecturas de expedientes confidenciales |
 | Sin revocación de token distinta de la baja del usuario | Bajo | Recarga del usuario en cada petición | Lista de tokens revocados si se requiere |
 | Sin 2FA | Bajo | Contraseña scrypt | Evaluar TOTP para el Administrador |
@@ -1647,9 +1664,9 @@ decisión correcta era guardar solo la ruta en la base y delegar el archivo a un
 Ese cálculo evitó un esquema que habría hecho inviable el respaldo diario.
 
 **2. Un `CHECK` no siempre es la respuesta.** La regla "una línea es pieza o mano de obra, no
-ambas" parece texto de manual para un `CHECK`. En MySQL, combinada con `ON UPDATE CASCADE` en
-las llaves foráneas, la restricción falla. El trigger no fue un atajo: fue la única opción viable
-sin romper la integridad referencial.
+ambas" parece texto de manual para un `CHECK`. En el diseño original de MySQL, combinada con
+`ON UPDATE CASCADE` en las llaves foráneas, la restricción fallaba. Al migrar a PostgreSQL se
+conservó el trigger porque devuelve un mensaje de negocio que la API ya sabe traducir.
 
 **3. La seguridad por rol no basta cuando el dato es sensible.** SEG-05 obligó a pasar de "el
 mecánico no ve precios" a "el mecánico no ve el nombre del dueño si el cliente es confidencial".
@@ -1670,9 +1687,8 @@ agregaron, en lugar de reescribir la historia y fingir que el alcance siempre fu
 
 | Limitación | Alcance | Impacto |
 |---|---|---|
-| La base no estaba en ejecución durante este reporte | El servicio `MySQL267` apunta a un `my.ini` en una unidad externa desconectada | Las validaciones se hicieron contra el DDL y el diccionario de datos, no contra una instancia viva. Es la limitación más importante de este documento. |
-| Scripts SQL en cp1252 | `sql/*.sql` están guardados en codificación ANSI | Al importarlos como UTF-8, los acentos se ven como caracteres extraños. La estructura y los datos se cargan bien; solo se afecta la legibilidad de los comentarios y de algunos textos. |
-| SEG-19 incompleto | MySQL no tiene RLS nativa | Un acceso directo al motor podría leer expedientes confidenciales. |
+| Migración validada de forma estática | No se ejecutaron los scripts contra una instancia PostgreSQL viva | La sintaxis se revisó con `pglast` y los modelos se contrastaron con SQLAlchemy; los cuerpos PL/pgSQL se revisaron a mano. Falta la prueba de carga completa en un servidor real. |
+| SEG-19 incompleto | PostgreSQL ofrece RLS, pero no se configuró | Un acceso directo al motor podría leer expedientes confidenciales. |
 | SEG-20 incompleto | El `ENUM` existe, pero ningún endpoint escribe `Consulta_Confidencial` | No hay evidencia de quién consultó un expediente confidencial. |
 | Facturación parcial | Tablas y datos fiscales listos; sin generación de PDF ni timbrado | FAC-01 a FAC-03 no se pueden demostrar de punta a punta todavía. |
 | Módulos sin interfaz | Pagos, autorizaciones, reportes, proveedores y configuración | Existen en la base y en el menú como "próximamente". |
@@ -1683,9 +1699,9 @@ agregaron, en lugar de reescribir la historia y fingir que el alcance siempre fu
 
 | Prioridad | Tarea | Requisito | Esfuerzo estimado |
 |:--:|---|---|---|
-| 1 | Levantar MySQL en una ruta estable y ejecutar los 9 scripts desde cero como prueba de reproducibilidad | SEG-08 | 1 día |
+| 1 | Levantar PostgreSQL 16 y ejecutar los 11 scripts desde cero como prueba de reproducibilidad | SEG-08 | 1 día |
 | 2 | Implementar la auditoría de consultas a expedientes confidenciales | SEG-20 | 2 días |
-| 3 | Cerrar la brecha de seguridad por fila con vistas `DEFINER` por rol o un proxy de consultas | SEG-19 | 1 semana |
+| 3 | Cerrar la brecha de seguridad por fila con políticas RLS por rol | SEG-19 | 1 semana |
 | 4 | Generar el documento de factura (PDF) con los datos CFDI ya modelados | FAC-01 a FAC-05 | 1 semana |
 | 5 | Módulo de pagos y autorizaciones en la interfaz | PAG-01 a PAG-07, AUT-01 a AUT-08 | 2 semanas |
 | 6 | Reportes con exportación a Excel y PDF | REP-01 a REP-07 | 2 semanas |
@@ -1754,7 +1770,7 @@ Prefijo común: `/api/v1`. Todas las rutas, salvo el login, exigen
 | **N:M** | Relación de muchos a muchos, resuelta con una tabla puente (`orden_mecanicos`). |
 | **ORM** | *Object-Relational Mapping*: traduce objetos de Python a filas de la base. |
 | **PAC** | Proveedor Autorizado de Certificación: quien timbra los CFDI ante el SAT. |
-| **RLS** | *Row-Level Security*: seguridad por fila a nivel de motor. MySQL no la incluye de forma nativa. |
+| **RLS** | *Row-Level Security*: seguridad por fila a nivel de motor. PostgreSQL la incluye de forma nativa. |
 | **scrypt** | Función de derivación de claves resistente a hardware especializado; se usa para las contraseñas. |
 | **Trigger** | Programa que el motor ejecuta automáticamente ante `INSERT`, `UPDATE` o `DELETE`. |
 | **VIP** | Cliente distinguido: 10 % de descuento en mano de obra y prioridad en la fila (CLI-02, CLI-03). |
@@ -1808,16 +1824,17 @@ E:\Tallermecanico\
 ### Anexo D. Verificación reproducible
 
 ```powershell
-# 1. Crear la base (MySQL 8 en ejecución)
-mysql -u root -p -e "CREATE DATABASE autopulse_elite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+# 1. Crear la base (PostgreSQL 16 en ejecución)
+psql -U postgres -c "CREATE DATABASE autopulse_elite ENCODING 'UTF8';"
 
 # 2. Ejecutar los bloques en orden
 Get-ChildItem sql\*.sql | Sort-Object Name | ForEach-Object {
-    mysql -u root -p --default-character-set=cp1252 autopulse_elite < $_.FullName
+    psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f $_.FullName
 }
 
 # 3. Comprobar el esquema
-mysql -u root -p autopulse_elite -e "SHOW TABLES; SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='autopulse_elite';"
+psql -U postgres -d autopulse_elite -c "\dt"
+psql -U postgres -d autopulse_elite -c "SELECT count(*) FROM information_schema.columns WHERE table_schema='public';"
 
 # 4. Backend
 cd backend
@@ -1833,13 +1850,14 @@ npm run dev
 ```
 
 **Comprobaciones esperadas:** 21 tablas, 218 columnas, 6 triggers
-(`SHOW TRIGGERS;`), y la documentación interactiva de la API en `http://127.0.0.1:8000/docs`.
+(`SELECT tgname FROM pg_trigger WHERE NOT tgisinternal;`), y la documentación interactiva de la
+API en `http://127.0.0.1:8000/docs`.
 
 ### Anexo E. Referencias
 
 | Fuente | Uso en el proyecto |
 |---|---|
-| MySQL 8.0 Reference Manual — InnoDB, triggers, `SIGNAL`, `ENUM` | Diseño del esquema y de los triggers |
+| PostgreSQL 16 Documentation — `CREATE TRIGGER`, PL/pgSQL, `ENUM`, RLS | Diseño del esquema, triggers y funciones |
 | FastAPI Documentation | Routers, dependencias y seguridad OAuth2 |
 | SQLAlchemy 2.0 Documentation — ORM, `with_for_update`, Inspector | Modelos, bloqueos y verificación del esquema |
 | RFC 7519 (JWT) y RFC 7914 (scrypt) | Autenticación y almacenamiento de contraseñas |

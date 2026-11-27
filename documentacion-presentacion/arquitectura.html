@@ -510,7 +510,7 @@
         <p class="bajada">
           Apex Elite Motorsport opera con una arquitectura de tres capas:
           un panel React en el navegador, una API REST en FastAPI y una base de
-          datos MySQL. Cada salto entre piezas viaja por un protocolo distinto y
+          datos PostgreSQL. Cada salto entre piezas viaja por un protocolo distinto y
           queda autenticado con JWT.
         </p>
 
@@ -518,7 +518,7 @@
           <span class="chip"><span class="punto"></span> 3 capas</span>
           <span class="chip"><b>Frontend</b> React + TypeScript</span>
           <span class="chip"><b>Backend</b> FastAPI + SQLAlchemy</span>
-          <span class="chip"><b>Datos</b> MySQL 8.x · 21 tablas</span>
+          <span class="chip"><b>Datos</b> PostgreSQL 16 · 21 tablas</span>
           <span class="chip"><b>Seguridad</b> JWT HS256 por rol</span>
         </div>
       </header>
@@ -648,7 +648,7 @@
             <line x1="2" y1="8" x2="55" y2="8" />
             <path d="M55 3 L64 8 L55 13 Z" />
           </svg>
-          <span class="detalle-conector">PyMySQL · InnoDB</span>
+          <span class="detalle-conector">psycopg2 · PostgreSQL</span>
         </div>
 
         <article class="capa">
@@ -667,15 +667,15 @@
           </header>
 
           <p class="descripcion">
-            MySQL guarda las 21 tablas del negocio con borrado lógico: nada se
+            PostgreSQL guarda las 21 tablas del negocio con borrado lógico: nada se
             elimina físicamente. La bitácora y el historial de etapas son
             inmutables y están protegidos por triggers.
           </p>
 
           <ul class="chips">
-            <li>MySQL 8.x</li>
-            <li>InnoDB</li>
-            <li>utf8mb4</li>
+            <li>PostgreSQL 16</li>
+            <li>psycopg2</li>
+            <li>UTF-8</li>
             <li>FK RESTRICT</li>
           </ul>
 
@@ -689,7 +689,7 @@
       <section class="seccion">
         <header class="seccion-cabecera">
           <h3>Flujo de una petición</h3>
-          <p>Del clic del mecánico a la fila en MySQL</p>
+          <p>Del clic del mecánico a la fila en PostgreSQL</p>
         </header>
 
         <div class="pasos">

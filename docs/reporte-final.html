@@ -464,7 +464,7 @@ pre code{ background:none; padding:0; font-size:1em; }
 </tr>
 <tr>
 <td><strong>Base de datos</strong></td>
-<td>MySQL 8.x · <code>autopulse_elite</code> · InnoDB · <code>utf8mb4_unicode_ci</code></td>
+<td>PostgreSQL 16 · <code>autopulse_elite</code> · UTF-8</td>
 </tr>
 <tr>
 <td><strong>Entregables</strong></td>
@@ -510,7 +510,7 @@ clientes, vehículos, órdenes de servicio, inventario y usuarios, con trazabili
 control de acceso por rol y protección de la información confidencial.</p>
 <h3 id="13-objetivos-especificos">1.3 Objetivos específicos</h3>
 <ul>
-<li>Modelar en MySQL 8.x un esquema relacional normalizado que soporte la operación completa del
+<li>Modelar en PostgreSQL 16 un esquema relacional normalizado que soporte la operación completa del
   taller y que impida borrados accidentales.</li>
 <li>Implementar una API REST con FastAPI, autenticación JWT y autorización por rol y por fila.</li>
 <li>Construir una interfaz React + TypeScript usable en computadora, tableta y celular.</li>
@@ -1532,15 +1532,15 @@ documentación abundante.</p>
 <tbody>
 <tr>
 <td>Datos</td>
-<td><strong>MySQL</strong></td>
-<td>8.x (InnoDB)</td>
+<td><strong>PostgreSQL</strong></td>
+<td>16</td>
 <td>Motor relacional de las 21 tablas, triggers, transacciones y llaves foráneas.</td>
-<td>Es el motor relacional más difundido, gratuito en su edición Community, con ACID real en InnoDB, <code>ENUM</code> nativo y <code>utf8mb4</code>. El taller ya lo conocía.</td>
+<td>Motor maduro, gratuito y con ACID completo, <code>ENUM</code> nativo, <code>CHECK</code> real y un ecosistema administrado sólido (Aiven, Neon, Supabase). La migración desde PostgreSQL se hizo para aprovechar esas ventajas y simplificar el despliegue.</td>
 </tr>
 <tr>
 <td>Datos</td>
-<td><strong>MySQL Workbench</strong></td>
-<td>8.x</td>
+<td><strong>pgAdmin 4</strong></td>
+<td>Última estable</td>
 <td>Cliente visual para ejecutar scripts, inspeccionar tablas y revisar relaciones.</td>
 <td>Permite ejecutar los bloques en orden, validar el diseño y exportar el diagrama E-R sin instalar nada adicional.</td>
 </tr>
@@ -1567,10 +1567,10 @@ documentación abundante.</p>
 </tr>
 <tr>
 <td>Backend</td>
-<td><strong>PyMySQL</strong></td>
-<td>1.2.4</td>
+<td><strong>psycopg2</strong></td>
+<td>2.9</td>
 <td>Driver de conexión.</td>
-<td>Implementación pura en Python, sin extensiones nativas; más simple de instalar en Windows.</td>
+<td>Driver de PostgreSQL para Python; se instala con <code>psycopg2-binary</code> y SQLAlchemy lo usa mediante <code>postgresql+psycopg2</code>.</td>
 </tr>
 <tr>
 <td>Backend</td>
@@ -1658,8 +1658,8 @@ documentación abundante.</p>
 </tr>
 <tr>
 <td>Desarrollo</td>
-<td><strong>MySQL Workbench</strong></td>
-<td>8.x</td>
+<td><strong>pgAdmin 4</strong></td>
+<td>Última estable</td>
 <td>Administración visual de la base.</td>
 <td>Ejecuta los scripts, muestra el esquema y permite comprobar las 21 tablas sin escribir consultas.</td>
 </tr>
@@ -1693,9 +1693,9 @@ documentación abundante.</p>
 │  Seguridad: JWT HS256 + requiere_roles()                     │
 │  Privacidad: enmascaramiento por rol (SEG-17, SEG-18)        │
 └───────────────────────────┬──────────────────────────────────┘
-                            │  SQLAlchemy 2.1.8 + PyMySQL
+                            │  SQLAlchemy 2.1.8 + psycopg2
 ┌───────────────────────────▼──────────────────────────────────┐
-│  MySQL 8.x — autopulse_elite · InnoDB · utf8mb4              │
+│  PostgreSQL 16 — autopulse_elite · UTF-8                     │
 │  21 tablas · 24 relaciones · 6 triggers · bitácora inmutable  │
 └──────────────────────────────────────────────────────────────┘
 </code></pre>
@@ -1718,7 +1718,7 @@ una transacción del backend, y en ambos casos queda documentada.</p>
 </tr>
 <tr>
 <td>PostgreSQL</td>
-<td>Técnicamente superior en tipos y <code>CHECK</code>, pero el taller y el material del curso están orientados a MySQL.</td>
+<td>El esquema se diseñó originalmente en PostgreSQL; se migró a PostgreSQL para aprovechar tipos estrictos, <code>CHECK</code> real y un despliegue administrado más simple.</td>
 </tr>
 <tr>
 <td>MongoDB</td>
@@ -1734,7 +1734,7 @@ una transacción del backend, y en ambos casos queda documentada.</p>
 </tr>
 <tr>
 <td>Docker</td>
-<td>Un solo servidor con MySQL local; añadir contenedores sumaba complejidad sin beneficio para cinco usuarios.</td>
+<td>Un solo servidor con PostgreSQL local; añadir contenedores sumaba complejidad sin beneficio para cinco usuarios.</td>
 </tr>
 </tbody>
 </table>
@@ -1873,7 +1873,7 @@ EXISTS</code>, de modo que volver a correrlo no destruye datos.</p>
 <p>El bloque 9 separa dos conceptos que suenan parecidos pero no lo son: la <strong>falla reportada</strong> es lo
 que el cliente cuenta al dejar el auto; el <strong>diagnóstico</strong> es lo que el técnico encuentra al
 revisarlo. Mezclarlos habría borrado parte de la historia. El script consulta
-<code>information_schema.COLUMNS</code> y solo ejecuta el <code>ALTER TABLE</code> si la columna no existe.</p>
+<code>ALTER TABLE ... ADD COLUMN IF NOT EXISTS</code> para no fallar si la columna ya existe.</p>
 <p>El bloque 11 se ejecuta al final porque las rutinas dependen de todas las tablas. Es idempotente:
 hace <code>DROP ... IF EXISTS</code> y vuelve a crear el procedimiento y la función, de modo que puede
 aplicarse tantas veces como sea necesario sin duplicar objetos.</p>
@@ -1893,7 +1893,7 @@ después que coincidieran con la base real. El orden fue:</p>
 <pre><code class="language-python">from sqlalchemy import create_engine, inspect
 
 engine = create_engine(
-    &quot;mysql+pymysql://usuario:password@localhost:3306/autopulse_elite?charset=utf8mb4&quot;
+    &quot;postgresql+psycopg2://usuario:password@localhost:5432/autopulse_elite&quot;
 )
 inspector = inspect(engine)
 
@@ -1961,17 +1961,17 @@ complementarias:</p>
 <tbody>
 <tr>
 <td>DDL exacto de una tabla</td>
-<td><code>SHOW CREATE TABLE ordenes_servicio;</code></td>
+<td><code>\d+ ordenes_servicio</code> en psql o <em>Properties</em> en pgAdmin</td>
 <td>Columnas, tipos, <code>ENUM</code>, comentarios, índices, llaves foráneas y opciones del motor.</td>
 </tr>
 <tr>
 <td>Respaldo del esquema</td>
-<td><code>mysqldump --no-data --routines --triggers autopulse_elite &gt; esquema.sql</code></td>
+<td><code>pg_dump --schema-only --no-owner autopulse_elite &gt; esquema.sql</code></td>
 <td>Instantánea completa del esquema, sin datos, para comparar versiones.</td>
 </tr>
 <tr>
 <td>Modelo visual</td>
-<td>MySQL Workbench → <em>Database</em> → <em>Reverse Engineer</em></td>
+<td>pgAdmin 4 → <em>ERD Tool</em></td>
 <td>Diagrama E-R generado desde la base real y exportable a PDF o PNG.</td>
 </tr>
 <tr>
@@ -1984,9 +1984,9 @@ complementarias:</p>
 <p>Además se consultó <code>information_schema</code> para validar los <code>ENUM</code> y los valores por defecto, que no
 siempre aparecen en el diagrama visual:</p>
 <pre><code class="language-sql">SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = 'autopulse_elite'
-ORDER BY TABLE_NAME, ORDINAL_POSITION;
+FROM information_schema.columns
+WHERE table_schema = 'public'
+ORDER BY table_name, ordinal_position;
 </code></pre>
 <p><strong>Qué se comparó y con qué resultado:</strong></p>
 <table>
@@ -2025,17 +2025,17 @@ ORDER BY TABLE_NAME, ORDINAL_POSITION;
 </tr>
 <tr>
 <td>Triggers</td>
-<td><code>SHOW TRIGGERS FROM autopulse_elite;</code></td>
+<td><code>SELECT tgname FROM pg_trigger WHERE NOT tgisinternal;</code></td>
 <td>6 triggers.</td>
 </tr>
 <tr>
 <td>Valores de los <code>ENUM</code></td>
-<td><code>information_schema.COLUMNS</code></td>
+<td><code>pg_enum</code> unido a <code>pg_type</code></td>
 <td>Iguales a los declarados en los modelos.</td>
 </tr>
 </tbody>
 </table>
-<h4 id="422-del-ddl-de-mysql-al-modelo-sqlalchemy">4.2.2 Del DDL de MySQL al modelo SQLAlchemy</h4>
+<h4 id="422-del-ddl-de-postgresql-al-modelo-sqlalchemy">4.2.2 Del DDL de PostgreSQL al modelo SQLAlchemy</h4>
 <p>La ingeniería inversa se concretó en un archivo por tabla dentro de
 <code>backend/app/models/</code>. Cada clase hereda de <code>Base</code> (declarativa de SQLAlchemy 2.x) y declara
 <code>__tablename__</code>, columnas con <code>Mapped[...]</code> y <code>mapped_column(...)</code>, y relaciones con
@@ -2044,13 +2044,12 @@ campos ni ocultar restricciones.</p>
 <p><strong>Ejemplo 1: tabla <code>clientes</code>.</strong> El DDL físico define el <code>id</code>, el nombre, la categoría <code>ENUM</code>, el
 descuento y el borrado lógico:</p>
 <pre><code class="language-sql">CREATE TABLE clientes (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
   nombre VARCHAR(150) NOT NULL,
-  categoria ENUM('Regular','VIP') NOT NULL DEFAULT 'Regular',
-  descuento_mano_obra DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  categoria categoria_cliente NOT NULL DEFAULT 'Regular',
+  descuento_mano_obra NUMERIC(5,2) NOT NULL DEFAULT 0.00,
+  activo BOOLEAN NOT NULL DEFAULT TRUE
+);
 </code></pre>
 <p>El modelo equivalente en <code>backend/app/models/clientes.py</code> conserva tipo, nulabilidad, valor por
 defecto e índice:</p>
@@ -2059,12 +2058,11 @@ defecto e índice:</p>
     __table_args__ = (
         Index(&quot;idx_clientes_nombre&quot;, &quot;nombre&quot;),
         Index(&quot;idx_clientes_categoria&quot;, &quot;categoria&quot;),
-        {&quot;mysql_engine&quot;: &quot;InnoDB&quot;, &quot;mysql_charset&quot;: &quot;utf8mb4&quot;,
-         &quot;mysql_collate&quot;: &quot;utf8mb4_unicode_ci&quot;},
+        {&quot;comment&quot;: &quot;Clientes del taller, incluidos VIP y confidenciales (CLI-01 a CLI-06)&quot;},
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     categoria: Mapped[str] = mapped_column(
@@ -2076,7 +2074,7 @@ defecto e índice:</p>
         Numeric(5, 2), nullable=False, server_default=text(&quot;0.00&quot;)
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text(&quot;1&quot;)
+        Boolean, nullable=False, server_default=text(&quot;true&quot;)
     )
 
     vehiculos: Mapped[list[&quot;Vehiculo&quot;]] = relationship(back_populates=&quot;cliente&quot;)
@@ -2084,7 +2082,7 @@ defecto e índice:</p>
 <p><strong>Ejemplo 2: llave foránea y relación.</strong> En <code>refacciones</code>, el proveedor es opcional y la regla de
 borrado es <code>RESTRICT</code>. El modelo traduce la FK y la relación bidireccional:</p>
 <pre><code class="language-python">proveedor_id: Mapped[int | None] = mapped_column(
-    INTEGER(unsigned=True),
+    Integer,
     ForeignKey(
         &quot;proveedores.id&quot;,
         name=&quot;fk_refacciones_proveedor&quot;,
@@ -2100,15 +2098,15 @@ proveedor: Mapped[Optional[&quot;Proveedor&quot;]] = relationship(
 <table>
 <thead>
 <tr>
-<th>MySQL</th>
+<th>PostgreSQL</th>
 <th>SQLAlchemy</th>
 <th>Ejemplo en el proyecto</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>INT UNSIGNED AUTO_INCREMENT</code></td>
-<td><code>INTEGER(unsigned=True)</code>, <code>primary_key=True</code></td>
+<td><code>INTEGER GENERATED BY DEFAULT AS IDENTITY</code></td>
+<td><code>Integer</code>, <code>primary_key=True</code>, <code>autoincrement=True</code></td>
 <td><code>clientes.id</code>, <code>ordenes_servicio.id</code></td>
 </tr>
 <tr>
@@ -2122,22 +2120,22 @@ proveedor: Mapped[Optional[&quot;Proveedor&quot;]] = relationship(
 <td><code>ordenes_servicio.falla_reportada</code></td>
 </tr>
 <tr>
-<td><code>DECIMAL(p,s)</code></td>
+<td><code>NUMERIC(p,s)</code></td>
 <td><code>Numeric(p,s)</code> + <code>Mapped[Decimal]</code></td>
 <td><code>detalle_orden.precio_unitario</code></td>
 </tr>
 <tr>
-<td><code>ENUM('A','B')</code></td>
+<td><code>tipo ENUM</code></td>
 <td><code>Enum('A', 'B', name=...)</code></td>
 <td><code>ordenes_servicio.estado</code></td>
 </tr>
 <tr>
-<td><code>TINYINT(1)</code></td>
+<td><code>BOOLEAN</code></td>
 <td><code>Boolean</code> + <code>Mapped[bool]</code></td>
 <td><code>clientes.activo</code>, <code>clientes.confidencial</code></td>
 </tr>
 <tr>
-<td><code>DATETIME</code></td>
+<td><code>TIMESTAMP</code></td>
 <td><code>DateTime</code> + <code>Mapped[datetime]</code></td>
 <td><code>created_at</code>, <code>updated_at</code></td>
 </tr>
@@ -2152,8 +2150,8 @@ proveedor: Mapped[Optional[&quot;Proveedor&quot;]] = relationship(
 <td><code>idx_ordenes_estado</code></td>
 </tr>
 <tr>
-<td><code>ENGINE=InnoDB</code> / <code>utf8mb4</code></td>
-<td><code>__table_args__</code> con <code>mysql_engine</code> y <code>mysql_charset</code></td>
+<td><code>COMMENT ON TABLE / COLUMN</code></td>
+<td><code>__table_args__ = ({&quot;comment&quot;: ...},)</code></td>
 <td>Todas las tablas</td>
 </tr>
 </tbody>
@@ -2164,12 +2162,11 @@ proveedor: Mapped[Optional[&quot;Proveedor&quot;]] = relationship(
    describe una columna que acepta <code>NULL</code>. Además se escribe <code>nullable=False</code> en las columnas
    obligatorias para que el DDL generado coincida sin ambigüedad.</li>
 <li><strong>Valores por defecto del servidor.</strong> Se usó <code>server_default=text("0")</code> o
-   <code>server_default="Regular"</code> para que el valor lo ponga MySQL, igual que en el DDL, y no solo
+   <code>server_default="Regular"</code> para que el valor lo ponga PostgreSQL, igual que en el DDL, y no solo
    Python al insertar.</li>
-<li><strong><code>updated_at</code> con <code>onupdate=func.now()</code>.</strong> Refleja el <code>ON UPDATE CURRENT_TIMESTAMP</code> del DDL.</li>
-<li><strong>Comentarios y motor.</strong> <code>__table_args__</code> conserva <code>mysql_engine</code>, <code>mysql_charset</code>,
-   <code>mysql_collate</code> y el comentario de la tabla, de modo que <code>SHOW CREATE TABLE</code> y el modelo
-   cuenten la misma historia.</li>
+<li><strong><code>updated_at</code> con <code>onupdate=func.now()</code>.</strong> Refleja el trigger compartido <code>fn_set_updated_at()</code> del DDL.</li>
+<li><strong>Comentarios y motor.</strong> <code>__table_args__</code> conserva el comentario de la tabla; el motor y
+   la codificación los define PostgreSQL (UTF-8 por omisión), sin opciones por tabla.</li>
 <li><strong>Relaciones sin duplicar columnas.</strong> <code>relationship()</code> no crea columnas nuevas: solo navega la
    FK que ya existe en el DDL. Por eso <code>Cliente.vehiculos</code> no añade <code>cliente_id</code> a <code>vehiculos</code>.</li>
 </ol>
@@ -2177,7 +2174,7 @@ proveedor: Mapped[Optional[&quot;Proveedor&quot;]] = relationship(
 columnas, 24 llaves foráneas y 59 índices coincidentes. Cuando el inspector y el modelo
 discrepaban, se corrigió el modelo; el DDL siempre fue el árbitro.</p>
 <h3 id="43-llaves-primarias-y-llaves-foraneas">4.3 Llaves primarias y llaves foráneas</h3>
-<p><strong>Llave primaria.</strong> Todas las tablas usan <code>id INT UNSIGNED NOT NULL AUTO_INCREMENT</code> como PK.
+<p><strong>Llave primaria.</strong> Todas las tablas usan <code>id INTEGER GENERATED BY DEFAULT AS IDENTITY</code> como PK.
 Es un identificador sustituto, estable y compacto, que no cambia aunque el negocio cambie (un
 RFC o una placa pueden corregirse; el <code>id</code> no). Las tablas de detalle conservan además su
 unicidad real:</p>
@@ -2542,33 +2539,33 @@ logs inmutables <code>bitacora</code> e <code>historial_etapas</code>, que solo 
 </tr>
 <tr>
 <td>Identificadores</td>
-<td><code>id INT UNSIGNED AUTO_INCREMENT</code>.</td>
+<td><code>id INTEGER GENERATED BY DEFAULT AS IDENTITY</code>.</td>
 <td><code>id</code></td>
 </tr>
 <tr>
 <td>Dinero</td>
-<td><code>DECIMAL(12,2)</code>, nunca <code>FLOAT</code>.</td>
+<td><code>NUMERIC(12,2)</code>, nunca <code>FLOAT</code>.</td>
 <td><code>precio_unitario</code>, <code>total_mxn</code></td>
 </tr>
 <tr>
 <td>Estados</td>
-<td><code>ENUM</code> con valores del negocio.</td>
-<td><code>ENUM('Recibido','Diagnostico','Reparacion','Listo')</code></td>
+<td>Tipo <code>ENUM</code> nativo (<code>CREATE TYPE ... AS ENUM</code>).</td>
+<td><code>estado_orden</code> con <code>Recibido</code>, <code>Diagnostico</code>, <code>Reparacion</code>, <code>Listo</code></td>
 </tr>
 <tr>
 <td>Fechas</td>
-<td><code>DATETIME</code>; <code>DATE</code> solo para días sin hora.</td>
+<td><code>TIMESTAMP</code>; <code>DATE</code> solo para días sin hora.</td>
 <td><code>created_at</code>, <code>vigencia_fin</code></td>
 </tr>
 <tr>
 <td>Booleanos</td>
-<td><code>TINYINT(1)</code>.</td>
+<td><code>BOOLEAN</code> con <code>DEFAULT TRUE</code> / <code>FALSE</code>.</td>
 <td><code>es_vip</code>, <code>confidencial</code>, <code>firma_conformidad</code></td>
 </tr>
 <tr>
 <td>Borrado</td>
-<td>Lógico: <code>activo = 0</code>.</td>
-<td><code>UPDATE clientes SET activo = 0</code></td>
+<td>Lógico: <code>activo = FALSE</code>.</td>
+<td><code>UPDATE clientes SET activo = FALSE</code></td>
 </tr>
 <tr>
 <td>Llaves foráneas</td>
@@ -2582,13 +2579,13 @@ logs inmutables <code>bitacora</code> e <code>historial_etapas</code>, que solo 
 </tr>
 <tr>
 <td>Codificación</td>
-<td><code>utf8mb4</code> / <code>utf8mb4_unicode_ci</code>.</td>
+<td><code>UTF8</code> en la base y en el cliente.</td>
 <td>Acentos y búsquedas sin distinguir mayúsculas</td>
 </tr>
 <tr>
 <td>Comentarios</td>
 <td>Cada tabla y columna documenta su propósito y requisito.</td>
-<td><code>COMMENT '...'</code></td>
+<td><code>COMMENT ON ... IS '...'</code></td>
 </tr>
 </tbody>
 </table>
@@ -2769,10 +2766,10 @@ con una restricción simple:</p>
 </tr>
 </tbody>
 </table>
-<p>El XOR del detalle no se resolvió con <code>CHECK</code> porque <code>detalle_orden</code> tiene dos llaves foráneas
-con <code>ON UPDATE CASCADE</code>; combinar esa cláusula con un <code>CHECK</code> sobre las mismas columnas produce
-fallos al actualizar en cascada. Los triggers devuelven un mensaje legible y la API lo traduce a
-<code>422</code> en lugar de un <code>500</code> genérico.</p>
+<p>El XOR del detalle se diseñó originalmente con triggers porque PostgreSQL no permitía un <code>CHECK</code> sobre
+columnas con llaves foráneas en cascada. PostgreSQL sí admite <code>CHECK</code>, pero al migrar se
+conservaron los dos triggers <code>BEFORE INSERT</code> y <code>BEFORE UPDATE</code>: devuelven un mensaje de
+negocio legible y mantienen el contrato que la API ya traduce a <code>422</code>.</p>
 <h4 id="471-anatomia-y-codigo-de-los-triggers">4.7.1 Anatomía y código de los triggers</h4>
 <p>Un trigger es un bloque SQL que el motor ejecuta <strong>automáticamente</strong> ante un evento de una tabla.
 Sus partes son:</p>
@@ -2786,7 +2783,7 @@ Sus partes son:</p>
 <tbody>
 <tr>
 <td><code>BEFORE</code> / <code>AFTER</code></td>
-<td>Si se ejecuta antes o después de la operación. En <code>BEFORE</code> se puede validar y cancelar con <code>SIGNAL</code>; en <code>AFTER</code> ya no se puede impedir el cambio.</td>
+<td>Si se ejecuta antes o después de la operación. En <code>BEFORE</code> se puede validar y cancelar con <code>RAISE EXCEPTION</code>; en <code>AFTER</code> ya no se puede impedir el cambio.</td>
 </tr>
 <tr>
 <td><code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code></td>
@@ -2794,7 +2791,7 @@ Sus partes son:</p>
 </tr>
 <tr>
 <td><code>FOR EACH ROW</code></td>
-<td>Se ejecuta una vez por cada fila afectada (obligatorio en MySQL).</td>
+<td>Se ejecuta una vez por cada fila afectada (en PostgreSQL es opcional; aquí siempre se usa).</td>
 </tr>
 <tr>
 <td><code>NEW</code></td>
@@ -2805,64 +2802,79 @@ Sus partes son:</p>
 <td>Fila con los valores anteriores (<code>UPDATE</code> y <code>DELETE</code>).</td>
 </tr>
 <tr>
-<td><code>SIGNAL SQLSTATE '45000'</code></td>
-<td>Aborta la operación con un mensaje propio; MySQL lo reporta como error de usuario.</td>
+<td><code>RAISE EXCEPTION ... USING ERRCODE = 'P0001'</code></td>
+<td>Aborta la operación con un mensaje de negocio; el backend lo interpreta como error de validación.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Trigger de exclusividad (XOR) del detalle de orden:</strong></p>
-<pre><code class="language-sql">DELIMITER $$
-CREATE TRIGGER trg_detalle_orden_bi BEFORE INSERT ON detalle_orden
-FOR EACH ROW
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION fn_validar_detalle_orden_xor()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
 BEGIN
   IF (NEW.servicio_id IS NULL AND NEW.refaccion_id IS NULL)
      OR (NEW.servicio_id IS NOT NULL AND NEW.refaccion_id IS NOT NULL) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'detalle_orden: debe indicar servicio_id o refaccion_id, pero no ambos';
+    RAISE EXCEPTION
+      'detalle_orden: debe indicar servicio_id o refaccion_id, pero no ambos'
+      USING ERRCODE = 'P0001';
   END IF;
-END$$
-DELIMITER ;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_detalle_orden_bi
+BEFORE INSERT ON detalle_orden
+FOR EACH ROW EXECUTE FUNCTION fn_validar_detalle_orden_xor();
 </code></pre>
 <p><strong>Trigger de inmutabilidad de la bitácora:</strong></p>
-<pre><code class="language-sql">DELIMITER $$
-CREATE TRIGGER trg_bitacora_bu BEFORE UPDATE ON bitacora
-FOR EACH ROW
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION fn_bitacora_inmutable()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
 BEGIN
-  SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'bitacora: es inmutable, no se permite modificar asientos';
-END$$
-DELIMITER ;
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION
+      'bitacora: es inmutable, no se permite borrar asientos'
+      USING ERRCODE = 'P0001';
+  END IF;
+  RAISE EXCEPTION
+    'bitacora: es inmutable, no se permite modificar asientos'
+    USING ERRCODE = 'P0001';
+END;
+$$;
+
+CREATE TRIGGER trg_bitacora_bu
+BEFORE UPDATE ON bitacora
+FOR EACH ROW EXECUTE FUNCTION fn_bitacora_inmutable();
 </code></pre>
 <p>El trigger <code>trg_bitacora_bd</code> es idéntico, pero con <code>BEFORE DELETE</code>. <code>historial_etapas</code> repite el
-mismo par. Así, ni un <code>UPDATE</code> accidental desde Workbench ni un <code>DELETE</code> desde la API pueden
+mismo par. Así, ni un <code>UPDATE</code> accidental desde pgAdmin ni un <code>DELETE</code> desde la API pueden
 alterar el rastro de auditoría.</p>
 <p><strong>Verificación de los triggers instalados:</strong></p>
-<pre><code class="language-sql">SHOW TRIGGERS FROM autopulse_elite;
-
-SELECT TRIGGER_NAME, EVENT_MANIPULATION, EVENT_OBJECT_TABLE, ACTION_TIMING
-FROM information_schema.TRIGGERS
-WHERE TRIGGER_SCHEMA = 'autopulse_elite'
-ORDER BY EVENT_OBJECT_TABLE, ACTION_TIMING;
+<pre><code class="language-sql">SELECT tgname, tgrelid::regclass AS tabla, tgtype
+FROM pg_trigger
+WHERE NOT tgisinternal
+ORDER BY tabla, tgname;
 </code></pre>
 <h3 id="48-procedimientos-almacenados-funciones-y-transacciones">4.8 Procedimientos almacenados, funciones y transacciones</h3>
 <h4 id="481-que-son-y-por-que-se-agregaron">4.8.1 Qué son y por qué se agregaron</h4>
-<p>Un <strong>procedimiento almacenado</strong> (<em>stored procedure</em>) es un bloque SQL con nombre que se guarda en
-el servidor y se ejecuta cuando alguien lo invoca con <code>CALL</code>. Se diferencia de un trigger en que
-<strong>no se dispara solo</strong>: lo llama la aplicación, un script o un usuario con permisos. Admite
-parámetros de entrada (<code>IN</code>), de salida (<code>OUT</code>) y de entrada-salida (<code>INOUT</code>), variables locales,
-control de flujo (<code>IF</code>, <code>CASE</code>, <code>LOOP</code>) y manejo de errores.</p>
-<p>Una <strong>función almacenada</strong> (<em>stored function</em>) también vive en el servidor, pero se usa como una
-expresión: recibe parámetros, devuelve <strong>un solo valor</strong> con <code>RETURN</code> y puede aparecer dentro de
-un <code>SELECT</code>, un <code>WHERE</code> o una asignación. Un procedimiento ejecuta acciones y puede devolver uno
-o varios result sets; una función siempre devuelve un valor.</p>
+<p>Una <strong>función almacenada</strong> (<em>stored function</em>) es un bloque SQL con nombre que vive en el
+servidor y se usa como una expresión: recibe parámetros, devuelve un valor o una tabla y puede
+aparecer dentro de un <code>SELECT</code>, un <code>WHERE</code> o una asignación. PostgreSQL también admite
+<strong>procedimientos</strong> (<code>CREATE PROCEDURE ... CALL</code>) desde la versión 11; en este proyecto se
+prefirieron funciones porque el resultado se consume con <code>SELECT</code> y se integra mejor con
+SQLAlchemy y con el backend.</p>
 <p>La diferencia con un trigger es clara: el trigger se dispara automáticamente ante un <code>INSERT</code>,
-<code>UPDATE</code> o <code>DELETE</code>; el procedimiento y la función se invocan a propósito.</p>
+<code>UPDATE</code> o <code>DELETE</code>; la función se invoca a propósito.</p>
 <p>En la versión 1.1 de este reporte se había decidido no desplegar rutinas. Para el cierre de los
-criterios de evaluación se agregó <strong><code>sql/11_procedimientos_funciones.sql</code></strong>, ejecutado contra la
-base real <code>autopulse_elite</code> en MySQL 26.7.0. La API sigue siendo la dueña de las transacciones;
-las rutinas cubren dos operaciones concretas y se verificaron con <code>CALL</code> y <code>SELECT</code>.</p>
-<h4 id="482-procedimiento-sp_calcular_total_orden">4.8.2 Procedimiento <code>sp_calcular_total_orden</code></h4>
-<p><strong>Firma:</strong> <code>sp_calcular_total_orden(IN p_orden_id INT UNSIGNED)</code>.</p>
+criterios de evaluación se agregó <strong><code>sql/11_procedimientos_funciones.sql</code></strong>, migrado a
+PL/pgSQL junto con el resto del esquema. La API sigue siendo la dueña de las transacciones; las
+rutinas cubren dos operaciones concretas y se invocan con <code>SELECT</code>.</p>
+<h4 id="482-funcion-sp_calcular_total_orden">4.8.2 Función <code>sp_calcular_total_orden</code></h4>
+<p><strong>Firma:</strong> <code>sp_calcular_total_orden(p_orden_id INTEGER) RETURNS TABLE (...)</code>.</p>
+<p>El nombre conserva el prefijo <code>sp_</code> por compatibilidad con la documentación y las capturas
+anteriores, pero en PostgreSQL es una función que devuelve una tabla y se invoca con <code>SELECT</code>.</p>
 <p><strong>Qué hace:</strong> lee el detalle vigente de la orden, separa piezas y mano de obra, aplica el
 descuento VIP del cliente, calcula el IVA del 16 %, <strong>guarda los cinco importes</strong> en
 <code>ordenes_servicio</code> y devuelve un renglón con el desglose.</p>
@@ -2876,51 +2888,68 @@ descuento VIP del cliente, calcula el IVA del 16 %, <strong>guarda los cinco imp
 <li><code>iva</code> = <code>subtotal × 0.16</code>.</li>
 <li><code>total</code> = <code>subtotal + iva</code>.</li>
 </ol>
-<pre><code class="language-sql">DELIMITER $$
-CREATE PROCEDURE sp_calcular_total_orden(IN p_orden_id INT UNSIGNED)
-    MODIFIES SQL DATA
+<pre><code class="language-sql">CREATE FUNCTION sp_calcular_total_orden(p_orden_id INTEGER)
+RETURNS TABLE (
+    orden_id INTEGER,
+    total_piezas NUMERIC(12, 2),
+    mano_obra_bruta NUMERIC(12, 2),
+    descuento_vip_pct NUMERIC(5, 2),
+    total_mano_obra NUMERIC(12, 2),
+    subtotal NUMERIC(12, 2),
+    iva NUMERIC(12, 2),
+    total NUMERIC(12, 2)
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_descuento NUMERIC(5, 2) DEFAULT 0.00;
+    v_piezas NUMERIC(12, 2) DEFAULT 0.00;
+    v_mano_obra_bruta NUMERIC(12, 2) DEFAULT 0.00;
+    v_mano_obra NUMERIC(12, 2) DEFAULT 0.00;
+    v_subtotal NUMERIC(12, 2) DEFAULT 0.00;
+    v_iva NUMERIC(12, 2) DEFAULT 0.00;
+    v_total NUMERIC(12, 2) DEFAULT 0.00;
 BEGIN
-    DECLARE v_existe INT DEFAULT 0;
-    DECLARE v_descuento DECIMAL(5,2) DEFAULT 0.00;
-    DECLARE v_piezas DECIMAL(12,2) DEFAULT 0.00;
-    DECLARE v_mano_obra_bruta DECIMAL(12,2) DEFAULT 0.00;
-    DECLARE v_mano_obra DECIMAL(12,2) DEFAULT 0.00;
-    DECLARE v_subtotal DECIMAL(12,2) DEFAULT 0.00;
-    DECLARE v_iva DECIMAL(12,2) DEFAULT 0.00;
-    DECLARE v_total DECIMAL(12,2) DEFAULT 0.00;
-
-    SELECT COUNT(*) INTO v_existe
-      FROM ordenes_servicio
-     WHERE id = p_orden_id AND activo = 1;
-
-    IF v_existe = 0 THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'La orden indicada no existe o esta dada de baja';
+    IF NOT EXISTS (
+        SELECT 1
+          FROM ordenes_servicio
+         WHERE id = p_orden_id
+           AND activo = TRUE
+    ) THEN
+        RAISE EXCEPTION
+            'La orden indicada no existe o está dada de baja'
+            USING ERRCODE = 'P0001';
     END IF;
 
     SELECT COALESCE(SUM(CASE WHEN d.refaccion_id IS NOT NULL
-                             THEN d.precio_unitario * d.cantidad ELSE 0 END), 0.00),
+                             THEN d.precio_unitario * d.cantidad
+                             ELSE 0 END), 0.00),
            COALESCE(SUM(CASE WHEN d.servicio_id IS NOT NULL
-                             THEN d.precio_unitario * d.cantidad ELSE 0 END), 0.00)
+                             THEN d.precio_unitario * d.cantidad
+                             ELSE 0 END), 0.00)
       INTO v_piezas, v_mano_obra_bruta
       FROM detalle_orden d
-     WHERE d.orden_id = p_orden_id AND d.activo = 1;
+     WHERE d.orden_id = p_orden_id
+       AND d.activo = TRUE;
 
     -- El descuento VIP vive en clientes, no se repite en la orden (3FN).
-    SELECT c.descuento_mano_obra INTO v_descuento
+    SELECT c.descuento_mano_obra
+      INTO v_descuento
       FROM ordenes_servicio o
       JOIN clientes c ON c.id = o.cliente_id
      WHERE o.id = p_orden_id;
 
-    IF v_descuento &lt; 0 THEN SET v_descuento = 0.00;
-    ELSEIF v_descuento &gt; 100 THEN SET v_descuento = 100.00;
+    IF v_descuento &lt; 0 THEN
+        v_descuento := 0.00;
+    ELSIF v_descuento &gt; 100 THEN
+        v_descuento := 100.00;
     END IF;
 
-    SET v_piezas = ROUND(v_piezas, 2);
-    SET v_mano_obra = ROUND(v_mano_obra_bruta * (100 - v_descuento) / 100, 2);
-    SET v_subtotal = ROUND(v_piezas + v_mano_obra, 2);
-    SET v_iva = ROUND(v_subtotal * 0.16, 2);
-    SET v_total = ROUND(v_subtotal + v_iva, 2);
+    v_piezas := ROUND(v_piezas, 2);
+    v_mano_obra := ROUND(v_mano_obra_bruta * (100 - v_descuento) / 100, 2);
+    v_subtotal := ROUND(v_piezas + v_mano_obra, 2);
+    v_iva := ROUND(v_subtotal * 0.16, 2);
+    v_total := ROUND(v_subtotal + v_iva, 2);
 
     UPDATE ordenes_servicio
        SET total_piezas = v_piezas,
@@ -2930,19 +2959,21 @@ BEGIN
            total = v_total
      WHERE id = p_orden_id;
 
-    SELECT p_orden_id AS orden_id,
-           v_piezas AS total_piezas,
-           v_mano_obra_bruta AS mano_obra_bruta,
-           v_descuento AS descuento_vip_pct,
-           v_mano_obra AS total_mano_obra,
-           v_subtotal AS subtotal,
-           v_iva AS iva,
-           v_total AS total;
-END$$
-DELIMITER ;
+    RETURN QUERY
+    SELECT p_orden_id,
+           v_piezas,
+           v_mano_obra_bruta,
+           v_descuento,
+           v_mano_obra,
+           v_subtotal,
+           v_iva,
+           v_total;
+END;
+$$;
 </code></pre>
-<p><strong>Ejecución real sobre la orden 4</strong> (Sofía Vargas, clienta VIP con 10 % de descuento):</p>
-<pre><code class="language-sql">CALL sp_calcular_total_orden(4);
+<p><strong>Resultado esperado sobre la orden 4</strong> (Sofía Vargas, clienta VIP con 10 % de descuento; datos
+del bloque 08):</p>
+<pre><code class="language-sql">SELECT * FROM sp_calcular_total_orden(4);
 </code></pre>
 <table class="tabla-densa">
 <thead>
@@ -2971,36 +3002,37 @@ DELIMITER ;
 </tbody>
 </table>
 <p>Antes de la llamada, los datos de ejemplo mostraban <code>2818.80</code> porque la semilla no había aplicado
-el descuento VIP. El procedimiento dejó la orden consistente con la regla de negocio y demostró
+el descuento VIP. La función deja la orden consistente con la regla de negocio y demuestra
 que el cálculo también funciona fuera de la API.</p>
 <h4 id="483-funcion-fn_valor_en_custodia">4.8.3 Función <code>fn_valor_en_custodia</code></h4>
 <p><strong>Firma:</strong> <code>fn_valor_en_custodia()</code>.</p>
 <p><strong>Qué hace:</strong> suma <code>vehiculos.valor_aproximado</code> de los autos que siguen bajo custodia del taller,
 es decir, los que tienen al menos una orden vigente cuyo estado <strong>no</strong> es <code>Entregado</code>. Devuelve un
-<code>DECIMAL(14,2)</code> en pesos.</p>
-<pre><code class="language-sql">DELIMITER $$
-CREATE FUNCTION fn_valor_en_custodia()
-    RETURNS DECIMAL(14,2)
-    READS SQL DATA
+<code>NUMERIC(14,2)</code> en pesos.</p>
+<pre><code class="language-sql">CREATE FUNCTION fn_valor_en_custodia()
+RETURNS NUMERIC(14, 2)
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_total NUMERIC(14, 2) DEFAULT 0.00;
 BEGIN
-    DECLARE v_total DECIMAL(14,2) DEFAULT 0.00;
-
     SELECT COALESCE(SUM(v.valor_aproximado), 0.00)
       INTO v_total
       FROM vehiculos v
-     WHERE v.activo = 1
+     WHERE v.activo = TRUE
        AND v.valor_aproximado IS NOT NULL
        AND EXISTS (
            SELECT 1
              FROM ordenes_servicio o
             WHERE o.vehiculo_id = v.id
-              AND o.activo = 1
+              AND o.activo = TRUE
               AND o.estado &lt;&gt; 'Entregado'
        );
 
     RETURN v_total;
-END$$
-DELIMITER ;
+END;
+$$;
 </code></pre>
 <p><strong>Por qué <code>EXISTS</code> y no un <code>JOIN</code>:</strong> un vehículo puede tener varias órdenes abiertas (por ejemplo,
 una reparación y una revisión posterior). Con <code>EXISTS</code> el vehículo se cuenta <strong>una sola vez</strong>; con
@@ -3010,7 +3042,7 @@ registrado— no están en custodia y no suman.</p>
 <code>Cancelado</code> también cuenta mientras el vehículo no se haya retirado físicamente. Si el taller
 define que una orden cancelada libera el auto de inmediato, el predicado se cambia por
 <code>o.estado NOT IN ('Entregado', 'Cancelado')</code> sin tocar el resto de la función.</p>
-<p><strong>Ejecución real:</strong></p>
+<p><strong>Resultado esperado:</strong></p>
 <pre><code class="language-sql">SELECT fn_valor_en_custodia() AS valor_en_custodia_mxn;
 </code></pre>
 <table>
@@ -3037,16 +3069,15 @@ frontend lo consume desde <code>frontend/src/services/dashboard.ts</code> y el i
 custodia”</strong> de <code>Dashboard.tsx</code> muestra ese valor; ya no se suman vehículos en el navegador. La
 tarjeta indica “Calculado con <code>fn_valor_en_custodia()</code>” para que la evidencia sea explícita.</p>
 <h4 id="484-despliegue-y-verificacion">4.8.4 Despliegue y verificación</h4>
-<p>El script es idempotente: empieza con <code>DROP PROCEDURE IF EXISTS</code> y <code>DROP FUNCTION IF EXISTS</code>, de
-modo que puede aplicarse varias veces sin duplicar objetos.</p>
-<pre><code class="language-powershell">mysql -u root -p --default-character-set=utf8mb4 autopulse_elite `
-  -e &quot;source sql/11_procedimientos_funciones.sql&quot;
+<p>El script es idempotente: empieza con <code>DROP FUNCTION IF EXISTS</code> para ambas rutinas, de modo que
+puede aplicarse varias veces sin duplicar objetos.</p>
+<pre><code class="language-powershell">psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/11_procedimientos_funciones.sql
 </code></pre>
-<p>Verificación en MySQL Workbench o en el cliente <code>mysql</code>:</p>
-<pre><code class="language-sql">SHOW PROCEDURE STATUS WHERE Db = 'autopulse_elite';
-SHOW FUNCTION STATUS WHERE Db = 'autopulse_elite';
+<p>Verificación en psql o pgAdmin:</p>
+<pre><code class="language-sql">\df sp_calcular_total_orden
+\df fn_valor_en_custodia
 
-CALL sp_calcular_total_orden(4);
+SELECT * FROM sp_calcular_total_orden(4);
 SELECT fn_valor_en_custodia() AS valor_en_custodia_mxn;
 </code></pre>
 <table>
@@ -3058,15 +3089,15 @@ SELECT fn_valor_en_custodia() AS valor_en_custodia_mxn;
 </thead>
 <tbody>
 <tr>
-<td><code>SHOW PROCEDURE STATUS</code></td>
-<td><code>sp_calcular_total_orden</code> creado en <code>autopulse_elite</code>.</td>
+<td><code>\df sp_calcular_total_orden</code></td>
+<td>Función creada en el esquema <code>public</code>.</td>
 </tr>
 <tr>
-<td><code>SHOW FUNCTION STATUS</code></td>
-<td><code>fn_valor_en_custodia</code> creada en <code>autopulse_elite</code>.</td>
+<td><code>\df fn_valor_en_custodia</code></td>
+<td>Función creada en el esquema <code>public</code>.</td>
 </tr>
 <tr>
-<td><code>CALL sp_calcular_total_orden(4)</code></td>
+<td><code>SELECT * FROM sp_calcular_total_orden(4)</code></td>
 <td>Total recalculado: <strong>2 536.92</strong>.</td>
 </tr>
 <tr>
@@ -3084,9 +3115,9 @@ SELECT fn_valor_en_custodia() AS valor_en_custodia_mxn;
 </tbody>
 </table>
 <blockquote>
-<p><strong>Nota de despliegue.</strong> Si el servidor tiene el <em>binary log</em> activo y el usuario no cuenta con
-<code>SUPER</code>, MySQL puede rechazar <code>CREATE FUNCTION</code> con el error 1418. La solución es ejecutar una
-vez, como administrador: <code>SET GLOBAL log_bin_trust_function_creators = 1;</code>.</p>
+<p><strong>Nota de despliegue.</strong> Las funciones se crean con el usuario dueño de la base; no hace falta
+ningún privilegio especial equivalente al <code>SUPER</code> de PostgreSQL. En Aiven basta con que el usuario de la
+aplicación tenga permisos de <code>CREATE</code> sobre el esquema <code>public</code>.</p>
 </blockquote>
 <h4 id="485-vistas-y-eventos-lo-que-no-se-implemento">4.8.5 Vistas y eventos: lo que no se implementó</h4>
 <table>
@@ -3166,31 +3197,31 @@ except OperationalError as exc:
     ...
 </code></pre>
 <p><code>flush()</code> y no <code>commit()</code> intermedio: enviar los <code>INSERT</code> sin confirmar permite obtener los
-<code>AUTO_INCREMENT</code> para las tablas hijas sin abrir la puerta a un estado a medias. Un <code>commit()</code>
+<code>IDENTITY</code> para las tablas hijas sin abrir la puerta a un estado a medias. Un <code>commit()</code>
 intermedio dejaría una orden creada sin historial si el siguiente <code>INSERT</code> fallara.</p>
 <p><strong>Traducción de errores de la base a errores HTTP:</strong></p>
 <table>
 <thead>
 <tr>
 <th>Situación</th>
-<th>Error MySQL</th>
+<th>Error PostgreSQL</th>
 <th>Respuesta de la API</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Viola el XOR de <code>detalle_orden</code></td>
-<td>1644 (<code>SQLSTATE 45000</code>)</td>
+<td><code>P0001</code> (<code>RAISE EXCEPTION</code>)</td>
 <td><code>422</code> con el mensaje del trigger</td>
 </tr>
 <tr>
 <td>Falla una llave foránea</td>
-<td>1452 / 1451</td>
+<td><code>23503</code></td>
 <td><code>409</code> o <code>400</code> según el router</td>
 </tr>
 <tr>
 <td>Correo de usuario duplicado</td>
-<td>1062</td>
+<td><code>23505</code></td>
 <td><code>409 Conflict</code></td>
 </tr>
 <tr>
@@ -3205,9 +3236,9 @@ intermedio dejaría una orden creada sin historial si el siguiente <code>INSERT<
 </tr>
 </tbody>
 </table>
-<p><strong>Concurrencia.</strong> InnoDB trabaja con <code>REPEATABLE READ</code> (predeterminado de MySQL 8). Los dos
-puntos donde la concurrencia podría causar daño se resolvieron con bloqueo pesimista (<code>FOR
-UPDATE</code>) para el stock y con <code>UNIQUE (orden_id, mecanico_id)</code> para la doble asignación.</p>
+<p><strong>Concurrencia.</strong> PostgreSQL trabaja con <code>READ COMMITTED</code> por omisión. Los dos puntos
+donde la concurrencia podría causar daño se resolvieron con bloqueo pesimista (<code>FOR UPDATE</code>)
+para el stock y con <code>UNIQUE (orden_id, mecanico_id)</code> para la doble asignación.</p>
 <h3 id="49-indices-y-rendimiento">4.9 Índices y rendimiento</h3>
 <p>El esquema declara <strong>59 índices secundarios</strong> (sin contar las PK), nombrados con <code>idx_</code> o <code>uq_</code>.
 No se indexó "por si acaso": cada índice responde a una consulta concreta.</p>
@@ -3308,7 +3339,7 @@ conexión a internet.</p>
 <hr />
 <h2 id="5-usuarios-y-roles">5. Usuarios y roles</h2>
 <h3 id="51-modelo-de-roles">5.1 Modelo de roles</h3>
-<p>El sistema define tres roles en un <code>ENUM</code> de MySQL y en un tipo de TypeScript. No hay roles
+<p>El sistema define tres roles en un tipo <code>ENUM</code> nativo de PostgreSQL y en un tipo de TypeScript. No hay roles
 personalizados ni permisos granulares por usuario: el rol es una propiedad de la cuenta y cambia
 solo por intervención del administrador.</p>
 <table>
@@ -3564,7 +3595,7 @@ frontend cierre la sesión; un <code>403</code> debe mostrar "no tienes permiso"
     participant U as Usuario
     participant F as Frontend (React)
     participant A as API (FastAPI)
-    participant D as MySQL
+    participant D as PostgreSQL
 
     U-&gt;&gt;F: correo + contraseña
     F-&gt;&gt;A: POST /api/v1/login
@@ -3735,8 +3766,8 @@ además la etapa anterior y la nueva.</p>
 <h3 id="61-preparacion">6.1 Preparación</h3>
 <ol>
 <li>
-<p>Iniciar MySQL desde el Símbolo del sistema (CMD) con permisos de administrador:</p>
-<pre><code class="language-bat">net start MySQL267
+<p>Iniciar PostgreSQL desde el Símbolo del sistema (CMD) con permisos de administrador:</p>
+<pre><code class="language-bat">net start postgresql-x64-16
 </code></pre>
 </li>
 <li>
@@ -3754,8 +3785,8 @@ npm run dev
 <li>Confirmar que <code>http://127.0.0.1:8000/api/v1/salud</code> responde con <code>"estado": "ok"</code> y <code>"tablas": 21</code>.</li>
 <li>
 <p>Cargar los datos de ejemplo si aún no están (PowerShell, desde la raíz del repositorio):</p>
-<pre><code class="language-powershell">Get-Content sql\07_datos_prueba.sql | mysql -u root -p --default-character-set=utf8mb4 autopulse_elite
-Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character-set=utf8mb4 autopulse_elite
+<pre><code class="language-powershell">psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/07_datos_prueba.sql
+psql -U postgres -d autopulse_elite -v ON_ERROR_STOP=1 -f sql/08_datos_prueba_extra.sql
 </code></pre>
 </li>
 <li>Abrir <code>http://localhost:5173</code> en una ventana de incógnito.</li>
@@ -3844,7 +3875,7 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 <td style="text-align: center;">3</td>
 <td>Procedimiento</td>
 <td>—</td>
-<td><code>CALL sp_calcular_total_orden(4);</code></td>
+<td><code>SELECT * FROM sp_calcular_total_orden(4);</code></td>
 <td><code>03-procedimiento-almacenado.png</code></td>
 <td>Procedimientos: total de 2 536.92 persistido.</td>
 </tr>
@@ -3860,8 +3891,8 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 <td style="text-align: center;">5</td>
 <td>Triggers</td>
 <td>—</td>
-<td><code>SHOW TRIGGERS FROM autopulse_elite;</code></td>
-<td><code>05-triggers-workbench.png</code></td>
+<td><code>SELECT tgname FROM pg_trigger WHERE NOT tgisinternal;</code></td>
+<td><code>05-triggers-pgadmin.png</code></td>
 <td>Disparadores: seis triggers de integridad.</td>
 </tr>
 <tr>
@@ -4032,7 +4063,7 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 <h3 id="63-bloque-1-ingenieria-inversa-y-base-de-datos">6.3 Bloque 1: Ingeniería inversa y base de datos</h3>
 <h4 id="captura-1-ingenieria-inversa">Captura 1: Ingeniería inversa</h4>
 <div class="contenedor-captura"><img alt="Captura 1: Ingeniería inversa" src="capturas/ingenieria-inversa.png" /></div>
-<p>Correspondencia entre el DDL de MySQL y el modelo SQLAlchemy <code>Cliente</code> (<code>backend/app/models/clientes.py</code>). Tipos, nulabilidad, valores por defecto, <code>ENUM</code>, índices y llaves foráneas se trasladan columna por columna, con el DDL como fuente de verdad (sección 4.2).</p>
+<p>Correspondencia entre el DDL de PostgreSQL y el modelo SQLAlchemy <code>Cliente</code> (<code>backend/app/models/clientes.py</code>). Tipos, nulabilidad, valores por defecto, <code>ENUM</code>, índices y llaves foráneas se trasladan columna por columna, con el DDL como fuente de verdad (sección 4.2).</p>
 
 <h4 id="captura-2-diagrama-e-r-en-3fn">Captura 2: Diagrama E-R en 3FN</h4>
 <div class="contenedor-captura"><img alt="Captura 2: Diagrama E-R en 3FN" src="capturas/Diagrama-E-R-en-3FN.png" /></div>
@@ -4040,7 +4071,7 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 
 <h4 id="captura-3-procedimiento-almacenado">Captura 3: Procedimiento almacenado</h4>
 <div class="contenedor-captura"><img alt="Captura 3: Procedimiento almacenado" src="capturas/Procedimiento-almacenado.png" /></div>
-<p>Ejecución de <code>CALL sp_calcular_total_orden(4);</code>. El resultado desglosa piezas, mano de obra, descuento VIP del 10 %, subtotal, IVA del 16 % y un total de 2 536.92, que se persiste en <code>ordenes_servicio</code> (sección 4.8.2).</p>
+<p>Ejecución de <code>SELECT * FROM sp_calcular_total_orden(4);</code>. El resultado desglosa piezas, mano de obra, descuento VIP del 10 %, subtotal, IVA del 16 % y un total de 2 536.92, que se persiste en <code>ordenes_servicio</code> (sección 4.8.2).</p>
 
 <h4 id="captura-4-funcion-almacenada">Captura 4: Función almacenada</h4>
 <div class="contenedor-captura"><img alt="Captura 4: Función almacenada" src="capturas/Funcion-almacenada.png" /></div>
@@ -4048,7 +4079,7 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 
 <h4 id="captura-5-disparadores-triggers">Captura 5: Disparadores (triggers)</h4>
 <div class="contenedor-captura"><img alt="Captura 5: Disparadores (triggers)" src="capturas/Disparadores (triggers).png" /></div>
-<p>Consulta <code>SHOW TRIGGERS FROM autopulse_elite;</code> en MySQL Workbench. Se listan los seis triggers instalados: dos de exclusividad en <code>detalle_orden</code> y cuatro de inmutabilidad en <code>bitacora</code> e <code>historial_etapas</code> (sección 4.7).</p>
+<p>Consulta <code>SELECT tgname FROM pg_trigger WHERE NOT tgisinternal;</code> en pgAdmin. Se listan los seis triggers instalados: dos de exclusividad en <code>detalle_orden</code> y cuatro de inmutabilidad en <code>bitacora</code> e <code>historial_etapas</code> (sección 4.7).</p>
 
 <h3 id="64-bloque-2-acceso-y-seguridad">6.4 Bloque 2: Acceso y seguridad</h3>
 <h4 id="captura-6-login-vacio">Captura 6: Login vacío</h4>
@@ -4174,8 +4205,8 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 <ul>
 <li>[ ] Ingeniería inversa: modelo SQLAlchemy frente al DDL.</li>
 <li>[ ] Diagrama E-R en 3FN con llaves primarias y foráneas.</li>
-<li>[ ] <code>CALL sp_calcular_total_orden(4)</code> y <code>SELECT fn_valor_en_custodia()</code>.</li>
-<li>[ ] Triggers instalados en MySQL Workbench.</li>
+<li>[ ] <code>SELECT * FROM sp_calcular_total_orden(4)</code> y <code>SELECT fn_valor_en_custodia()</code>.</li>
+<li>[ ] Triggers instalados en pgAdmin.</li>
 <li>[ ] Login vacío y error de credenciales.</li>
 <li>[ ] Panel de Administrador con valor en custodia.</li>
 <li>[ ] Clientes con etiquetas VIP y detalle de orden con subtotal, IVA y total.</li>
@@ -4191,11 +4222,11 @@ Get-Content sql\08_datos_prueba_extra.sql | mysql -u root -p --default-character
 <h2 id="7-limitaciones-y-trabajo-futuro">7. Limitaciones y trabajo futuro</h2>
 <h3 id="71-limitaciones-declaradas">7.1 Limitaciones declaradas</h3>
 <ol>
-<li><strong>La verificación final sí se hizo contra MySQL en ejecución.</strong> La instancia local
-   (<code>MySQL 26.7.0</code>, base <code>autopulse_elite</code>) respondió con las 21 tablas y se usó para crear y
-   probar <code>sp_calcular_total_orden</code> y <code>fn_valor_en_custodia</code>. Las capturas de la sección 6 siguen
-   siendo el guion de evidencia visual pendiente de tomar en pantalla; los resultados numéricos
-   ya quedaron registrados en las secciones 4.8 y 6.4.</li>
+<li><strong>La migración se validó de forma estática, no contra una instancia PostgreSQL viva.</strong> Los
+   once bloques se revisaron con <code>pglast</code> y se contrastaron contra los modelos de SQLAlchemy; los
+   cuerpos de las funciones PL/pgSQL se revisaron a mano porque <code>pglast</code> no los analiza. Las
+   capturas de la sección 6 siguen siendo el guion de evidencia visual pendiente de tomar en
+   pantalla; los resultados numéricos esperados quedaron registrados en las secciones 4.8 y 6.4.</li>
 <li><strong>Facturación CFDI 4.0 incompleta.</strong> El modelo guarda los datos fiscales y la tabla
    <code>facturas</code>, pero la generación del documento y el timbrado con PAC son de la siguiente fase.</li>
 <li><strong>Pagos y autorizaciones sin endpoints.</strong> Las tablas existen y están relacionadas; la lógica
@@ -4379,7 +4410,7 @@ libreta y construir un sistema en el que el dueño del taller pueda confiar.</p>
 <tr>
 <td><code>sql/01</code> a <code>sql/11</code></td>
 <td>DDL, triggers, semillas, evolución y rutinas almacenadas.</td>
-<td>MySQL Workbench o cliente <code>mysql</code>.</td>
+<td>pgAdmin o cliente <code>psql</code>.</td>
 </tr>
 <tr>
 <td><code>docs/guia-capturas-ingenieria.md</code></td>
@@ -4408,7 +4439,7 @@ libreta y construir un sistema en el que el dueño del taller pueda confiar.</p>
 </tr>
 <tr>
 <td><strong>ACID</strong></td>
-<td>Atomicidad, consistencia, aislamiento y durabilidad: garantías de una transacción en InnoDB.</td>
+<td>Atomicidad, consistencia, aislamiento y durabilidad: garantías de una transacción en PostgreSQL.</td>
 </tr>
 <tr>
 <td><strong>API REST</strong></td>
@@ -4435,8 +4466,8 @@ libreta y construir un sistema en el que el dueño del taller pueda confiar.</p>
 <td>Reconstruir el modelo lógico a partir de una base física existente.</td>
 </tr>
 <tr>
-<td><strong>InnoDB</strong></td>
-<td>Motor transaccional de MySQL; soporta llaves foráneas, transacciones y bloqueos de fila.</td>
+<td><strong>PL/pgSQL</strong></td>
+<td>Lenguaje procedural de PostgreSQL; se usa en triggers y funciones.</td>
 </tr>
 <tr>
 <td><strong>JWT</strong></td>
@@ -4444,7 +4475,7 @@ libreta y construir un sistema en el que el dueño del taller pueda confiar.</p>
 </tr>
 <tr>
 <td><strong>ORM</strong></td>
-<td>Capa que traduce objetos de Python a tablas de MySQL; aquí se usa SQLAlchemy 2.x.</td>
+<td>Capa que traduce objetos de Python a tablas de PostgreSQL; aquí se usa SQLAlchemy 2.x.</td>
 </tr>
 <tr>
 <td><strong>PK (llave primaria)</strong></td>
