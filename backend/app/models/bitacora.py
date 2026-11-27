@@ -4,14 +4,15 @@ Refleja exactamente el DDL de sql/06_seguridad.sql.
 
 TABLA INMUTABLE (ADR-006). Por eso:
   * Solo tiene ``created_at``: NO tiene ``updated_at`` ni ``activo``.
-  * Dos triggers bloquean cualquier alteracion en MySQL:
+  * Dos triggers bloquean cualquier alteracion en PostgreSQL:
         trg_bitacora_bu  -> BEFORE UPDATE
         trg_bitacora_bd  -> BEFORE DELETE
-    Ambos lanzan ``SIGNAL SQLSTATE '45000'`` y llegan a Python como
-    ``sqlalchemy.exc.OperationalError`` (MySQL 1644), igual que el trigger de
-    detalle_orden. No es un error de integridad, es una regla del negocio.
-  * ``TRUNCATE`` si esta permitido (limpieza de desarrollo); en produccion el
-    permiso debe quedar restringido al DBA.
+    Ambos lanzan ``RAISE EXCEPTION`` con ``ERRCODE = 'P0001'`` y llegan a
+    Python como ``sqlalchemy.exc.DBAPIError``. No es un error de integridad,
+    es una regla del negocio.
+  * ``TRUNCATE`` si esta permitido (limpieza de desarrollo): en PostgreSQL no
+    dispara los triggers de DELETE. En produccion el permiso debe quedar
+    restringido al DBA.
 
 Si hay un asiento mal capturado no se corrige: se inserta uno nuevo que lo
 explique, como en una bitacora real.

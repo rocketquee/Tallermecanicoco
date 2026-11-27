@@ -5,8 +5,9 @@ Refleja exactamente el DDL de sql/05_finanzas.sql.
 Dos indices UNIQUE conviven con el borrado logico:
   * ``uq_facturas_numero`` -> numero_factura
   * ``uq_facturas_uuid``   -> uuid_cfdi
-MySQL permite varios NULL en un indice UNIQUE, asi que una factura en
-Borrador (sin folio ni UUID todavia) no choca con las demas.
+PostgreSQL, igual que MySQL, permite varios NULL en un indice UNIQUE
+(NULLS DISTINCT por omision), asi que una factura en Borrador (sin folio ni
+UUID todavia) no choca con las demas.
 
 CFDI 4.0: en esta fase el sistema genera los datos y el PAC timbra; la columna
 ``uuid_cfdi`` queda NULL hasta que el contador o el taller la timbra (FAC-05).

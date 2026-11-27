@@ -6,12 +6,12 @@ Tabla puente N:M entre ordenes_servicio y mecanicos. Tiene columnas propias
 (created_at, updated_at, activo), asi que se modela como objeto de asociacion
 (``OrdenMecanico``) y no como simple ``secondary``:
 
-  * El alta/baja se hace aqui, con borrado logico (``activo = 0``), porque el
-    borrado fisico esta prohibido (SEG-07).
+  * El alta/baja se hace aqui, con borrado logico (``activo = FALSE``), porque
+    el borrado fisico esta prohibido (SEG-07).
   * ``UNIQUE (orden_id, mecanico_id)`` impide asignar dos veces al mismo
     mecanico a la misma orden.
   * Para leer comodamente existen las vistas ``OrdenServicio.mecanicos`` y
-    ``Mecanico.ordenes_participa`` (solo lectura, filtran activo = 1).
+    ``Mecanico.ordenes_participa`` (solo lectura, filtran activo = TRUE).
 
 Regla de aplicacion (ADR-003): si se asigna el mecanico responsable en
 ``ordenes_servicio.mecanico_id``, hay que insertarlo tambien aqui.

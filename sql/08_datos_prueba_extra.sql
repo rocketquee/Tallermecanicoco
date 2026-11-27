@@ -1,17 +1,20 @@
 -- =====================================================================
--- Apex Elite Motorsport - Bloque 8: datos de prueba adicionales
+-- Apex Elite Motorsport - Bloque 8: datos de prueba adicionales (PostgreSQL)
 -- Requisitos: CLI-01, VEH-01, ORD-01, ORD-06, ORD-09, ORD-10
 --
 -- Inserta 5 clientes, 5 vehículos, 2 mecánicos, 3 servicios de mano de
 -- obra y 5 órdenes (Recibido, Diagnóstico, Reparación, Listo y Entregado)
 -- para que las pantallas de Clientes, Vehículos y Órdenes tengan datos.
 --
--- El script es idempotente: usa IDs explícitos y "ON DUPLICATE KEY UPDATE"
--- para poder ejecutarlo más de una vez sin duplicar registros.
+-- El script es idempotente: usa IDs explícitos y ON CONFLICT DO NOTHING,
+-- así que se puede ejecutar más de una vez sin duplicar registros.
+-- Requiere haber ejecutado los bloques 01 a 07.
 --
 -- Ejecución:
---   mysql -u root -p autopulse_elite < sql/08_datos_prueba_extra.sql
+--   psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f sql/08_datos_prueba_extra.sql
 -- =====================================================================
+
+BEGIN;
 
 -- ---------------------------------------------------------------------
 -- 5 clientes nuevos (IDs 4 a 8). Continúan a los 3 clientes semilla.
@@ -23,24 +26,24 @@ INSERT INTO clientes
 VALUES
   (4, 'Alejandra Ríos', '5552000001', '5552000011',
    'alejandra.rios@example.com', 'Lomas de Chapultepec 210, CDMX',
-   'Paola (asistente)', 'VIP', 10.00, 1, 0,
+   'Paola (asistente)', 'VIP', 10.00, TRUE, FALSE,
    'Cliente VIP: 10% de descuento en mano de obra y pagos parciales.',
    'RIRA900312ABC', 'Alejandra Ríos', '605', '11000'),
   (5, 'Héctor Mendoza', '5552000002', NULL,
    'hector.mendoza@example.com', 'Del Valle Centro, CDMX', NULL,
-   'Regular', 0.00, 0, 0, NULL, NULL, NULL, NULL, NULL),
+   'Regular', 0.00, FALSE, FALSE, NULL, NULL, NULL, NULL, NULL),
   (6, 'Sofía Vargas', '5552000003', '5552000013',
    'sofia.vargas@example.com', 'Interlomas, Estado de México', NULL,
-   'VIP', 10.00, 1, 0,
+   'VIP', 10.00, TRUE, FALSE,
    'Cliente VIP recurrente. Prefiere comunicación por correo.',
    'VASS880725XYZ', 'Sofía Vargas', '612', '52760'),
   (7, 'Javier Ortega', '5552000004', NULL,
    'javier.ortega@example.com', 'Coyoacán, CDMX', NULL,
-   'Regular', 0.00, 0, 0, NULL, NULL, NULL, NULL, NULL),
+   'Regular', 0.00, FALSE, FALSE, NULL, NULL, NULL, NULL, NULL),
   (8, 'Valeria Núñez', '5552000005', NULL,
    'valeria.nunez@example.com', 'Satélite, Estado de México', NULL,
-   'Regular', 0.00, 0, 0, NULL, NULL, NULL, NULL, NULL)
-ON DUPLICATE KEY UPDATE id = id;
+   'Regular', 0.00, FALSE, FALSE, NULL, NULL, NULL, NULL, NULL)
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- 5 vehículos nuevos (IDs 4 a 8), uno por cada cliente nuevo.
@@ -59,7 +62,7 @@ VALUES
    'Negro', 58300, 760000.00),
   (8, 8, 'PPG-008-H', 'JTDB4MEE5PJ123456', 'Toyota', 'Corolla', 2023,
    'Azul', 9400, 420000.00)
-ON DUPLICATE KEY UPDATE id = id;
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- 2 mecánicos nuevos (IDs 2 y 3).
@@ -71,7 +74,7 @@ VALUES
    'Suspensión y frenos', 'Especialista en tren delantero y frenos de alto desempeño.'),
   (3, 'Fernanda López', '5553000003', 'fernanda.lopez@pizarrogarage.mx',
    'Diagnóstico electrónico', 'Manejo de escáner y calibración de sistemas electrónicos.')
-ON DUPLICATE KEY UPDATE id = id;
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- 3 servicios de mano de obra (IDs 1 a 3).
@@ -86,7 +89,7 @@ VALUES
    850.00, 1.5),
   (3, 'Diagnóstico computarizado', 'Lectura de códigos y diagnóstico con escáner.',
    650.00, 1.0)
-ON DUPLICATE KEY UPDATE id = id;
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- 5 órdenes nuevas (IDs 2 a 6) en etapas distintas.
@@ -100,25 +103,25 @@ INSERT INTO ordenes_servicio
 VALUES
   (2, 4, 4, 2, 'Recibido',
    'Ruido metálico en la suspensión delantera al pasar topes.',
-   0.00, 0.00, 0.00, 0.00, 0.00, 0, NULL,
-   DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+   0.00, 0.00, 0.00, 0.00, 0.00, FALSE, NULL,
+   NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
   (3, 5, 5, 3, 'Diagnostico',
    'Testigo de motor encendido y consumo elevado de combustible.',
-   0.00, 650.00, 650.00, 104.00, 754.00, 0, NULL,
-   DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+   0.00, 650.00, 650.00, 104.00, 754.00, FALSE, NULL,
+   NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days'),
   (4, 6, 6, 2, 'Reparacion',
    'Vibración en el volante y desgaste irregular de las llantas.',
-   0.00, 2430.00, 2430.00, 388.80, 2818.80, 0, NULL,
-   DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+   0.00, 2430.00, 2430.00, 388.80, 2818.80, FALSE, NULL,
+   NOW() - INTERVAL '5 days', NOW() - INTERVAL '1 day'),
   (5, 7, 7, 3, 'Listo',
    'Mantenimiento programado de 40,000 km y revisión general.',
-   0.00, 2050.00, 2050.00, 328.00, 2378.00, 0, NULL,
-   DATE_SUB(NOW(), INTERVAL 7 DAY), NOW()),
+   0.00, 2050.00, 2050.00, 328.00, 2378.00, FALSE, NULL,
+   NOW() - INTERVAL '7 days', NOW()),
   (6, 8, 8, 1, 'Entregado',
    'Mantenimiento preventivo y diagnóstico general.',
-   0.00, 1850.00, 1850.00, 296.00, 2146.00, 0, NULL,
-   DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY))
-ON DUPLICATE KEY UPDATE id = id;
+   0.00, 1850.00, 1850.00, 296.00, 2146.00, FALSE, NULL,
+   NOW() - INTERVAL '10 days', NOW() - INTERVAL '2 days')
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- Asignación formal del responsable en la tabla puente (ORD-09).
@@ -131,7 +134,7 @@ VALUES
   (4, 4, 2),
   (5, 5, 3),
   (6, 6, 1)
-ON DUPLICATE KEY UPDATE id = id;
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- Detalle de mano de obra por orden (ORD-10).
@@ -150,15 +153,16 @@ VALUES
   (6, 5, 2, NULL, 1, 850.00),
   (7, 6, 1, NULL, 1, 1200.00),
   (8, 6, 3, NULL, 1, 650.00)
-ON DUPLICATE KEY UPDATE id = id;
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
 -- Historial de etapas (ORD-06). Se registra la apertura y cada avance
 -- hasta la etapa actual de cada orden.
 -- ---------------------------------------------------------------------
--- Se usa INSERT IGNORE porque historial_etapas tiene un trigger que bloquea
--- cualquier UPDATE (incluso un ON DUPLICATE KEY UPDATE sin cambios reales).
-INSERT IGNORE INTO historial_etapas
+-- Se usa ON CONFLICT DO NOTHING porque historial_etapas tiene un trigger
+-- que bloquea cualquier UPDATE (incluso un upsert sin cambios reales).
+-- DO NOTHING solo omite la fila repetida y no dispara UPDATE.
+INSERT INTO historial_etapas
   (id, orden_id, etapa_anterior, etapa_nueva, usuario_id)
 VALUES
   (1, 1, NULL, 'Recibido', 1),
@@ -181,7 +185,30 @@ VALUES
   (13, 6, 'Recibido', 'Diagnostico', 1),
   (14, 6, 'Diagnostico', 'Reparacion', 1),
   (15, 6, 'Reparacion', 'Listo', 1),
-  (16, 6, 'Listo', 'Entregado', 1);
+  (16, 6, 'Listo', 'Entregado', 1)
+ON CONFLICT (id) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- Ajuste de secuencias de identidad.
+-- Al insertar IDs explícitos la secuencia no avanza sola; sin este
+-- reajuste el siguiente INSERT de la aplicación chocaría con la PK.
+-- ---------------------------------------------------------------------
+SELECT setval(pg_get_serial_sequence('clientes', 'id'),
+              COALESCE((SELECT MAX(id) FROM clientes), 1));
+SELECT setval(pg_get_serial_sequence('vehiculos', 'id'),
+              COALESCE((SELECT MAX(id) FROM vehiculos), 1));
+SELECT setval(pg_get_serial_sequence('mecanicos', 'id'),
+              COALESCE((SELECT MAX(id) FROM mecanicos), 1));
+SELECT setval(pg_get_serial_sequence('servicios', 'id'),
+              COALESCE((SELECT MAX(id) FROM servicios), 1));
+SELECT setval(pg_get_serial_sequence('ordenes_servicio', 'id'),
+              COALESCE((SELECT MAX(id) FROM ordenes_servicio), 1));
+SELECT setval(pg_get_serial_sequence('orden_mecanicos', 'id'),
+              COALESCE((SELECT MAX(id) FROM orden_mecanicos), 1));
+SELECT setval(pg_get_serial_sequence('detalle_orden', 'id'),
+              COALESCE((SELECT MAX(id) FROM detalle_orden), 1));
+SELECT setval(pg_get_serial_sequence('historial_etapas', 'id'),
+              COALESCE((SELECT MAX(id) FROM historial_etapas), 1));
 
 -- ---------------------------------------------------------------------
 -- Verificación rápida (opcional).
@@ -191,3 +218,5 @@ UNION ALL SELECT 'vehiculos', COUNT(*) FROM vehiculos
 UNION ALL SELECT 'mecanicos', COUNT(*) FROM mecanicos
 UNION ALL SELECT 'servicios', COUNT(*) FROM servicios
 UNION ALL SELECT 'ordenes_servicio', COUNT(*) FROM ordenes_servicio;
+
+COMMIT;

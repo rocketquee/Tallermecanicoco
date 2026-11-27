@@ -4,8 +4,9 @@ Refleja exactamente el DDL de sql/06_seguridad.sql.
 
 TABLA INMUTABLE (ADR-006), igual que ``bitacora``:
   * Solo ``created_at``; sin ``updated_at`` ni ``activo``.
-  * Triggers en MySQL: ``trg_historial_etapas_bu`` (UPDATE) y
-    ``trg_historial_etapas_bd`` (DELETE), con ``SIGNAL SQLSTATE '45000'``.
+  * Triggers en PostgreSQL: ``trg_historial_etapas_bu`` (UPDATE) y
+    ``trg_historial_etapas_bd`` (DELETE), con ``RAISE EXCEPTION`` y
+    ``ERRCODE = 'P0001'``.
 
 ``etapa_anterior`` es NULL solo en el asiento de apertura de la orden.
 ``usuario_id`` es lo que permite auditar quién movió la etapa y validar que

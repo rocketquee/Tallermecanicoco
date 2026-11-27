@@ -6,7 +6,7 @@ ADR-007: las reglas de negocio configurables viven en la BD, no en el codigo,
 para que el administrador las ajuste sin redesplegar. ``clave`` es UNIQUE.
 
 ``valor`` es VARCHAR(100): la aplicacion debe validar y convertir el tipo
-(``"cinco"`` no lo detecta MySQL). Valores iniciales del seed:
+(``"cinco"`` no lo valida la base de datos). Valores iniciales del seed:
   * tolerancia_reautorizacion = 5    (AUT-08, porcentaje)
   * umbral_piezas_caras       = 25000 (PAG-06, MXN)
 """
