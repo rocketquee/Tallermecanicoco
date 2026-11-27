@@ -21,11 +21,11 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     String,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -45,15 +45,12 @@ class Usuario(Base):
         Index("idx_usuarios_rol", "rol"),
         Index("idx_usuarios_mecanico", "mecanico_id"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Usuarios del sistema con roles Administrador, Recepcion y Mecanico (SEG-01 a SEG-04)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     correo: Mapped[str] = mapped_column(String(150), nullable=False)
@@ -63,7 +60,7 @@ class Usuario(Base):
         nullable=False,
     )
     mecanico_id: Mapped[int | None] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "mecanicos.id",
             name="fk_usuarios_mecanico",
@@ -81,7 +78,7 @@ class Usuario(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     mecanico: Mapped[Optional["Mecanico"]] = relationship(back_populates="usuarios")

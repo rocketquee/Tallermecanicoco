@@ -18,11 +18,11 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     String,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -39,18 +39,15 @@ class FotoVehiculo(Base):
         Index("idx_fotos_orden", "orden_id"),
         Index("idx_fotos_etapa", "etapa"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Fotos del estado del vehículo por orden, almacenadas fuera de la BD (VEH-03, VEH-08)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     orden_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "ordenes_servicio.id",
             name="fk_fotos_orden",
@@ -65,7 +62,7 @@ class FotoVehiculo(Base):
         nullable=False,
     )
     firma_conformidad: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("0")
+        Boolean, nullable=False, server_default=text("false")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
@@ -77,7 +74,7 @@ class FotoVehiculo(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     orden: Mapped["OrdenServicio"] = relationship(back_populates="fotos")

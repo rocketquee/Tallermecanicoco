@@ -1,4 +1,4 @@
-"""Conexion a MySQL y sesiones de SQLAlchemy 2.x."""
+"""Conexion a PostgreSQL y sesiones de SQLAlchemy 2.x."""
 
 from collections.abc import Generator
 
@@ -12,20 +12,25 @@ from app.core.config import settings
 # sola y exista una unica fuente de verdad: DB_PASSWORD.
 # Por eso NO se usa DATABASE_URL escrita a mano en el .env: si cambias la
 # contrasena en un solo lugar, todo el sistema queda consistente.
+# sslmode solo se agrega si esta definido (Aiven lo exige en la nube).
+_query: dict[str, str] = {}
+if settings.DB_SSLMODE:
+    _query["sslmode"] = settings.DB_SSLMODE
+
 DATABASE_URL = URL.create(
-    drivername=f"mysql+{settings.DB_DRIVER}",
+    drivername=f"postgresql+{settings.DB_DRIVER}",
     username=settings.DB_USER,
     password=settings.DB_PASSWORD.get_secret_value(),
     host=settings.DB_HOST,
     port=settings.DB_PORT,
     database=settings.DB_NAME,
-    query={"charset": "utf8mb4"},
+    query=_query,
 )
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,  # descarta conexiones muertas antes de usarlas
-    pool_recycle=3600,   # MySQL cierra conexiones ociosas a las 8 horas
+    pool_recycle=3600,   # evita conexiones ociosas cerradas por el proxy de la nube
     echo=settings.DB_ECHO,
 )
 

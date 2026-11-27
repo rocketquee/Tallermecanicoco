@@ -42,7 +42,7 @@ class ValorCustodiaOut(BaseModel):
     response_model=ValorCustodiaOut,
     summary="Valor de los vehiculos en custodia",
     description=(
-        "Ejecuta `fn_valor_en_custodia()` en MySQL y devuelve la suma del "
+        "Ejecuta `fn_valor_en_custodia()` en PostgreSQL y devuelve la suma del "
         "valor aproximado de los autos con una orden vigente que aun no se "
         "entrega. Solo Administrador: es un dato economico (SEG-18)."
     ),

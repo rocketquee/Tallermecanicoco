@@ -92,15 +92,15 @@ def listar_proveedores(
 ) -> list[Proveedor]:
     stmt = select(Proveedor)
     if not incluir_inactivos:
-        stmt = stmt.where(Proveedor.activo == 1)
+        stmt = stmt.where(Proveedor.activo.is_(True))
     if q:
         patron = f"%{q.strip()}%"
         stmt = stmt.where(
             or_(
-                Proveedor.nombre.like(patron),
-                Proveedor.pais.like(patron),
-                Proveedor.contacto.like(patron),
-                Proveedor.correo.like(patron),
+                Proveedor.nombre.ilike(patron),
+                Proveedor.pais.ilike(patron),
+                Proveedor.contacto.ilike(patron),
+                Proveedor.correo.ilike(patron),
             )
         )
     stmt = (

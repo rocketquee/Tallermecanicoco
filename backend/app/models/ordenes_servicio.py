@@ -13,12 +13,12 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     Text,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -55,18 +55,15 @@ class OrdenServicio(Base):
         Index("idx_ordenes_fecha", "created_at"),
         Index("idx_ordenes_requiere_autorizacion", "requiere_autorizacion"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Órdenes de servicio con sus cuatro etapas y totales (ORD-01 a ORD-13)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     cliente_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "clientes.id",
             name="fk_ordenes_cliente",
@@ -76,7 +73,7 @@ class OrdenServicio(Base):
         nullable=False,
     )
     vehiculo_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "vehiculos.id",
             name="fk_ordenes_vehiculo",
@@ -86,7 +83,7 @@ class OrdenServicio(Base):
         nullable=False,
     )
     mecanico_id: Mapped[int | None] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "mecanicos.id",
             name="fk_ordenes_mecanico",
@@ -127,7 +124,7 @@ class OrdenServicio(Base):
         Numeric(12, 2), nullable=False, server_default=text("0.00")
     )
     requiere_autorizacion: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("0")
+        Boolean, nullable=False, server_default=text("false")
     )
     motivo_cancelacion: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
@@ -140,7 +137,7 @@ class OrdenServicio(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     cliente: Mapped["Cliente"] = relationship(back_populates="ordenes")
@@ -169,7 +166,7 @@ class OrdenServicio(Base):
         primaryjoin="OrdenServicio.id == orden_mecanicos.c.orden_id",
         secondaryjoin=(
             "and_(Mecanico.id == orden_mecanicos.c.mecanico_id, "
-            "orden_mecanicos.c.activo == 1)"
+            "orden_mecanicos.c.activo.is_(True))"
         ),
         viewonly=True,
     )

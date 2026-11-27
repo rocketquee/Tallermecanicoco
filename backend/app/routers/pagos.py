@@ -155,7 +155,7 @@ def listar_cobranza(
 ) -> list[CobranzaOut]:
     stmt = _consulta_orden()
     if not incluir_inactivos:
-        stmt = stmt.where(OrdenServicio.activo == 1)
+        stmt = stmt.where(OrdenServicio.activo.is_(True))
     if estado is not None:
         stmt = stmt.where(OrdenServicio.estado == estado)
     stmt = (
@@ -188,7 +188,7 @@ def listar_pagos_orden(
     orden = _orden_o_404(db, orden_id)
     pagos = db.scalars(
         select(Pago)
-        .where(Pago.orden_id == orden.id, Pago.activo == 1)
+        .where(Pago.orden_id == orden.id, Pago.activo.is_(True))
         .order_by(Pago.created_at.asc(), Pago.id.asc())
     ).all()
     saldo = saldo_de_orden(db, orden)

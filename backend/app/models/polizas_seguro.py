@@ -12,12 +12,12 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     String,
     Text,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -38,18 +38,15 @@ class PolizaSeguro(Base):
         Index("idx_polizas_vehiculo", "vehiculo_id"),
         Index("idx_polizas_vigencia_fin", "vigencia_fin"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Pólizas de seguro de los vehículos (VEH-04, VEH-05)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     vehiculo_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "vehiculos.id",
             name="fk_polizas_vehiculo",
@@ -73,7 +70,7 @@ class PolizaSeguro(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     vehiculo: Mapped["Vehiculo"] = relationship(back_populates="polizas")

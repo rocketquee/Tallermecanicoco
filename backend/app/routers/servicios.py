@@ -47,11 +47,11 @@ def listar_servicios(
         int, Query(ge=1, le=200, description="Maximo de registros")
     ] = 100,
 ) -> list[Servicio]:
-    stmt = select(Servicio).where(Servicio.activo == 1)
+    stmt = select(Servicio).where(Servicio.activo.is_(True))
     if busqueda:
         texto = f"%{busqueda.strip()}%"
         stmt = stmt.where(
-            or_(Servicio.nombre.like(texto), Servicio.descripcion.like(texto))
+            or_(Servicio.nombre.ilike(texto), Servicio.descripcion.ilike(texto))
         )
     stmt = stmt.order_by(Servicio.nombre.asc(), Servicio.id.asc()).limit(limit)
     return list(db.scalars(stmt))

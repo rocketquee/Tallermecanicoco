@@ -14,8 +14,7 @@ para que el administrador las ajuste sin redesplegar. ``clave`` es UNIQUE.
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Index, String, Text, func, text
-from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -28,15 +27,12 @@ class Parametro(Base):
     __table_args__ = (
         Index("uq_parametros_clave", "clave", unique=True),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Parámetros configurables de tolerancia y umbrales (AUT-08, PAG-06)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     clave: Mapped[str] = mapped_column(String(50), nullable=False)
     valor: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -51,7 +47,7 @@ class Parametro(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     def __repr__(self) -> str:

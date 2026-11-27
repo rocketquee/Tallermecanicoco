@@ -115,7 +115,7 @@ def _ultimas_autorizaciones(
         select(Autorizacion)
         .where(
             Autorizacion.orden_id.in_([orden.id for orden in ordenes]),
-            Autorizacion.activo == 1,
+            Autorizacion.activo.is_(True),
         )
         .order_by(Autorizacion.id.asc())
     ).all()
@@ -152,11 +152,11 @@ def listar_autorizaciones(
         db.scalars(
             _consulta_orden()
             .where(
-                OrdenServicio.activo == 1,
+                OrdenServicio.activo.is_(True),
                 OrdenServicio.estado != "Cancelado",
                 or_(
                     OrdenServicio.total >= _UMBRAL,
-                    OrdenServicio.requiere_autorizacion == 1,
+                    OrdenServicio.requiere_autorizacion.is_(True),
                 ),
             )
             .order_by(OrdenServicio.total.desc(), OrdenServicio.id.desc())
@@ -231,7 +231,7 @@ def resolver_autorizacion(
         select(Autorizacion)
         .where(
             Autorizacion.orden_id == orden.id,
-            Autorizacion.activo == 1,
+            Autorizacion.activo.is_(True),
         )
         .order_by(Autorizacion.id.desc())
     ).first()

@@ -27,13 +27,13 @@ from app.routers import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Avisa al arrancar si MySQL no responde (no impide levantar la API)."""
+    """Avisa al arrancar si PostgreSQL no responde (no impide levantar la API)."""
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        print(f"[startup] Conexion a MySQL OK -> {settings.DB_NAME}")
+        print(f"[startup] Conexion a PostgreSQL OK -> {settings.DB_NAME}")
     except Exception as exc:
-        print(f"[startup] ADVERTENCIA: sin conexion a MySQL -> {exc}")
+        print(f"[startup] ADVERTENCIA: sin conexion a PostgreSQL -> {exc}")
     yield
 
 
@@ -86,16 +86,16 @@ def raiz() -> dict[str, str]:
 @app.get(f"{settings.API_V1_PREFIX}/salud", tags=["inicio"])
 def salud(db: Session = Depends(get_db)) -> dict[str, object]:
     """Comprueba API y base de datos en una sola llamada."""
-    version_mysql = db.execute(text("SELECT VERSION()")).scalar_one()
+    version_postgresql = db.execute(text("SHOW server_version")).scalar_one()
     tablas = db.execute(
         text(
             "SELECT COUNT(*) FROM information_schema.tables "
-            "WHERE table_schema = DATABASE()"
+            "WHERE table_schema = current_schema()"
         )
     ).scalar_one()
     return {
         "estado": "ok",
-        "mysql": version_mysql,
+        "postgresql": version_postgresql,
         "base_de_datos": settings.DB_NAME,
         "tablas": tablas,
     }

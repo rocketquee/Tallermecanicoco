@@ -7,8 +7,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Index, Numeric, String, Text, func, text
-from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy import Boolean, DateTime, Index, Integer, Numeric, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -24,15 +23,12 @@ class Servicio(Base):
     __table_args__ = (
         Index("idx_servicios_nombre", "nombre"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Catálogo de servicios y mano de obra (ORD-10)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     descripcion: Mapped[str | None] = mapped_column(Text)
@@ -50,7 +46,7 @@ class Servicio(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     detalles_orden: Mapped[list["DetalleOrden"]] = relationship(

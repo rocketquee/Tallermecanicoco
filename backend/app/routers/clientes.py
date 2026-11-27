@@ -14,10 +14,11 @@ Convenciones:
 
 * Prefijo ``/api/v1`` aplicado en ``main.py``; aqui solo va ``/clientes``.
 * Borrado logico: no hay DELETE. Se apaga con ``PUT {"activo": false}`` (SEG-07).
-* MySQL usa ``utf8mb4_unicode_ci``, asi que ``LIKE`` ya es insensible a
-  mayusculas y acentos; no hace falta ``ILIKE`` (que ademas rompe el indice).
+* PostgreSQL distingue mayusculas en ``LIKE``; las busquedas usan ``ILIKE``
+  para mantener el comportamiento insensible a mayusculas del sistema anterior
+  (los acentos si se distinguen).
 * Los errores de validacion los responde FastAPI con 422 antes de llegar a la
-  BD. Un ``cliente_id`` inexistente lo rechaza la FK de MySQL.
+  BD. Un ``cliente_id`` inexistente lo rechaza la FK de PostgreSQL.
 """
 
 from decimal import Decimal
@@ -56,7 +57,7 @@ def _cliente_o_404(
     if con_vehiculos:
         # Solo vehiculos vigentes; el historial queda en la BD (SEG-07).
         stmt = stmt.options(
-            selectinload(Cliente.vehiculos.and_(Vehiculo.activo == 1))
+            selectinload(Cliente.vehiculos.and_(Vehiculo.activo.is_(True)))
         )
     cliente = db.scalar(stmt)
     if cliente is None:
@@ -114,17 +115,17 @@ def listar_clientes(
 ) -> list[Cliente]:
     stmt = select(Cliente)
     if not incluir_inactivos:
-        stmt = stmt.where(Cliente.activo == 1)
+        stmt = stmt.where(Cliente.activo.is_(True))
     if categoria is not None:
         stmt = stmt.where(Cliente.categoria == categoria)
     if q:
         patron = f"%{q.strip()}%"
         stmt = stmt.where(
             or_(
-                Cliente.nombre.like(patron),
-                Cliente.correo.like(patron),
-                Cliente.telefono1.like(patron),
-                Cliente.telefono2.like(patron),
+                Cliente.nombre.ilike(patron),
+                Cliente.correo.ilike(patron),
+                Cliente.telefono1.ilike(patron),
+                Cliente.telefono2.ilike(patron),
             )
         )
     stmt = stmt.order_by(Cliente.nombre, Cliente.id).offset(skip).limit(limit)

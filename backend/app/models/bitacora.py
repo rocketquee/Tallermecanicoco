@@ -20,8 +20,7 @@ explique, como en una bitacora real.
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Text, String, text
-from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -40,18 +39,15 @@ class Bitacora(Base):
         Index("idx_bitacora_fecha", "created_at"),
         Index("idx_bitacora_accion", "accion"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Bitácora de auditoría inmutable de altas, cambios, cancelaciones y autorizaciones (SEG-06)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     usuario_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "usuarios.id",
             name="fk_bitacora_usuario",
@@ -62,7 +58,7 @@ class Bitacora(Base):
     )
     tabla_afectada: Mapped[str] = mapped_column(String(100), nullable=False)
     registro_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), nullable=False
+        Integer, nullable=False
     )
     accion: Mapped[str] = mapped_column(
         Enum(

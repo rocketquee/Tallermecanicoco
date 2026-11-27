@@ -7,13 +7,13 @@ from sqlalchemy import (
     DateTime,
     Enum,
     Index,
+    Integer,
     Numeric,
     String,
     Text,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -33,15 +33,12 @@ class Cliente(Base):
         Index("idx_clientes_categoria", "categoria"),
         Index("idx_clientes_confidencial", "confidencial"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Clientes del taller, incluidos VIP y confidenciales (CLI-01 a CLI-06)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     telefono1: Mapped[str | None] = mapped_column(String(20))
@@ -58,10 +55,10 @@ class Cliente(Base):
         Numeric(5, 2), nullable=False, server_default=text("0.00")
     )
     permite_pagos_parciales: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("0")
+        Boolean, nullable=False, server_default=text("false")
     )
     confidencial: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("0")
+        Boolean, nullable=False, server_default=text("false")
     )
     notas: Mapped[str | None] = mapped_column(Text)
     rfc: Mapped[str | None] = mapped_column(String(20))
@@ -78,7 +75,7 @@ class Cliente(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     # 1 cliente -> N vehículos

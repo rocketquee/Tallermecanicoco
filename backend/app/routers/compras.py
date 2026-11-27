@@ -135,7 +135,7 @@ def listar_compras(
 ) -> list[CompraOut]:
     stmt = _consulta_base()
     if not incluir_inactivos:
-        stmt = stmt.where(Compra.activo == 1)
+        stmt = stmt.where(Compra.activo.is_(True))
     if estado is not None:
         stmt = stmt.where(Compra.estado == estado)
     if proveedor_id is not None:

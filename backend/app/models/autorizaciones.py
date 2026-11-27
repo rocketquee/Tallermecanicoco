@@ -20,12 +20,12 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -43,18 +43,15 @@ class Autorizacion(Base):
         Index("idx_autorizaciones_tipo", "tipo"),
         Index("idx_autorizaciones_estado", "aprobado"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Autorizaciones del administrador por monto y por saldo pendiente (AUT-01 a AUT-08)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     orden_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "ordenes_servicio.id",
             name="fk_autorizaciones_orden",
@@ -74,7 +71,7 @@ class Autorizacion(Base):
     )
     monto_orden: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     aprobado: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("0")
+        Boolean, nullable=False, server_default=text("false")
     )
     aprobado_por: Mapped[str | None] = mapped_column(String(150))
     fecha_aprobacion: Mapped[datetime | None] = mapped_column(DateTime)
@@ -88,7 +85,7 @@ class Autorizacion(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     orden: Mapped["OrdenServicio"] = relationship(back_populates="autorizaciones")

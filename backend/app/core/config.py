@@ -32,13 +32,17 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
 
-    # --- Base de datos MySQL 8.x ---
+    # --- Base de datos PostgreSQL (Aiven) ---
     DB_HOST: str = "localhost"
-    DB_PORT: int = 3306
-    DB_USER: str = "root"
+    DB_PORT: int = 5432
+    DB_USER: str = "postgres"
     DB_PASSWORD: SecretStr = SecretStr("")
     DB_NAME: str = "autopulse_elite"
-    DB_DRIVER: str = "pymysql"
+    # Driver de SQLAlchemy. psycopg2 se usa como "postgresql+psycopg2".
+    DB_DRIVER: str = "psycopg2"
+    # Aiven exige SSL: en la nube usa "require" (o "verify-full" con CA).
+    # Localmente se puede dejar vacio para no forzar SSL.
+    DB_SSLMODE: str = ""
     DB_ECHO: bool = False
 
     # --- Seguridad / JWT ---

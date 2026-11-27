@@ -6,8 +6,7 @@ Refleja exactamente el DDL de sql/01_catalogos.sql.
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Index, String, Text, func, text
-from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -25,15 +24,12 @@ class Mecanico(Base):
     __table_args__ = (
         Index("idx_mecanicos_nombre", "nombre"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Catálogo de mecánicos del taller (ORD-09, REP-03, SEG-01)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     telefono: Mapped[str | None] = mapped_column(String(20))
@@ -50,7 +46,7 @@ class Mecanico(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     ordenes: Mapped[list["OrdenServicio"]] = relationship(back_populates="mecanico")
@@ -65,7 +61,7 @@ class Mecanico(Base):
         primaryjoin="Mecanico.id == orden_mecanicos.c.mecanico_id",
         secondaryjoin=(
             "and_(OrdenServicio.id == orden_mecanicos.c.orden_id, "
-            "orden_mecanicos.c.activo == 1)"
+            "orden_mecanicos.c.activo.is_(True))"
         ),
         viewonly=True,
     )

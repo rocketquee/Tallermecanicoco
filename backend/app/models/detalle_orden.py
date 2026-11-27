@@ -3,20 +3,19 @@
 Refleja exactamente el DDL de sql/04_ordenes.sql.
 
 REGLA DE NEGOCIO (ADR-005): cada línea es O mano de obra O refacción, nunca
-las dos y nunca ninguna. MySQL lo garantiza con dos triggers, no con un CHECK,
-porque MySQL prohibe CHECK sobre columnas con FK y ON UPDATE CASCADE:
+las dos y nunca ninguna. Se conservan dos triggers (en PostgreSQL también
+podría usarse un CHECK, pero así la regla y los nombres quedan iguales):
 
     trg_detalle_orden_bi  -> BEFORE INSERT ON detalle_orden
     trg_detalle_orden_bu  -> BEFORE UPDATE ON detalle_orden
 
-Ambos lanzan ``SIGNAL SQLSTATE '45000'`` con el mensaje:
+Ambos lanzan ``RAISE EXCEPTION`` con ``ERRCODE = 'P0001'`` y el mensaje:
     'detalle_orden: debe indicar servicio_id o refaccion_id, pero no ambos'
 
 Consecuencias para la aplicacion:
-  * El error llega como ``sqlalchemy.exc.OperationalError`` (MySQL error 1644,
-    SQLSTATE 45000, verificado contra la BD), no como IntegrityError. En el
-    router hay que capturarlo y traducirlo a un 422 legible.
-  * En los schemas de Pydantic se validara el XOR (exactamente uno de los dos)
+  * El error llega como ``sqlalchemy.exc.DBAPIError`` (SQLSTATE P0001), con el
+    mensaje en ``orig.diag.message_primary``. El router lo traduce a un 422.
+  * En los schemas de Pydantic se valida el XOR (exactamente uno de los dos)
     ANTES de tocar la BD, para dar un mensaje claro y no depender del trigger.
 """
 
@@ -34,7 +33,6 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -54,18 +52,15 @@ class DetalleOrden(Base):
         Index("idx_detalle_orden_servicio", "servicio_id"),
         Index("idx_detalle_orden_refaccion", "refaccion_id"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Detalle de piezas y mano de obra por orden (ORD-10, INV-02)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     orden_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "ordenes_servicio.id",
             name="fk_detalle_orden_orden",
@@ -76,7 +71,7 @@ class DetalleOrden(Base):
     )
     # Excluyente con refaccion_id: lo valida el trigger (ver docstring).
     servicio_id: Mapped[int | None] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "servicios.id",
             name="fk_detalle_orden_servicio",
@@ -86,7 +81,7 @@ class DetalleOrden(Base):
     )
     # Excluyente con servicio_id: lo valida el trigger (ver docstring).
     refaccion_id: Mapped[int | None] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "refacciones.id",
             name="fk_detalle_orden_refaccion",
@@ -106,7 +101,7 @@ class DetalleOrden(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     orden: Mapped["OrdenServicio"] = relationship(back_populates="detalles")

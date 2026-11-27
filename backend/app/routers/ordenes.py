@@ -28,7 +28,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import Select, false, or_, select
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
@@ -119,7 +119,7 @@ def _recalcular_totales(db: Session, orden: OrdenServicio) -> None:
     lineas = db.scalars(
         select(DetalleOrden).where(
             DetalleOrden.orden_id == orden.id,
-            DetalleOrden.activo == 1,
+            DetalleOrden.activo.is_(True),
         )
     ).all()
 
@@ -171,7 +171,7 @@ def _solo_sus_ordenes(
 
     asignadas = select(OrdenMecanico.orden_id).where(
         OrdenMecanico.mecanico_id == usuario.mecanico_id,
-        OrdenMecanico.activo == 1,
+        OrdenMecanico.activo.is_(True),
     )
     return stmt.where(
         or_(
@@ -258,7 +258,7 @@ def listar_ordenes(
 ) -> list[OrdenOut]:
     stmt = _consulta_base()
     if not incluir_inactivos:
-        stmt = stmt.where(OrdenServicio.activo == 1)
+        stmt = stmt.where(OrdenServicio.activo.is_(True))
     if estado is not None:
         stmt = stmt.where(OrdenServicio.estado == estado)
     if cliente_id is not None:
@@ -679,17 +679,21 @@ def registrar_avance(
             )
         )
         db.commit()
-    except OperationalError as exc:
+    except DBAPIError as exc:
         db.rollback()
         original = getattr(exc, "orig", None)
-        if original is not None and getattr(original, "args", None):
-            if original.args[0] == 1644 and len(original.args) > 1:
-                # Regla de negocio lanzada por un trigger (p. ej. XOR del
-                # detalle_orden): se responde como error de validacion.
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail=str(original.args[1]),
-                ) from exc
+        # PostgreSQL: los triggers de negocio lanzan RAISE EXCEPTION con
+        # ERRCODE P0001 (p. ej. el XOR de detalle_orden). Se traduce a 422.
+        pgcode = getattr(original, "pgcode", None) or getattr(
+            original, "sqlstate", None
+        )
+        if pgcode == "P0001":
+            diag = getattr(original, "diag", None)
+            mensaje = getattr(diag, "message_primary", None) or str(original)
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=mensaje,
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No se pudo registrar el avance de la orden",

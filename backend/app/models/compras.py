@@ -19,12 +19,12 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -45,18 +45,15 @@ class Compra(Base):
         Index("idx_compras_estado", "estado"),
         Index("idx_compras_fecha_estimada", "fecha_estimada_llegada"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Órdenes de compra a proveedores internacionales (PRV-03 a PRV-09)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     proveedor_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "proveedores.id",
             name="fk_compras_proveedor",
@@ -67,7 +64,7 @@ class Compra(Base):
     )
     # Orden de servicio que motivo la compra (PRV-05).
     orden_id: Mapped[int | None] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "ordenes_servicio.id",
             name="fk_compras_orden",
@@ -111,7 +108,7 @@ class Compra(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     proveedor: Mapped["Proveedor"] = relationship(back_populates="compras")

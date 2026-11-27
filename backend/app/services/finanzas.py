@@ -66,7 +66,7 @@ def saldos_por_orden(
             func.count(Pago.id),
             func.max(Pago.created_at),
         )
-        .where(Pago.orden_id.in_(ids), Pago.activo == 1)
+        .where(Pago.orden_id.in_(ids), Pago.activo.is_(True))
         .group_by(Pago.orden_id)
     ).all()
 

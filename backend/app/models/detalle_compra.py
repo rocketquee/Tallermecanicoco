@@ -17,7 +17,6 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -35,18 +34,15 @@ class DetalleCompra(Base):
         Index("idx_detalle_compra_compra", "compra_id"),
         Index("idx_detalle_compra_refaccion", "refaccion_id"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Detalle de piezas por orden de compra (tabla puente compras-refacciones)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     compra_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "compras.id",
             name="fk_detalle_compra_compra",
@@ -56,7 +52,7 @@ class DetalleCompra(Base):
         nullable=False,
     )
     refaccion_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "refacciones.id",
             name="fk_detalle_compra_refaccion",
@@ -79,7 +75,7 @@ class DetalleCompra(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     compra: Mapped["Compra"] = relationship(back_populates="detalles")

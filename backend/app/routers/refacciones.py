@@ -112,13 +112,13 @@ def listar_refacciones(
         int, Query(ge=1, le=200, description="Maximo de registros")
     ] = 100,
 ) -> list[RefaccionDisponibleOut]:
-    stmt = select(Refaccion).where(Refaccion.activo == 1)
+    stmt = select(Refaccion).where(Refaccion.activo.is_(True))
     if disponibles:
         stmt = stmt.where(Refaccion.stock_actual > 0)
     if busqueda:
         texto = f"%{busqueda.strip()}%"
         stmt = stmt.where(
-            or_(Refaccion.nombre.like(texto), Refaccion.marca.like(texto))
+            or_(Refaccion.nombre.ilike(texto), Refaccion.marca.ilike(texto))
         )
     stmt = stmt.order_by(Refaccion.nombre.asc(), Refaccion.id.asc()).limit(limit)
     return list(db.scalars(stmt))

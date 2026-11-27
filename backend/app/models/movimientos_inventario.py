@@ -17,7 +17,6 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -35,18 +34,15 @@ class MovimientoInventario(Base):
         Index("idx_movimientos_tipo", "tipo"),
         Index("idx_movimientos_fecha", "created_at"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Trazabilidad de entradas, salidas y ajustes de inventario (INV-02, INV-05)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     refaccion_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "refacciones.id",
             name="fk_movimientos_refaccion",
@@ -72,7 +68,7 @@ class MovimientoInventario(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     refaccion: Mapped["Refaccion"] = relationship(back_populates="movimientos")

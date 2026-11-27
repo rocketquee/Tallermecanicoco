@@ -23,13 +23,13 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     Text,
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -48,18 +48,15 @@ class Factura(Base):
         Index("idx_facturas_orden", "orden_id"),
         Index("idx_facturas_estado", "estado"),
         {
-            "mysql_engine": "InnoDB",
-            "mysql_charset": "utf8mb4",
-            "mysql_collate": "utf8mb4_unicode_ci",
             "comment": "Facturas CFDI 4.0 listas para timbrar por orden (FAC-01 a FAC-05)",
         },
     )
 
     id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True), primary_key=True, autoincrement=True
+        Integer, primary_key=True, autoincrement=True
     )
     orden_id: Mapped[int] = mapped_column(
-        INTEGER(unsigned=True),
+        Integer,
         ForeignKey(
             "ordenes_servicio.id",
             name="fk_facturas_orden",
@@ -92,7 +89,7 @@ class Factura(Base):
         onupdate=func.now(),
     )
     activo: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("1")
+        Boolean, nullable=False, server_default=text("true")
     )
 
     orden: Mapped["OrdenServicio"] = relationship(back_populates="facturas")

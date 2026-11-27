@@ -13,8 +13,9 @@ Convenciones:
 * Prefijo ``/api/v1`` aplicado en ``main.py``; aqui solo va ``/vehiculos``.
 * Borrado logico: no hay DELETE. Se apaga con ``PUT {"activo": false}`` (SEG-07).
 * No se puede registrar un vehiculo a nombre de un cliente dado de baja.
-* MySQL usa ``utf8mb4_unicode_ci``; ``LIKE`` ya es insensible a mayusculas y
-  acentos.
+* PostgreSQL distingue mayusculas en ``LIKE``; las busquedas usan ``ILIKE``
+  para mantener el comportamiento insensible a mayusculas (los acentos si se
+  distinguen).
 """
 
 from typing import Annotated
@@ -111,17 +112,17 @@ def listar_vehiculos(
 ) -> list[VehiculoOut]:
     stmt = select(Vehiculo)
     if not incluir_inactivos:
-        stmt = stmt.where(Vehiculo.activo == 1)
+        stmt = stmt.where(Vehiculo.activo.is_(True))
     if cliente_id is not None:
         stmt = stmt.where(Vehiculo.cliente_id == cliente_id)
     if q:
         patron = f"%{q.strip()}%"
         stmt = stmt.where(
             or_(
-                Vehiculo.placas.like(patron),
-                Vehiculo.vin.like(patron),
-                Vehiculo.marca.like(patron),
-                Vehiculo.modelo.like(patron),
+                Vehiculo.placas.ilike(patron),
+                Vehiculo.vin.ilike(patron),
+                Vehiculo.marca.ilike(patron),
+                Vehiculo.modelo.ilike(patron),
             )
         )
     stmt = stmt.order_by(Vehiculo.placas, Vehiculo.id).offset(skip).limit(limit)
