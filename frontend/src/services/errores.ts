@@ -17,7 +17,7 @@ export function mensajeDeError(error: unknown, respaldo: string): string {
   }
 
   if (!error.response) {
-    return 'No se pudo conectar con el backend. Verifica que esté corriendo en http://127.0.0.1:8000.'
+    return 'No se pudo conectar con el backend. Verifica tu conexión o que el servidor esté disponible.'
   }
 
   const detalle = error.response.data?.detail

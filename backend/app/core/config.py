@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
 
+    # --- CORS ---
+    # "*" permite cualquier origen. En produccion conviene restringir a la URL
+    # del frontend en Vercel; se aceptan varias separadas por coma:
+    #   CORS_ORIGINS=https://miapp.vercel.app,https://miapp-git-main.vercel.app
+    CORS_ORIGINS: str = "*"
+
     # --- Base de datos PostgreSQL (Aiven) ---
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
@@ -60,6 +66,14 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = Path("storage/fotos")
     MAX_FOTO_MB: int = 10
     MAX_FOTOS_POR_VEHICULO: int = 30
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Lista de origenes permitidos a partir de CORS_ORIGINS."""
+        bruto = self.CORS_ORIGINS.strip()
+        if not bruto or bruto == "*":
+            return ["*"]
+        return [origen.strip().rstrip("/") for origen in bruto.split(",") if origen.strip()]
 
     @property
     def upload_path(self) -> Path:

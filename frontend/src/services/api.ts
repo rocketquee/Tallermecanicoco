@@ -1,16 +1,28 @@
 /**
  * Cliente HTTP unico de la aplicacion.
  *
- * baseURL '/api/v1' aprovecha el proxy de Vite en desarrollo:
- *   navegador -> /api/v1/login -> Vite -> http://127.0.0.1:8000/api/v1/login
- * En produccion, el servidor web debe redirigir /api al backend o habilitar CORS.
+ * La URL base se toma de VITE_API_URL, que se define en un .env local o en
+ * las variables del servicio de Railway. Si no existe, se usa
+ * http://localhost:8000 como respaldo para desarrollo.
+ *
+ * El backend expone sus rutas bajo /api/v1, por eso ese prefijo se agrega aqui
+ * y NO debe incluirse dentro de VITE_API_URL.
+ *
+ * En desarrollo tambien existe el proxy de Vite (vite.config.ts), pero ya no
+ * es necesario: las peticiones pueden ir directo al backend.
  */
 
 import axios from 'axios'
 import { cerrarSesion, obtenerToken } from './sesion'
 
+// Se quita una posible barra final para no generar URLs con doble "/".
+const API_ORIGIN = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(
+  /\/+$/,
+  '',
+)
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: `${API_ORIGIN}/api/v1`,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })

@@ -513,7 +513,7 @@ erDiagram
         int id PK
         int proveedor_id FK
         int orden_id FK
-        datetime fecha_pedido
+        timestamp fecha_pedido
         enum estado
         enum moneda_original
         decimal tipo_cambio
@@ -594,7 +594,7 @@ erDiagram
         decimal monto_orden
         boolean aprobado
         varchar aprobado_por
-        datetime fecha_aprobacion
+        timestamp fecha_aprobacion
     }
 
     orden_mecanicos {
@@ -610,7 +610,7 @@ erDiagram
         enum etapa_anterior
         enum etapa_nueva
         int usuario_id FK
-        datetime created_at
+        timestamp created_at
     }
 
     usuarios {
@@ -630,7 +630,7 @@ erDiagram
         int registro_id
         enum accion
         text detalle
-        datetime created_at
+        timestamp created_at
     }
 
     parametros {

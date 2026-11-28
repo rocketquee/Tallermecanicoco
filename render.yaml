@@ -1,0 +1,57 @@
+# =====================================================================
+# Render Blueprint - Backend Apex Elite Motorsport (FastAPI + PostgreSQL/Aiven)
+# =====================================================================
+# Render busca este archivo en la RAIZ DEL REPOSITORIO. Como la aplicacion
+# vive en backend/, se usa rootDir para que el build y el arranque ocurran
+# dentro de esa carpeta.
+#
+# Las variables marcadas con `sync: false` NO se guardan en el repositorio:
+# Render las pide (o las dejas en el panel) al crear el servicio. Ahi van los
+# datos de conexion que entrega Aiven.
+# =====================================================================
+services:
+  - type: web
+    name: apex-elite-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    # Render inyecta $PORT en tiempo de ejecucion: NUNCA lo fijes a 8000.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+
+      # --- Aiven (se capturan en el panel de Render) ---
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: autopulse_elite
+      - key: DB_SSLMODE
+        value: require
+
+      # --- Seguridad ---
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+
+      # --- CORS ---
+      # "*" funciona de inmediato. Cambialo por la URL de Vercel cuando la
+      # tengas, por ejemplo: https://apex-elite.vercel.app
+      - key: CORS_ORIGINS
+        value: "*"

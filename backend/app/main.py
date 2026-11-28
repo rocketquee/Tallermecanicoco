@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -42,6 +43,18 @@ app = FastAPI(
     version="0.1.0",
     description="API de gestion para Apex Elite Motorsport.",
     lifespan=lifespan,
+)
+
+# El frontend (Vercel) llama a esta API desde otro origen. Con DB_SSLMODE y
+# JWT en variables de entorno, CORS_ORIGINS controla que origenes se aceptan.
+# Nota: allow_credentials queda en False porque el JWT viaja en el header
+# Authorization (no en cookies) y porque "*" no es compatible con credenciales.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Modulos de la API. Cada router define su prefijo corto (/clientes) y aqui
